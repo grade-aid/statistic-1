@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Play, ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 type GamePhase = 'start' | 'game' | 'results';
 
@@ -39,6 +40,7 @@ const CELL_SIZE = 24;
 
 const Index = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [phase, setPhase] = useState<GamePhase>('start');
   const [playerPosition, setPlayerPosition] = useState<Position>({ x: 1, y: 1 });
   const [animals, setAnimals] = useState<Animal[]>([]);
@@ -494,8 +496,8 @@ const Index = () => {
   }
 
   if (phase === 'results') {
-    const dataEntries = Object.entries(collected).filter(([, value]) => value > 0);
-    const maxValue = Math.max(...dataEntries.map(([, value]) => value));
+    const dataEntries = Object.entries(collected);
+    const maxValue = Math.max(...Object.values(collected));
 
     return (
       <div className="min-h-screen bg-background p-4">
@@ -515,7 +517,7 @@ const Index = () => {
             <div className="space-y-4">
               {dataEntries.map(([type, count]) => {
                 const config = animalConfig[type as keyof typeof animalConfig];
-                const percentage = (count / maxValue) * 100;
+                const percentage = maxValue > 0 ? (count / maxValue) * 100 : 0;
                 
                 return (
                   <div key={type} className="space-y-2">
@@ -524,14 +526,14 @@ const Index = () => {
                         <span className="text-2xl">{config.emoji}</span>
                         <span className="font-dm-sans font-semibold capitalize">{type}</span>
                       </div>
-                      <span className="font-dm-sans font-bold text-lg">{count}</span>
+                      <span className="font-dm-sans font-bold text-lg">{count > 0 ? count : ''}</span>
                     </div>
                     <div className="w-full bg-muted rounded-full h-6 border-2 border-brand-black">
                       <div 
-                        className={`h-full bg-${config.color} rounded-full transition-all duration-1000 ease-out flex items-center justify-end pr-2`}
-                        style={{ width: `${percentage}%` }}
+                        className={`h-full ${count > 0 ? `bg-${config.color}` : 'bg-muted'} rounded-full transition-all duration-1000 ease-out flex items-center justify-end pr-2`}
+                        style={{ width: count > 0 ? `${percentage}%` : '0%' }}
                       >
-                        <span className="text-xs font-bold text-white">{count}</span>
+                        {count > 0 && <span className="text-xs font-bold text-white">{count}</span>}
                       </div>
                     </div>
                   </div>
@@ -541,9 +543,9 @@ const Index = () => {
           </Card>
 
           <div className="text-center">
-            <Button onClick={resetGame} className="game-button text-xl px-8 py-4">
-              <Play className="mr-2 h-5 w-5" />
-              Play Again
+            <Button onClick={() => navigate('/visualization')} className="game-button text-xl px-8 py-4">
+              <ArrowRight className="mr-2 h-5 w-5" />
+              Continue to Learning
             </Button>
           </div>
         </div>
