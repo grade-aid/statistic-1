@@ -32,11 +32,11 @@ const Visualization = () => {
   const totalAnimals = gameState?.totalCollected || Object.values(collectedData).reduce((sum, count) => sum + count, 0);
 
   const animalConfig = {
-    mammals: { emoji: '🐘', color: 'mammals-red', name: 'Mammals' },
-    birds: { emoji: '🦅', color: 'mammals-red', name: 'Birds' },
-    reptiles: { emoji: '🐍', color: 'mammals-red', name: 'Reptiles' },
-    fish: { emoji: '🐟', color: 'mammals-red', name: 'Fish' },
-    insects: { emoji: '🐛', color: 'mammals-red', name: 'Insects' }
+    mammals: { emoji: '🐘', color: '#ef4444', name: 'Mammals' }, // red
+    birds: { emoji: '🦅', color: '#3b82f6', name: 'Birds' }, // blue  
+    reptiles: { emoji: '🐍', color: '#22c55e', name: 'Reptiles' }, // green
+    fish: { emoji: '🐟', color: '#06b6d4', name: 'Fish' }, // cyan
+    insects: { emoji: '🐛', color: '#eab308', name: 'Insects' } // yellow
   };
 
   const dataEntries = Object.entries(collectedData);
@@ -77,7 +77,7 @@ const Visualization = () => {
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               {Object.entries(animalConfig).map(([type, config]) => (
                 <div key={type} className="text-center">
-                  <div className={`w-16 h-16 rounded-full bg-${config.color} flex items-center justify-center text-3xl mx-auto mb-2 border-4 border-brand-black`}>
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center text-3xl mx-auto mb-2 border-4 border-brand-black" style={{backgroundColor: config.color}}>
                     {config.emoji}
                   </div>
                   <p className="font-dm-sans font-bold text-2xl">{collectedData[type as keyof typeof collectedData]}</p>
@@ -111,8 +111,8 @@ const Visualization = () => {
                     </div>
                     <div className="w-full bg-muted rounded-full h-6 border-2 border-brand-black">
                       <div 
-                        className={`h-full bg-${config.color} rounded-full transition-all duration-1000 ease-out flex items-center justify-end pr-2`}
-                        style={{ width: `${percentage}%` }}
+                        className="h-full rounded-full transition-all duration-1000 ease-out flex items-center justify-end pr-2"
+                        style={{ width: `${percentage}%`, backgroundColor: config.color }}
                       >
                         <span className="text-xs font-bold text-white">{count}</span>
                       </div>
@@ -130,48 +130,76 @@ const Visualization = () => {
               <h3 className="text-2xl font-space-grotesk font-bold">Pie Chart View</h3>
             </div>
             
-            {/* Pie Chart - SVG Implementation */}
+            {/* Pie Chart - Real SVG Implementation */}
             <div className="space-y-4">
               <div className="relative w-64 h-64 mx-auto">
-                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                <svg className="w-full h-full" viewBox="0 0 200 200">
                   {(() => {
-                    let cumulativePercentage = 0;
-                    const colors = {
-                      mammals: '#ef4444', // red
-                      birds: '#ef4444',
-                      reptiles: '#ef4444',
-                      fish: '#ef4444',
-                      insects: '#ef4444'
-                    };
+                    let startAngle = 0;
+                    const radius = 80;
+                    const centerX = 100;
+                    const centerY = 100;
                     
                     return dataEntries.map(([type, count], index) => {
                       const percentage = (count / totalAnimals) * 100;
-                      const strokeDasharray = `${percentage} ${100 - percentage}`;
-                      const strokeDashoffset = -cumulativePercentage;
-                      cumulativePercentage += percentage;
+                      const angle = (percentage / 100) * 360;
+                      const endAngle = startAngle + angle;
                       
-                      return (
-                        <circle
-                          key={type}
-                          cx="50"
-                          cy="50"
-                          r="15.9155"
-                          fill="transparent"
-                          stroke={colors[type as keyof typeof colors]}
-                          strokeWidth="32"
-                          strokeDasharray={strokeDasharray}
-                          strokeDashoffset={strokeDashoffset}
-                          className="transition-all duration-1000"
-                        />
+                      // Convert angles to radians
+                      const startAngleRad = (startAngle * Math.PI) / 180;
+                      const endAngleRad = (endAngle * Math.PI) / 180;
+                      
+                      // Calculate path coordinates
+                      const x1 = centerX + radius * Math.cos(startAngleRad);
+                      const y1 = centerY + radius * Math.sin(startAngleRad);
+                      const x2 = centerX + radius * Math.cos(endAngleRad);
+                      const y2 = centerY + radius * Math.sin(endAngleRad);
+                      
+                      const largeArcFlag = angle > 180 ? 1 : 0;
+                      
+                      const pathData = [
+                        `M ${centerX} ${centerY}`,
+                        `L ${x1} ${y1}`,
+                        `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`,
+                        'Z'
+                      ].join(' ');
+                      
+                      // Label position (middle of slice)
+                      const labelAngle = (startAngle + endAngle) / 2;
+                      const labelAngleRad = (labelAngle * Math.PI) / 180;
+                      const labelRadius = radius * 0.7;
+                      const labelX = centerX + labelRadius * Math.cos(labelAngleRad);
+                      const labelY = centerY + labelRadius * Math.sin(labelAngleRad);
+                      
+                      const config = animalConfig[type as keyof typeof animalConfig];
+                      const slice = (
+                        <g key={type}>
+                          <path
+                            d={pathData}
+                            fill={config.color}
+                            stroke="white"
+                            strokeWidth="2"
+                            className="transition-all duration-300 hover:opacity-80"
+                          />
+                          {percentage > 5 && (
+                            <text
+                              x={labelX}
+                              y={labelY}
+                              textAnchor="middle"
+                              dy="0.3em"
+                              className="text-xs font-bold fill-white"
+                              style={{ textShadow: '1px 1px 1px rgba(0,0,0,0.5)' }}
+                            >
+                              {Math.round(percentage)}%
+                            </text>
+                          )}
+                        </g>
                       );
+                      
+                      startAngle = endAngle;
+                      return slice;
                     });
                   })()}
-                  
-                  {/* Center circle with total */}
-                  <circle cx="50" cy="50" r="15" fill="white" stroke="#000" strokeWidth="2"/>
-                  <text x="50" y="50" textAnchor="middle" dy="0.3em" className="text-xs font-bold fill-black">
-                    {totalAnimals}
-                  </text>
                 </svg>
               </div>
               
@@ -187,7 +215,7 @@ const Visualization = () => {
                     return (
                       <div key={type} className="flex items-center justify-between px-4 py-2 bg-muted rounded-lg">
                         <div className="flex items-center gap-3">
-                          <div className={`w-4 h-4 rounded-full bg-${config.color} border border-brand-black`}></div>
+                          <div className="w-4 h-4 rounded-full border border-brand-black" style={{backgroundColor: config.color}}></div>
                           <span className="font-dm-sans">{config.emoji} {config.name}</span>
                         </div>
                         <span className="font-dm-sans font-bold">{count} ({percentage}%)</span>
