@@ -507,12 +507,22 @@ const Index = () => {
                         <span className="text-2xl">{config.emoji}</span>
                         <span className="font-dm-sans font-semibold capitalize">{type}</span>
                       </div>
-                      
+                      <span className="font-dm-sans font-bold text-lg">{count}</span>
                     </div>
                     <div className="w-full bg-muted rounded-full h-6 border-2 border-brand-black">
-                      <div className={`h-full ${count > 0 ? `bg-${config.color}` : 'bg-muted'} rounded-full transition-all duration-1000 ease-out flex items-center justify-end pr-2`} style={{
-                    width: count > 0 ? `${percentage}%` : '0%'
-                  }}>
+                      <div 
+                        className="h-full rounded-full transition-all duration-1000 ease-out flex items-center justify-end pr-2"
+                        style={{ 
+                          width: count > 0 ? `${percentage}%` : '0%',
+                          backgroundColor: count > 0 ? (
+                            type === 'mammals' ? '#ef4444' :
+                            type === 'birds' ? '#3b82f6' :
+                            type === 'reptiles' ? '#22c55e' :
+                            type === 'fish' ? '#06b6d4' :
+                            type === 'insects' ? '#eab308' : '#6b7280'
+                          ) : '#6b7280'
+                        }}
+                      >
                         {count > 0 && <span className="text-xs font-bold text-white">{count}</span>}
                       </div>
                     </div>
