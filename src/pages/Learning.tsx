@@ -172,7 +172,7 @@ const Learning = () => {
         
         {/* Mini Pie Chart from Visualization */}
         <div className="flex justify-center">
-          <div className="relative w-24 h-24">
+          <div className="relative w-32 h-32">
             <svg className="w-full h-full" viewBox="0 0 200 200">
               {(() => {
                 let startAngle = 0;
@@ -204,6 +204,13 @@ const Learning = () => {
                     'Z'
                   ].join(' ');
                   
+                  // Label position (middle of slice)
+                  const labelAngle = (startAngle + endAngle) / 2;
+                  const labelAngleRad = (labelAngle * Math.PI) / 180;
+                  const labelRadius = radius * 0.7;
+                  const labelX = centerX + labelRadius * Math.cos(labelAngleRad);
+                  const labelY = centerY + labelRadius * Math.sin(labelAngleRad);
+                  
                   const config = animalConfig[type as keyof typeof animalConfig];
                   const slice = (
                     <g key={type}>
@@ -214,6 +221,18 @@ const Learning = () => {
                         strokeWidth="4"
                         className="transition-all duration-300"
                       />
+                      {animalPercentage > 5 && (
+                        <text
+                          x={labelX}
+                          y={labelY}
+                          textAnchor="middle"
+                          dy="0.3em"
+                          className="text-sm font-bold fill-white"
+                          style={{ textShadow: '1px 1px 1px rgba(0,0,0,0.5)' }}
+                        >
+                          {animalCount}
+                        </text>
+                      )}
                     </g>
                   );
                   
