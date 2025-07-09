@@ -56,23 +56,23 @@ const Index = () => {
   const animalConfig = {
     mammals: {
       emoji: '🐘',
-      color: 'mammals-red'
+      color: 'red-500'
     },
     birds: {
       emoji: '🦅',
-      color: 'mammals-red'
+      color: 'blue-500'
     },
     reptiles: {
       emoji: '🐍',
-      color: 'mammals-red'
+      color: 'green-500'
     },
     fish: {
       emoji: '🐟',
-      color: 'mammals-red'
+      color: 'cyan-500'
     },
     insects: {
       emoji: '🐛',
-      color: 'mammals-red'
+      color: 'yellow-500'
     }
   };
   const generateWalls = useCallback(() => {
