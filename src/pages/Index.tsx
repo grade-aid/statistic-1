@@ -45,7 +45,7 @@ const Index = () => {
   const [playerPosition, setPlayerPosition] = useState<Position>({ x: 1, y: 1 });
   const [animals, setAnimals] = useState<Animal[]>([]);
   const [hunters, setHunters] = useState<Hunter[]>([]);
-  const [lives, setLives] = useState(3);
+  const [lives, setLives] = useState(9);
   const [collected, setCollected] = useState<GameState>({
     mammals: 0,
     birds: 0,
@@ -89,7 +89,7 @@ const Index = () => {
   const generateAnimals = useCallback((wallPositions: Position[]) => {
     const newAnimals: Animal[] = [];
     const animalTypes = Object.keys(animalConfig) as Array<keyof GameState>;
-    const totalAnimals = 15;
+    const totalAnimals = Math.floor(Math.random() * 50) + 1; // Random number from 1 to 50
     setTotalTarget(totalAnimals);
     
     const isWallPosition = (pos: Position) => {
@@ -169,7 +169,7 @@ const Index = () => {
   const startGame = () => {
     setPhase('game');
     setPlayerPosition({ x: 1, y: 1 });
-    setLives(3);
+    setLives(9);
     setCollected({ mammals: 0, birds: 0, reptiles: 0, fish: 0, insects: 0 });
     
     // Generate walls first
@@ -404,7 +404,7 @@ const Index = () => {
             <h2 className="text-3xl font-space-grotesk font-bold mb-2">Collect Animals</h2>
             <div className="flex items-center justify-center gap-4 mb-2">
               <div className="flex items-center gap-1">
-                {Array.from({ length: 3 }, (_, i) => (
+                {Array.from({ length: 9 }, (_, i) => (
                   <span key={i} className="text-2xl">
                     {i < lives ? '❤️' : '🖤'}
                   </span>
@@ -432,7 +432,7 @@ const Index = () => {
                       height: CELL_SIZE - 2
                     }}
                   >
-                    🧑‍🚀
+                    🐱
                   </div>
                   
                   {/* Walls */}
