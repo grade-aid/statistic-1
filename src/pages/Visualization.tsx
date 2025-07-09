@@ -48,12 +48,12 @@ const Visualization = () => {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <Button 
-            onClick={() => navigate('/game')}
+            onClick={() => navigate('/')}
             variant="outline"
             className="rounded-full"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Game
+            Back Home
           </Button>
           <h1 className="text-3xl font-space-grotesk font-bold">📊 Understanding Your Collection</h1>
           <Button 
@@ -175,7 +175,7 @@ const Visualization = () => {
               Now that you've seen your data, let's learn how to work with percentages and fractions!
             </p>
             <div className="grid gap-4 md:grid-cols-3">
-              <Button onClick={() => navigate('/game')} className="game-button-secondary">
+              <Button onClick={() => navigate('/')} className="game-button-secondary">
                 🎮 Play Again
               </Button>
               <Button className="game-button" disabled>
