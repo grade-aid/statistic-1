@@ -21,12 +21,13 @@ const Visualization = () => {
     animalConfig?: any;
   } | null;
 
+  // Only use actual collected data, no fallback
   const collectedData = gameState?.collected || {
-    mammals: 12,
-    birds: 8,
-    reptiles: 6,
-    fish: 10,
-    insects: 4
+    mammals: 0,
+    birds: 0,
+    reptiles: 0,
+    fish: 0,
+    insects: 0
   };
 
   const totalAnimals = gameState?.totalCollected || Object.values(collectedData).reduce((sum, count) => sum + count, 0);
