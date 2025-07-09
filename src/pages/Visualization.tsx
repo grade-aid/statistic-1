@@ -227,7 +227,7 @@ const Visualization = () => {
                           <div className="w-4 h-4 rounded-full border border-brand-black" style={{backgroundColor: config.color}}></div>
                           <span className="font-dm-sans">{config.emoji} {config.name}</span>
                         </div>
-                        <span className="font-dm-sans font-bold">{count} ({percentage}%)</span>
+                        <span className="font-dm-sans font-bold">{count}</span>
                       </div>
                     );
                   })}
