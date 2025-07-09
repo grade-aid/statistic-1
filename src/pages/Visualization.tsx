@@ -191,16 +191,16 @@ const Visualization = () => {
                             className="transition-all duration-300 hover:opacity-80"
                           />
                           {percentage > 5 && (
-                            <text
-                              x={labelX}
-                              y={labelY}
-                              textAnchor="middle"
-                              dy="0.3em"
-                              className="text-xs font-bold fill-white"
-                              style={{ textShadow: '1px 1px 1px rgba(0,0,0,0.5)' }}
-                            >
-                              {Math.round(percentage)}%
-                            </text>
+                             <text
+                               x={labelX}
+                               y={labelY}
+                               textAnchor="middle"
+                               dy="0.3em"
+                               className="text-xs font-bold fill-white"
+                               style={{ textShadow: '1px 1px 1px rgba(0,0,0,0.5)' }}
+                             >
+                               {count}
+                             </text>
                           )}
                         </g>
                       );
