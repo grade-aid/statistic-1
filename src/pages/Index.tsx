@@ -60,19 +60,19 @@ const Index = () => {
     },
     birds: {
       emoji: '🦅',
-      color: 'birds-blue'
+      color: 'mammals-red'
     },
     reptiles: {
       emoji: '🐍',
-      color: 'reptiles-green'
+      color: 'mammals-red'
     },
     fish: {
       emoji: '🐟',
-      color: 'fish-cyan'
+      color: 'mammals-red'
     },
     insects: {
       emoji: '🐛',
-      color: 'insects-yellow'
+      color: 'mammals-red'
     }
   };
   const generateWalls = useCallback(() => {
