@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -30,6 +30,11 @@ const Visualization = () => {
   };
 
   const totalAnimals = gameState?.totalCollected || Object.values(collectedData).reduce((sum, count) => sum + count, 0);
+
+  // Save data to localStorage so other pages can access it
+  useEffect(() => {
+    localStorage.setItem('animalData', JSON.stringify(collectedData));
+  }, [collectedData]);
 
   const animalConfig = {
     mammals: { emoji: '🐘', color: '#ef4444', name: 'Mammals' }, // red

@@ -522,13 +522,17 @@ const Index = () => {
           </Card>
 
           <div className="text-center">
-            <Button onClick={() => navigate('/visualization', { 
-              state: { 
-                collected: collected, 
-                totalCollected: totalCollected,
-                animalConfig: animalConfig
-              }
-            })} className="game-button text-xl px-8 py-4">
+            <Button onClick={() => {
+              // Save data to localStorage so other pages can access it
+              localStorage.setItem('animalData', JSON.stringify(collected));
+              navigate('/visualization', { 
+                state: { 
+                  collected: collected, 
+                  totalCollected: totalCollected,
+                  animalConfig: animalConfig
+                }
+              });
+            }} className="game-button text-xl px-8 py-4">
               <ArrowRight className="mr-2 h-5 w-5" />
               Continue to Learning
             </Button>
