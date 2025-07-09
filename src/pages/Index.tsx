@@ -210,8 +210,13 @@ const Index = () => {
           let newPosition = { ...hunter.position };
           let newDirection = hunter.direction;
           
+          // Random direction change (30% chance each move)
+          if (Math.random() < 0.3) {
+            newDirection = directions[Math.floor(Math.random() * directions.length)];
+          }
+          
           // Try to move in current direction
-          switch (hunter.direction) {
+          switch (newDirection) {
             case 'up':
               newPosition.y = Math.max(0, hunter.position.y - 1);
               break;
@@ -226,10 +231,10 @@ const Index = () => {
               break;
           }
           
-          // If hit wall or no movement, change direction randomly
+          // If hit wall, pick random new direction and stay in place
           if (isWall(newPosition) || (newPosition.x === hunter.position.x && newPosition.y === hunter.position.y)) {
             newDirection = directions[Math.floor(Math.random() * directions.length)];
-            newPosition = hunter.position; // Stay in place this turn
+            newPosition = hunter.position;
           }
           
           return {
@@ -239,7 +244,7 @@ const Index = () => {
           };
         })
       );
-    }, 500);
+    }, 200); // Much faster movement (was 500ms, now 200ms)
     
     return () => clearInterval(interval);
   }, [phase, hunters.length, isWall]);
