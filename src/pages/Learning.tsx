@@ -149,11 +149,17 @@ const Learning = () => {
   }) => {
     const percentage = total > 0 ? Math.round(count / total * 100) : 0;
     
-    // Mini pie chart
-    const radius = 20;
-    const circumference = 2 * Math.PI * radius;
-    const strokeDasharray = circumference;
-    const strokeDashoffset = circumference - (percentage / 100) * circumference;
+    // Get all animal data for pie chart
+    const dataEntries = Object.entries(collectedData);
+    
+    // Animal config for colors
+    const animalConfig = {
+      mammals: { emoji: '🐘', color: '#ef4444', name: 'Mammals' },
+      birds: { emoji: '🦅', color: '#3b82f6', name: 'Birds' },  
+      reptiles: { emoji: '🐍', color: '#22c55e', name: 'Reptiles' },
+      fish: { emoji: '🐟', color: '#06b6d4', name: 'Fish' },
+      insects: { emoji: '🐛', color: '#eab308', name: 'Insects' }
+    };
     
     return <div className="bg-white p-4 rounded-lg border space-y-3">
         <div className="flex items-center gap-3">
@@ -164,38 +170,62 @@ const Learning = () => {
           </div>
         </div>
         
-        {/* Mini Pie Chart */}
+        {/* Mini Pie Chart from Visualization */}
         <div className="flex justify-center">
-          <div className="relative w-12 h-12">
-            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 50 50">
-              {/* Background circle */}
-              <circle
-                cx="25"
-                cy="25"
-                r={radius}
-                fill="none"
-                stroke="#e5e7eb"
-                strokeWidth="6"
-              />
-              {/* Progress circle */}
-              <circle
-                cx="25"
-                cy="25"
-                r={radius}
-                fill="none"
-                stroke="hsl(var(--primary))"
-                strokeWidth="6"
-                strokeDasharray={strokeDasharray}
-                strokeDashoffset={strokeDashoffset}
-                className="transition-all duration-1000 ease-out"
-              />
+          <div className="relative w-24 h-24">
+            <svg className="w-full h-full" viewBox="0 0 200 200">
+              {(() => {
+                let startAngle = 0;
+                const radius = 80;
+                const centerX = 100;
+                const centerY = 100;
+                
+                return dataEntries.map(([type, animalCount]) => {
+                  const animalPercentage = (animalCount / total) * 100;
+                  const angle = (animalPercentage / 100) * 360;
+                  const endAngle = startAngle + angle;
+                  
+                  // Convert angles to radians
+                  const startAngleRad = (startAngle * Math.PI) / 180;
+                  const endAngleRad = (endAngle * Math.PI) / 180;
+                  
+                  // Calculate path coordinates
+                  const x1 = centerX + radius * Math.cos(startAngleRad);
+                  const y1 = centerY + radius * Math.sin(startAngleRad);
+                  const x2 = centerX + radius * Math.cos(endAngleRad);
+                  const y2 = centerY + radius * Math.sin(endAngleRad);
+                  
+                  const largeArcFlag = angle > 180 ? 1 : 0;
+                  
+                  const pathData = [
+                    `M ${centerX} ${centerY}`,
+                    `L ${x1} ${y1}`,
+                    `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`,
+                    'Z'
+                  ].join(' ');
+                  
+                  const config = animalConfig[type as keyof typeof animalConfig];
+                  const slice = (
+                    <g key={type}>
+                      <path
+                        d={pathData}
+                        fill={config.color}
+                        stroke="white"
+                        strokeWidth="4"
+                        className="transition-all duration-300"
+                      />
+                    </g>
+                  );
+                  
+                  startAngle = endAngle;
+                  return slice;
+                });
+              })()}
             </svg>
-            {/* Percentage text in center */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-xs font-bold">{percentage}%</span>
-            </div>
           </div>
         </div>
+        
+        <div className="text-lg font-bold text-center">{percentage}%</div>
       </div>;
   };
   const checkAnswer = (questionId: string, userAnswer: string, correctAnswer: number) => {
