@@ -79,18 +79,22 @@ const Index = () => {
         }
       }
     }
-    setWalls(newWalls);
+    return newWalls;
   }, []);
 
   const isWall = useCallback((pos: Position) => {
     return walls.some(wall => wall.x === pos.x && wall.y === pos.y);
   }, [walls]);
 
-  const generateAnimals = useCallback(() => {
+  const generateAnimals = useCallback((wallPositions: Position[]) => {
     const newAnimals: Animal[] = [];
     const animalTypes = Object.keys(animalConfig) as Array<keyof GameState>;
     const totalAnimals = 15;
     setTotalTarget(totalAnimals);
+    
+    const isWallPosition = (pos: Position) => {
+      return wallPositions.some(wall => wall.x === pos.x && wall.y === pos.y);
+    };
     
     for (let i = 0; i < totalAnimals; i++) {
       const type = animalTypes[Math.floor(Math.random() * animalTypes.length)];
@@ -107,7 +111,7 @@ const Index = () => {
       } while (
         (
           (position.x === 1 && position.y === 1) ||
-          isWall(position) ||
+          isWallPosition(position) ||
           newAnimals.some(animal => animal.position.x === position.x && animal.position.y === position.y)
         ) &&
         attempts < 50
@@ -123,11 +127,15 @@ const Index = () => {
     }
     
     setAnimals(newAnimals);
-  }, [isWall]);
+  }, []);
 
-  const generateHunters = useCallback(() => {
+  const generateHunters = useCallback((wallPositions: Position[]) => {
     const newHunters: Hunter[] = [];
     const hunterEmojis = ['🐺'];
+    
+    const isWallPosition = (pos: Position) => {
+      return wallPositions.some(wall => wall.x === pos.x && wall.y === pos.y);
+    };
     
     for (let i = 0; i < 1; i++) {
       let position: Position;
@@ -139,9 +147,11 @@ const Index = () => {
         };
         attempts++;
       } while (
-        (position.x === 1 && position.y === 1) ||
-        isWall(position) ||
-        newHunters.some(hunter => hunter.position.x === position.x && hunter.position.y === position.y) &&
+        (
+          (position.x === 1 && position.y === 1) ||
+          isWallPosition(position) ||
+          newHunters.some(hunter => hunter.position.x === position.x && hunter.position.y === position.y)
+        ) &&
         attempts < 50
       );
       
@@ -154,16 +164,21 @@ const Index = () => {
     }
     
     setHunters(newHunters);
-  }, [isWall]);
+  }, []);
 
   const startGame = () => {
     setPhase('game');
     setPlayerPosition({ x: 1, y: 1 });
     setLives(3);
     setCollected({ mammals: 0, birds: 0, reptiles: 0, fish: 0, insects: 0 });
-    generateWalls();
-    generateAnimals();
-    generateHunters();
+    
+    // Generate walls first
+    const newWalls = generateWalls();
+    setWalls(newWalls);
+    
+    // Then generate animals and hunters using the wall positions
+    generateAnimals(newWalls);
+    generateHunters(newWalls);
   };
 
   const movePlayer = useCallback((direction: string) => {
