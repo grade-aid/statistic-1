@@ -1,34 +1,36 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { useNavigate, useLocation } from "react-router-dom";
-import { ArrowLeft, CheckCircle, Calculator, Lightbulb } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft, CheckCircle, Calculator, Lightbulb, Divide, X, Equal } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+
+interface AnimalData {
+  mammals: number;
+  birds: number;
+  reptiles: number;
+  fish: number;
+  insects: number;
+}
 
 const Learning = () => {
   const navigate = useNavigate();
-  const location = useLocation();
+  const { toast } = useToast();
   
-  // Get data from navigation state or use fallback data
-  const gameState = location.state as {
-    collected?: {
-      mammals: number;
-      birds: number;
-      reptiles: number;
-      fish: number;
-      insects: number;
-    };
-    totalCollected?: number;
-  } | null;
-
-  const collectedData = gameState?.collected || {
-    mammals: 12,
-    birds: 8,
-    reptiles: 6,
-    fish: 10,
-    insects: 4
+  // Get data from localStorage (same as other pages)
+  const getStoredData = (): AnimalData => {
+    const stored = localStorage.getItem("animalData");
+    if (stored) {
+      return JSON.parse(stored);
+    }
+    return { mammals: 0, birds: 0, reptiles: 0, fish: 0, insects: 0 };
   };
 
-  const totalAnimals = gameState?.totalCollected || Object.values(collectedData).reduce((sum, count) => sum + count, 0);
+  const collectedData = getStoredData();
+  const totalAnimals = Object.values(collectedData).reduce((sum: number, count: number) => sum + count, 0);
 
   const animalConfig = {
     mammals: { emoji: '🐘', name: 'Mammals' },
@@ -42,79 +44,146 @@ const Learning = () => {
   const [userAnswers, setUserAnswers] = useState<{[key: string]: string}>({});
   const [showAnswers, setShowAnswers] = useState<{[key: string]: boolean}>({});
 
-  // Calculate correct answers
-  const mammalsPercentage = Math.round((collectedData.mammals / totalAnimals) * 100);
-  const onePercent = totalAnimals / 100;
+  // Calculate correct answers - ensure numbers are properly typed
+  const mammalsPercentage = totalAnimals > 0 ? Math.round((collectedData.mammals / totalAnimals) * 100) : 0;
+  const onePercent = totalAnimals > 0 ? totalAnimals / 100 : 0;
+
+  // Visual Components
+  const VisualCalculator = ({ operation, values, result, color = "blue" }: {
+    operation: string;
+    values: (string | number)[];
+    result: string;
+    color?: string;
+  }) => (
+    <div className={`bg-gradient-to-r from-${color}-100 to-${color}-50 p-4 rounded-xl border-2 border-${color}-200`}>
+      <div className="flex items-center justify-center gap-4 text-xl font-bold">
+        <Badge variant="outline" className="text-lg px-4 py-2">{values[0]}</Badge>
+        <div className={`w-10 h-10 rounded-full bg-${color}-500 flex items-center justify-center text-white`}>
+          {operation === 'divide' && <Divide size={18} />}
+          {operation === 'multiply' && <X size={18} />}
+        </div>
+        <Badge variant="outline" className="text-lg px-4 py-2">{values[1]}</Badge>
+        {operation === 'percentage' && (
+          <>
+            <div className={`w-10 h-10 rounded-full bg-${color}-500 flex items-center justify-center text-white`}>
+              <X size={18} />
+            </div>
+            <Badge variant="outline" className="text-lg px-4 py-2">100</Badge>
+          </>
+        )}
+        <div className={`w-10 h-10 rounded-full bg-${color}-600 flex items-center justify-center text-white`}>
+          <Equal size={18} />
+        </div>
+        <Badge variant="secondary" className={`text-lg px-4 py-2 bg-${color}-600 text-white`}>
+          {result}
+        </Badge>
+      </div>
+    </div>
+  );
+
+  const AnimalVisual = ({ count, emoji, total, name }: {
+    count: number;
+    emoji: string;
+    total: number;
+    name: string;
+  }) => {
+    const percentage = total > 0 ? Math.round((count / total) * 100) : 0;
+    return (
+      <div className="bg-white p-4 rounded-lg border space-y-3">
+        <div className="flex items-center gap-3">
+          <span className="text-3xl">{emoji}</span>
+          <div>
+            <div className="text-lg font-bold">{name}</div>
+            <div className="text-2xl font-bold text-primary">{count}</div>
+          </div>
+        </div>
+        <Progress value={percentage} className="h-4" />
+        <div className="text-lg font-bold text-center">{percentage}%</div>
+      </div>
+    );
+  };
 
   const checkAnswer = (questionId: string, userAnswer: string, correctAnswer: number) => {
     const isCorrect = Math.abs(parseFloat(userAnswer) - correctAnswer) < 0.1;
     setShowAnswers(prev => ({ ...prev, [questionId]: true }));
+    
+    if (isCorrect) {
+      toast({ title: "🎉 Correct!", description: `Great job!` });
+    } else {
+      toast({ title: "🤔 Try again", description: `The correct answer is ${correctAnswer}` });
+    }
+    
     return isCorrect;
   };
 
   const renderPhase3 = () => (
-    <Card className="game-card">
+    <Card className="p-6 border-2 border-green-200 bg-green-50">
       <div className="flex items-center gap-3 mb-6">
-        <Calculator className="h-8 w-8 text-primary" />
-        <h3 className="text-2xl font-space-grotesk font-bold">Phase 3: Amount to Percentage Conversion</h3>
+        <Calculator className="h-8 w-8 text-green-600" />
+        <h3 className="text-2xl font-bold text-green-800">Amount → Percentage 🐘</h3>
       </div>
       
       <div className="space-y-6">
-        {/* Guided Example */}
-        <div className="bg-blue-50 dark:bg-blue-950 p-6 rounded-lg border-2 border-blue-200">
-          <h4 className="text-xl font-bold mb-4 text-blue-800 dark:text-blue-200">
-            🎯 Guided Example: "What Percentage Are Mammals? 🐘"
-          </h4>
-          <div className="space-y-3 text-lg">
-            <p>• You collected <span className="font-bold text-blue-600">{collectedData.mammals} mammals 🐘</span> out of <span className="font-bold">{totalAnimals} total animals</span></p>
-            <p>• To find percentage: <span className="font-mono bg-blue-100 dark:bg-blue-900 px-2 py-1 rounded">({collectedData.mammals} ÷ {totalAnimals}) × 100 = {mammalsPercentage}%</span></p>
-            <p>• As a fraction: <span className="font-mono bg-blue-100 dark:bg-blue-900 px-2 py-1 rounded">{collectedData.mammals}/{totalAnimals} = {Math.round(collectedData.mammals * 10 / totalAnimals)}/10</span></p>
+        {/* Visual Example */}
+        <div className="bg-white p-6 rounded-xl border border-green-200">
+          <h4 className="text-lg font-bold mb-4 text-green-700">📚 Example: Mammals</h4>
+          
+          <div className="grid md:grid-cols-2 gap-6">
+            <AnimalVisual 
+              count={collectedData.mammals} 
+              emoji="🐘" 
+              total={totalAnimals}
+              name="Mammals"
+            />
+            <div className="space-y-4">
+              <VisualCalculator 
+                operation="percentage"
+                values={[collectedData.mammals, totalAnimals]}
+                result={`${mammalsPercentage}%`}
+                color="green"
+              />
+              <div className="text-center">
+                <Badge variant="secondary" className="text-lg px-4 py-2">
+                  Fraction: {collectedData.mammals}/{totalAnimals}
+                </Badge>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Student Practice */}
-        <div className="bg-green-50 dark:bg-green-950 p-6 rounded-lg border-2 border-green-200">
-          <h4 className="text-xl font-bold mb-4 text-green-800 dark:text-green-200">
-            ✏️ Your Turn: Calculate percentages for each animal type
-          </h4>
-          
-          <div className="grid gap-4 md:grid-cols-2">
+        {/* Interactive Practice */}
+        <div className="bg-white p-6 rounded-xl border border-green-200">
+          <h4 className="text-lg font-bold mb-4 text-green-700">✏️ Your Turn</h4>
+          <div className="grid md:grid-cols-2 gap-4">
             {Object.entries(collectedData).filter(([type]) => type !== 'mammals').map(([type, count]) => {
               const config = animalConfig[type as keyof typeof animalConfig];
-              const correctPercentage = Math.round((count / totalAnimals) * 100);
+              const correctPercentage = totalAnimals > 0 ? Math.round((count / totalAnimals) * 100) : 0;
               const questionId = `phase3-${type}`;
               
               return (
-                <div key={type} className="space-y-2">
-                  <p className="font-semibold">{config.emoji} {config.name}: {count} out of {totalAnimals}</p>
-                  <div className="flex gap-2 items-center">
-                    <input
+                <div key={type} className="bg-gray-50 p-4 rounded-lg space-y-3">
+                  <AnimalVisual 
+                    count={count} 
+                    emoji={config.emoji} 
+                    total={totalAnimals}
+                    name={config.name}
+                  />
+                  <div className="flex gap-2">
+                    <Input
                       type="number"
-                      placeholder="Enter %"
-                      className="w-20 px-3 py-2 border rounded-lg"
+                      placeholder="%"
                       value={userAnswers[questionId] || ''}
                       onChange={(e) => setUserAnswers(prev => ({ ...prev, [questionId]: e.target.value }))}
+                      className="flex-1"
                     />
-                    <span>%</span>
-                    <Button
-                      size="sm"
+                    <Button 
                       onClick={() => checkAnswer(questionId, userAnswers[questionId], correctPercentage)}
                       disabled={!userAnswers[questionId]}
+                      size="sm"
                     >
-                      Check
+                      ✓
                     </Button>
                   </div>
-                  {showAnswers[questionId] && (
-                    <p className={`text-sm font-semibold ${
-                      Math.abs(parseFloat(userAnswers[questionId]) - correctPercentage) < 0.1 
-                        ? 'text-green-600' 
-                        : 'text-red-600'
-                    }`}>
-                      {Math.abs(parseFloat(userAnswers[questionId]) - correctPercentage) < 0.1 
-                        ? '✅ Correct!' 
-                        : `❌ Correct answer: ${correctPercentage}%`}
-                    </p>
-                  )}
                 </div>
               );
             })}
@@ -125,71 +194,72 @@ const Learning = () => {
   );
 
   const renderPhase4 = () => (
-    <Card className="game-card">
+    <Card className="p-6 border-2 border-blue-200 bg-blue-50">
       <div className="flex items-center gap-3 mb-6">
-        <Lightbulb className="h-8 w-8 text-primary" />
-        <h3 className="text-2xl font-space-grotesk font-bold">Phase 4: Percentage to Amount Conversion</h3>
+        <Lightbulb className="h-8 w-8 text-blue-600" />
+        <h3 className="text-2xl font-bold text-blue-800">Percentage → Amount 🦅</h3>
       </div>
       
       <div className="space-y-6">
-        {/* Guided Example */}
-        <div className="bg-purple-50 dark:bg-purple-950 p-6 rounded-lg border-2 border-purple-200">
-          <h4 className="text-xl font-bold mb-4 text-purple-800 dark:text-purple-200">
-            🎯 Guided Example: "If 25% Were Birds... 🦅"
-          </h4>
-          <div className="space-y-3 text-lg">
-            <p>• If birds 🦅 made up 25% of your {totalAnimals} animals</p>
-            <p>• To find amount: <span className="font-mono bg-purple-100 dark:bg-purple-900 px-2 py-1 rounded">25% × {totalAnimals} = (25 ÷ 100) × {totalAnimals} = {Math.round(0.25 * totalAnimals)} birds 🦅</span></p>
+        {/* Visual Example */}
+        <div className="bg-white p-6 rounded-xl border border-blue-200">
+          <h4 className="text-lg font-bold mb-4 text-blue-700">📚 Example: 25% = ? Birds</h4>
+          
+          <div className="space-y-4">
+            <VisualCalculator 
+              operation="multiply"
+              values={["25%", totalAnimals]}
+              result={`${Math.round(0.25 * totalAnimals)} 🦅`}
+              color="blue"
+            />
+            <div className="grid grid-cols-5 gap-2">
+              {Array.from({length: Math.min(Math.round(0.25 * totalAnimals), 15)}).map((_, i) => (
+                <div key={i} className="text-3xl text-center">🦅</div>
+              ))}
+              {Math.round(0.25 * totalAnimals) > 15 && (
+                <div className="text-lg text-center">...and {Math.round(0.25 * totalAnimals) - 15} more</div>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Student Practice */}
-        <div className="bg-orange-50 dark:bg-orange-950 p-6 rounded-lg border-2 border-orange-200">
-          <h4 className="text-xl font-bold mb-4 text-orange-800 dark:text-orange-200">
-            ✏️ Your Turn: Calculate amounts from percentages
-          </h4>
-          
-          <div className="grid gap-4">
+        {/* Interactive Practice */}
+        <div className="bg-white p-6 rounded-xl border border-blue-200">
+          <h4 className="text-lg font-bold mb-4 text-blue-700">✏️ Your Turn</h4>
+          <div className="grid md:grid-cols-2 gap-4">
             {[
               { percentage: 30, animal: 'mammals', emoji: '🐘' },
               { percentage: 15, animal: 'reptiles', emoji: '🐍' },
               { percentage: 20, animal: 'fish', emoji: '🐟' },
-              { percentage: 10, animal: 'insects', emoji: '🐛' }
+              { percentage: 35, animal: 'insects', emoji: '🐛' }
             ].map(({ percentage, animal, emoji }) => {
               const correctAmount = Math.round((percentage / 100) * totalAnimals);
               const questionId = `phase4-${animal}`;
               
               return (
-                <div key={animal} className="space-y-2">
-                  <p className="font-semibold">If {percentage}% were {animal} {emoji}, how many animals would that be?</p>
-                  <div className="flex gap-2 items-center">
-                    <input
+                <div key={animal} className="bg-gray-50 p-4 rounded-lg space-y-3">
+                  <div className="text-center">
+                    <Badge variant="outline" className="text-lg px-4 py-2 mb-2">
+                      {percentage}% of {totalAnimals}
+                    </Badge>
+                    <div className="text-2xl">{emoji}</div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Input
                       type="number"
-                      placeholder="Enter amount"
-                      className="w-24 px-3 py-2 border rounded-lg"
+                      placeholder="amount"
                       value={userAnswers[questionId] || ''}
                       onChange={(e) => setUserAnswers(prev => ({ ...prev, [questionId]: e.target.value }))}
+                      className="flex-1"
                     />
-                    <span>animals</span>
-                    <Button
-                      size="sm"
+                    <Button 
                       onClick={() => checkAnswer(questionId, userAnswers[questionId], correctAmount)}
                       disabled={!userAnswers[questionId]}
+                      size="sm"
                     >
-                      Check
+                      ✓
                     </Button>
                   </div>
-                  {showAnswers[questionId] && (
-                    <p className={`text-sm font-semibold ${
-                      Math.abs(parseFloat(userAnswers[questionId]) - correctAmount) < 0.1 
-                        ? 'text-green-600' 
-                        : 'text-red-600'
-                    }`}>
-                      {Math.abs(parseFloat(userAnswers[questionId]) - correctAmount) < 0.1 
-                        ? '✅ Correct!' 
-                        : `❌ Correct answer: ${correctAmount} animals`}
-                    </p>
-                  )}
                 </div>
               );
             })}
@@ -200,99 +270,114 @@ const Learning = () => {
   );
 
   const renderPhase5 = () => (
-    <Card className="game-card">
+    <Card className="p-6 border-2 border-purple-200 bg-purple-50">
       <div className="flex items-center gap-3 mb-6">
-        <CheckCircle className="h-8 w-8 text-primary" />
-        <h3 className="text-2xl font-space-grotesk font-bold">Phase 5: Unit Percentage Mastery</h3>
+        <CheckCircle className="h-8 w-8 text-purple-600" />
+        <h3 className="text-2xl font-bold text-purple-800">Master 1% 📊</h3>
       </div>
       
       <div className="space-y-6">
-        {/* Part A */}
-        <div className="bg-teal-50 dark:bg-teal-950 p-6 rounded-lg border-2 border-teal-200">
-          <h4 className="text-xl font-bold mb-4 text-teal-800 dark:text-teal-200">
-            🎯 Part A: "The Power of 1% 📊"
-          </h4>
-          <div className="space-y-3 text-lg">
-            <p>• 1% of your {totalAnimals} animals = <span className="font-mono bg-teal-100 dark:bg-teal-900 px-2 py-1 rounded">{totalAnimals} ÷ 100 = {onePercent.toFixed(1)} animals</span></p>
-            <p>• Visual: 1% = {onePercent < 1 ? 'less than one' : Math.round(onePercent)} 🐘</p>
+        {/* 1% Visual */}
+        <div className="bg-white p-6 rounded-xl border border-purple-200">
+          <h4 className="text-lg font-bold mb-4 text-purple-700">🔍 Find 1%</h4>
+          
+          <VisualCalculator 
+            operation="divide"
+            values={[totalAnimals, "100"]}
+            result={`${onePercent.toFixed(1)} animals`}
+            color="purple"
+          />
+          
+          <div className="mt-4 text-center">
+            <Badge variant="secondary" className="text-lg px-4 py-2">
+              1% = {onePercent.toFixed(1)} animals
+            </Badge>
           </div>
         </div>
 
-        {/* Part B */}
-        <div className="bg-indigo-50 dark:bg-indigo-950 p-6 rounded-lg border-2 border-indigo-200">
-          <h4 className="text-xl font-bold mb-4 text-indigo-800 dark:text-indigo-200">
-            🎯 Part B: Using 1% to Find Any Percentage
-          </h4>
-          <div className="space-y-4">
-            <p className="text-lg">If 1% = {onePercent.toFixed(1)} animals, then:</p>
-            <p className="text-lg">• 5% = 5 × {onePercent.toFixed(1)} = {(5 * onePercent).toFixed(1)} animals</p>
-            
-            <div className="grid gap-4 md:grid-cols-3">
-              {[3, 7, 12].map((percentage) => {
-                const correctAmount = (percentage * onePercent).toFixed(1);
-                const questionId = `phase5-${percentage}`;
-                
-                return (
-                  <div key={percentage} className="space-y-2">
-                    <p className="font-semibold">{percentage}% = ?</p>
-                    <div className="flex gap-2 items-center">
-                      <input
-                        type="number"
-                        step="0.1"
-                        placeholder="0.0"
-                        className="w-20 px-3 py-2 border rounded-lg"
-                        value={userAnswers[questionId] || ''}
-                        onChange={(e) => setUserAnswers(prev => ({ ...prev, [questionId]: e.target.value }))}
-                      />
-                      <Button
-                        size="sm"
-                        onClick={() => checkAnswer(questionId, userAnswers[questionId], parseFloat(correctAmount))}
-                        disabled={!userAnswers[questionId]}
-                      >
-                        Check
-                      </Button>
+        {/* Interactive Building */}
+        <div className="bg-white p-6 rounded-xl border border-purple-200">
+          <h4 className="text-lg font-bold mb-4 text-purple-700">🔧 Build Any %</h4>
+          
+          <div className="grid md:grid-cols-2 gap-4">
+            {[
+              { label: "1%", multiplier: 1 },
+              { label: "3%", multiplier: 3 },
+              { label: "7%", multiplier: 7 },
+              { label: "12%", multiplier: 12 }
+            ].map(({ label, multiplier }) => {
+              const answerKey = `phase5-${multiplier}`;
+              const correctAmount = (multiplier * onePercent).toFixed(1);
+              
+              return (
+                <div key={label} className="bg-gray-50 p-4 rounded-lg space-y-3">
+                  <div className="text-center">
+                    <Badge variant="outline" className="text-lg px-4 py-2 mb-2">
+                      {label}
+                    </Badge>
+                    <div className="text-sm text-muted-foreground">
+                      {multiplier} × {onePercent.toFixed(1)} = ?
                     </div>
-                    {showAnswers[questionId] && (
-                      <p className={`text-sm font-semibold ${
-                        Math.abs(parseFloat(userAnswers[questionId]) - parseFloat(correctAmount)) < 0.1 
-                          ? 'text-green-600' 
-                          : 'text-red-600'
-                      }`}>
-                        {Math.abs(parseFloat(userAnswers[questionId]) - parseFloat(correctAmount)) < 0.1 
-                          ? '✅ Correct!' 
-                          : `❌ Correct answer: ${correctAmount} animals`}
-                      </p>
-                    )}
                   </div>
-                );
-              })}
-            </div>
+                  <div className="flex gap-2">
+                    <Input
+                      type="number"
+                      step="0.1"
+                      placeholder="answer"
+                      value={userAnswers[answerKey] || ''}
+                      onChange={(e) => setUserAnswers(prev => ({ ...prev, [answerKey]: e.target.value }))}
+                      className="flex-1"
+                    />
+                    <Button 
+                      onClick={() => checkAnswer(answerKey, userAnswers[answerKey], parseFloat(correctAmount))}
+                      disabled={!userAnswers[answerKey]}
+                      size="sm"
+                    >
+                      ✓
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
     </Card>
   );
 
-  return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <Button 
-            onClick={() => navigate('/visualization')}
-            variant="outline"
-            className="rounded-full"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Data
+  if (totalAnimals === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8 flex items-center justify-center">
+        <Card className="p-8 text-center">
+          <h2 className="text-2xl font-bold mb-4">🧮 Learn Percentages & Fractions</h2>
+          <p className="text-muted-foreground mb-4">
+            First, collect some animals to start learning! 
+          </p>
+          <Button onClick={() => navigate('/')}>
+            Go Collect Animals
           </Button>
-          <h1 className="text-3xl font-space-grotesk font-bold">🧮 Learn Percentages & Fractions</h1>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8">
+      <div className="max-w-4xl mx-auto space-y-8">
+        {/* Header */}
+        <div className="text-center">
           <Button 
             onClick={() => navigate('/')}
-            className="game-button-secondary"
+            variant="outline"
+            className="mb-4"
           >
-            🏠 Home
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back Home
           </Button>
+          <h1 className="text-4xl font-bold text-gray-800 mb-2">🧮 Learn Percentages & Fractions</h1>
+          <Badge variant="outline" className="text-lg px-4 py-2">
+            Using your {totalAnimals} animals!
+          </Badge>
         </div>
 
         {/* Phase Navigation */}
@@ -326,7 +411,6 @@ const Learning = () => {
           <Button 
             onClick={() => setCurrentPhase(Math.min(5, currentPhase + 1))}
             disabled={currentPhase === 5}
-            className="game-button"
           >
             Next Phase
           </Button>
