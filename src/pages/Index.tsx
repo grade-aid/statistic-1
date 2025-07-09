@@ -123,9 +123,9 @@ const Index = () => {
 
   const generateHunters = useCallback(() => {
     const newHunters: Hunter[] = [];
-    const hunterEmojis = ['🐺', '🦖', '👹'];
+    const hunterEmojis = ['🐺'];
     
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 1; i++) {
       let position: Position;
       let attempts = 0;
       do {
