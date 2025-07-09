@@ -104,7 +104,7 @@ const Index = () => {
   const generateAnimals = useCallback((wallPositions: Position[]) => {
     const newAnimals: Animal[] = [];
     const animalTypes = Object.keys(animalConfig) as Array<keyof GameState>;
-    const totalAnimals = Math.floor(Math.random() * 50) + 1; // Random number from 1 to 50
+    const totalAnimals = Math.floor(Math.random() * 31) + 20; // Random number from 20 to 50
     setTotalTarget(totalAnimals);
     const isWallPosition = (pos: Position) => {
       return wallPositions.some(wall => wall.x === pos.x && wall.y === pos.y);
