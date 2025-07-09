@@ -105,9 +105,11 @@ const Index = () => {
         };
         attempts++;
       } while (
-        (position.x === 1 && position.y === 1) ||
-        isWall(position) ||
-        newAnimals.some(animal => animal.position.x === position.x && animal.position.y === position.y) &&
+        (
+          (position.x === 1 && position.y === 1) ||
+          isWall(position) ||
+          newAnimals.some(animal => animal.position.x === position.x && animal.position.y === position.y)
+        ) &&
         attempts < 50
       );
       
