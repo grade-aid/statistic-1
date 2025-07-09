@@ -1,130 +1,327 @@
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { useNavigate } from "react-router-dom";
-import { Play, BarChart3, Trophy } from "lucide-react";
+import { Play, ArrowRight } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+
+type GamePhase = 'start' | 'game' | 'results';
+
+interface GameState {
+  mammals: number;
+  birds: number;
+  reptiles: number;
+  fish: number;
+  insects: number;
+}
+
+interface Position {
+  x: number;
+  y: number;
+}
+
+interface Animal {
+  id: string;
+  type: keyof GameState;
+  position: Position;
+  emoji: string;
+  color: string;
+}
+
+const GRID_SIZE = 15;
+const CELL_SIZE = 24;
 
 const Index = () => {
-  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [phase, setPhase] = useState<GamePhase>('start');
+  const [playerPosition, setPlayerPosition] = useState<Position>({ x: 1, y: 1 });
+  const [animals, setAnimals] = useState<Animal[]>([]);
+  const [collected, setCollected] = useState<GameState>({
+    mammals: 0,
+    birds: 0,
+    reptiles: 0,
+    fish: 0,
+    insects: 0
+  });
+  const [totalTarget, setTotalTarget] = useState(20);
 
-  return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-5xl lg:text-6xl font-space-grotesk font-bold text-foreground mb-4">
-            🎮 Animal Collection Data Adventure
+  const animalConfig = {
+    mammals: { emoji: '🐘', color: 'mammals-red' },
+    birds: { emoji: '🦅', color: 'birds-blue' },
+    reptiles: { emoji: '🐍', color: 'reptiles-green' },
+    fish: { emoji: '🐟', color: 'fish-cyan' },
+    insects: { emoji: '🐛', color: 'insects-yellow' }
+  };
+
+  const generateAnimals = useCallback(() => {
+    const newAnimals: Animal[] = [];
+    const animalTypes = Object.keys(animalConfig) as Array<keyof GameState>;
+    const totalAnimals = 20;
+    setTotalTarget(totalAnimals);
+    
+    for (let i = 0; i < totalAnimals; i++) {
+      const type = animalTypes[Math.floor(Math.random() * animalTypes.length)];
+      const config = animalConfig[type];
+      
+      let position: Position;
+      let attempts = 0;
+      do {
+        position = {
+          x: Math.floor(Math.random() * (GRID_SIZE - 2)) + 1,
+          y: Math.floor(Math.random() * (GRID_SIZE - 2)) + 1
+        };
+        attempts++;
+      } while (
+        (position.x === 1 && position.y === 1) ||
+        newAnimals.some(animal => animal.position.x === position.x && animal.position.y === position.y) &&
+        attempts < 50
+      );
+      
+      newAnimals.push({
+        id: `${type}-${i}`,
+        type,
+        position,
+        emoji: config.emoji,
+        color: config.color
+      });
+    }
+    
+    setAnimals(newAnimals);
+  }, []);
+
+  const startGame = () => {
+    setPhase('game');
+    setPlayerPosition({ x: 1, y: 1 });
+    setCollected({ mammals: 0, birds: 0, reptiles: 0, fish: 0, insects: 0 });
+    generateAnimals();
+  };
+
+  const movePlayer = useCallback((direction: string) => {
+    if (phase !== 'game') return;
+    
+    setPlayerPosition(prev => {
+      let newX = prev.x;
+      let newY = prev.y;
+      
+      switch (direction) {
+        case 'up':
+        case 'w':
+          newY = Math.max(0, prev.y - 1);
+          break;
+        case 'down':
+        case 's':
+          newY = Math.min(GRID_SIZE - 1, prev.y + 1);
+          break;
+        case 'left':
+        case 'a':
+          newX = Math.max(0, prev.x - 1);
+          break;
+        case 'right':
+        case 'd':
+          newX = Math.min(GRID_SIZE - 1, prev.x + 1);
+          break;
+      }
+      
+      return { x: newX, y: newY };
+    });
+  }, [phase]);
+
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      const key = e.key.toLowerCase();
+      if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'w', 'a', 's', 'd'].includes(key)) {
+        e.preventDefault();
+        const direction = key.replace('arrow', '');
+        movePlayer(direction);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [movePlayer]);
+
+  useEffect(() => {
+    const animalAtPosition = animals.find(
+      animal => animal.position.x === playerPosition.x && animal.position.y === playerPosition.y
+    );
+    
+    if (animalAtPosition) {
+      setAnimals(prev => prev.filter(animal => animal.id !== animalAtPosition.id));
+      setCollected(prev => ({
+        ...prev,
+        [animalAtPosition.type]: prev[animalAtPosition.type] + 1
+      }));
+    }
+  }, [playerPosition, animals]);
+
+  const totalCollected = Object.values(collected).reduce((sum, count) => sum + count, 0);
+  const isComplete = totalCollected === totalTarget && phase === 'game';
+
+  useEffect(() => {
+    if (isComplete) {
+      setTimeout(() => setPhase('results'), 1000);
+    }
+  }, [isComplete]);
+
+  const resetGame = () => {
+    setPhase('start');
+    setCollected({ mammals: 0, birds: 0, reptiles: 0, fish: 0, insects: 0 });
+  };
+
+  if (phase === 'start') {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="game-card text-center max-w-md">
+          <div className="text-8xl mb-6">🎮</div>
+          <h1 className="text-4xl font-space-grotesk font-bold mb-4">
+            Animal Adventure
           </h1>
-          <p className="text-xl text-muted-foreground font-dm-sans max-w-2xl mx-auto">
-            Become a zoo keeper! Collect animals in a fun maze game, then learn about data, percentages, and fractions with your collection.
+          <p className="text-lg font-dm-sans text-muted-foreground mb-8">
+            Collect animals, see your data!
           </p>
-        </div>
-
-        {/* Game Phases Cards */}
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 mb-12">
-          {/* Phase 1: Collection Game */}
-          <Card className="game-card hover:scale-105 transition-transform duration-300">
-            <div className="text-center">
-              <div className="text-6xl mb-4">🕹️</div>
-              <h3 className="text-2xl font-space-grotesk font-bold mb-3">Zoo Keeper's Mission</h3>
-              <p className="text-lg font-dm-sans text-muted-foreground mb-6">
-                Navigate through zoo habitats and collect escaped animals! Gather mammals 🐘, birds 🦅, reptiles 🐍, fish 🐟, and insects 🐛.
-              </p>
-              <Button 
-                onClick={() => navigate('/game')}
-                className="game-button w-full"
-              >
-                <Play className="mr-2 h-5 w-5" />
-                Start Mission
-              </Button>
-            </div>
-          </Card>
-
-          {/* Phase 2: Data Visualization */}
-          <Card className="game-card hover:scale-105 transition-transform duration-300">
-            <div className="text-center">
-              <div className="text-6xl mb-4">📊</div>
-              <h3 className="text-2xl font-space-grotesk font-bold mb-3">Understanding Your Collection</h3>
-              <p className="text-lg font-dm-sans text-muted-foreground mb-6">
-                See your animal collection displayed in colorful pie charts and bar graphs to understand your data better.
-              </p>
-              <Button 
-                onClick={() => navigate('/visualization')}
-                className="game-button-secondary w-full"
-                disabled
-              >
-                <BarChart3 className="mr-2 h-5 w-5" />
-                View Data
-              </Button>
-            </div>
-          </Card>
-
-          {/* Phase 3-5: Learning Modules */}
-          <Card className="game-card hover:scale-105 transition-transform duration-300">
-            <div className="text-center">
-              <div className="text-6xl mb-4">🧮</div>
-              <h3 className="text-2xl font-space-grotesk font-bold mb-3">Percentage Mastery</h3>
-              <p className="text-lg font-dm-sans text-muted-foreground mb-6">
-                Learn to convert amounts to percentages, percentages to amounts, and master the power of 1%!
-              </p>
-              <Button 
-                onClick={() => navigate('/learning')}
-                className="game-button-secondary w-full"
-                disabled
-              >
-                <Trophy className="mr-2 h-5 w-5" />
-                Learn Math
-              </Button>
-            </div>
-          </Card>
-        </div>
-
-        {/* Animal Categories Preview */}
-        <Card className="game-card">
-          <div className="text-center">
-            <h3 className="text-3xl font-space-grotesk font-bold mb-6">Meet the Animal Categories</h3>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-              {[
-                { emoji: '🐘', name: 'Mammals', color: 'mammals-red' },
-                { emoji: '🦅', name: 'Birds', color: 'birds-blue' },
-                { emoji: '🐍', name: 'Reptiles', color: 'reptiles-green' },
-                { emoji: '🐟', name: 'Fish', color: 'fish-cyan' },
-                { emoji: '🐛', name: 'Insects', color: 'insects-yellow' }
-              ].map((category, index) => (
-                <div key={index} className="text-center">
-                  <div className={`w-20 h-20 rounded-full bg-${category.color} flex items-center justify-center text-4xl mx-auto mb-2 border-4 border-brand-black`}>
-                    {category.emoji}
-                  </div>
-                  <p className="font-dm-sans font-medium text-lg">{category.name}</p>
-                </div>
-              ))}
-            </div>
-          </div>
+          <Button onClick={startGame} className="game-button w-full text-2xl py-6">
+            <Play className="mr-3 h-6 w-6" />
+            Start
+          </Button>
         </Card>
+      </div>
+    );
+  }
 
-        {/* Instructions */}
-        <div className="text-center mt-12">
-          <h3 className="text-2xl font-space-grotesk font-bold mb-4">How to Play</h3>
-          <div className="grid gap-6 md:grid-cols-3">
-            <div className="text-center">
-              <div className="text-4xl mb-2">1️⃣</div>
-              <h4 className="font-dm-sans font-semibold text-lg mb-2">Collect Animals</h4>
-              <p className="text-muted-foreground">Move through the maze to collect different types of animals</p>
+  if (phase === 'game') {
+    return (
+      <div className="min-h-screen bg-background p-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-6">
+            <h2 className="text-3xl font-space-grotesk font-bold mb-2">Collect Animals</h2>
+            <p className="text-xl font-dm-sans">
+              {totalCollected} / {totalTarget} animals
+            </p>
+          </div>
+
+          <div className="grid gap-6 lg:grid-cols-3">
+            <div className="lg:col-span-2">
+              <Card className="game-card">
+                <div 
+                  className="relative bg-muted rounded-xl p-4 mx-auto"
+                  style={{ width: GRID_SIZE * CELL_SIZE + 32, height: GRID_SIZE * CELL_SIZE + 32 }}
+                >
+                  <div
+                    className="absolute bg-brand-purple rounded-full border-2 border-brand-black transition-all duration-150 flex items-center justify-center text-lg z-10"
+                    style={{
+                      left: playerPosition.x * CELL_SIZE + 16,
+                      top: playerPosition.y * CELL_SIZE + 16,
+                      width: CELL_SIZE - 2,
+                      height: CELL_SIZE - 2
+                    }}
+                  >
+                    🧑‍🚀
+                  </div>
+                  
+                  {animals.map(animal => (
+                    <div
+                      key={animal.id}
+                      className={`absolute rounded-full border border-brand-black flex items-center justify-center bg-${animal.color}`}
+                      style={{
+                        left: animal.position.x * CELL_SIZE + 16,
+                        top: animal.position.y * CELL_SIZE + 16,
+                        width: CELL_SIZE - 2,
+                        height: CELL_SIZE - 2,
+                        fontSize: '14px'
+                      }}
+                    >
+                      {animal.emoji}
+                    </div>
+                  ))}
+                </div>
+                <p className="text-center text-sm text-muted-foreground mt-4">
+                  Use arrow keys or WASD to move
+                </p>
+              </Card>
             </div>
-            <div className="text-center">
-              <div className="text-4xl mb-2">2️⃣</div>
-              <h4 className="font-dm-sans font-semibold text-lg mb-2">View Your Data</h4>
-              <p className="text-muted-foreground">See your collection in charts and graphs</p>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl mb-2">3️⃣</div>
-              <h4 className="font-dm-sans font-semibold text-lg mb-2">Learn Math</h4>
-              <p className="text-muted-foreground">Convert between amounts and percentages</p>
-            </div>
+
+            <Card className="game-card">
+              <h3 className="text-xl font-space-grotesk font-bold mb-4">Collection</h3>
+              <div className="space-y-3">
+                {Object.entries(animalConfig).map(([type, config]) => (
+                  <div key={type} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-6 h-6 rounded-full bg-${config.color} flex items-center justify-center text-xs border border-brand-black`}>
+                        {config.emoji}
+                      </div>
+                      <span className="font-dm-sans text-sm capitalize">{type}</span>
+                    </div>
+                    <span className="font-dm-sans font-bold">
+                      {collected[type as keyof GameState]}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </Card>
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  }
+
+  if (phase === 'results') {
+    const dataEntries = Object.entries(collected).filter(([, value]) => value > 0);
+    const maxValue = Math.max(...dataEntries.map(([, value]) => value));
+
+    return (
+      <div className="min-h-screen bg-background p-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-8">
+            <div className="text-6xl mb-4">🎉</div>
+            <h2 className="text-4xl font-space-grotesk font-bold mb-4">
+              Mission Complete!
+            </h2>
+            <p className="text-xl font-dm-sans">
+              You collected {totalCollected} animals
+            </p>
+          </div>
+
+          <Card className="game-card mb-8">
+            <h3 className="text-2xl font-space-grotesk font-bold mb-6 text-center">Your Data</h3>
+            <div className="space-y-4">
+              {dataEntries.map(([type, count]) => {
+                const config = animalConfig[type as keyof typeof animalConfig];
+                const percentage = (count / maxValue) * 100;
+                
+                return (
+                  <div key={type} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">{config.emoji}</span>
+                        <span className="font-dm-sans font-semibold capitalize">{type}</span>
+                      </div>
+                      <span className="font-dm-sans font-bold text-lg">{count}</span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-6 border-2 border-brand-black">
+                      <div 
+                        className={`h-full bg-${config.color} rounded-full transition-all duration-1000 ease-out flex items-center justify-end pr-2`}
+                        style={{ width: `${percentage}%` }}
+                      >
+                        <span className="text-xs font-bold text-white">{count}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </Card>
+
+          <div className="text-center">
+            <Button onClick={resetGame} className="game-button text-xl px-8 py-4">
+              <Play className="mr-2 h-5 w-5" />
+              Play Again
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
 };
 
 export default Index;
