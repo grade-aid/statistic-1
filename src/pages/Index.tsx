@@ -29,7 +29,7 @@ interface Hunter {
   emoji: string;
   direction: 'up' | 'down' | 'left' | 'right';
 }
-const GRID_SIZE = 15;
+const GRID_SIZE = 20;
 const CELL_SIZE = 24;
 const Index = () => {
   const {
@@ -299,7 +299,7 @@ const Index = () => {
           direction: newDirection
         };
       }));
-    }, 150); // Much faster movement
+    }, 400); // Slower movement
 
     return () => clearInterval(interval);
   }, [phase, hunters.length, isWall, playerPosition]);
