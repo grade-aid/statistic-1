@@ -379,7 +379,74 @@ const Learning = () => {
         </div>
       </div>
     </Card>;
-  const renderPhase4 = () => <Card className="p-6 border-2 border-blue-200 bg-blue-50">
+  const renderPhase4 = () => <Card className="p-6 border-2 border-purple-200 bg-purple-50">
+      <div className="flex items-center gap-3 mb-6">
+        <CheckCircle className="h-8 w-8 text-purple-600" />
+        <h3 className="text-2xl font-bold text-purple-800">Master 1% 📊</h3>
+      </div>
+      
+      <div className="space-y-6">
+        {/* 1% Visual */}
+        <div className="bg-white p-6 rounded-xl border border-purple-200">
+          <h4 className="text-lg font-bold mb-4 text-purple-700">🔍 Find 1%</h4>
+          
+          <VisualCalculator operation="divide" values={[totalAnimals, "100"]} result={`${onePercent.toFixed(1)} animals`} color="purple" />
+          
+          <div className="mt-4 text-center">
+            <Badge variant="secondary" className="text-lg px-4 py-2">
+              1% = {onePercent.toFixed(1)} animals
+            </Badge>
+          </div>
+        </div>
+
+        {/* Interactive Building */}
+        <div className="bg-white p-6 rounded-xl border border-purple-200">
+          <h4 className="text-lg font-bold mb-4 text-purple-700">🔧 Build Any %</h4>
+          
+          <div className="grid md:grid-cols-2 gap-4">
+            {[{
+            label: "1%",
+            multiplier: 1
+          }, {
+            label: "3%",
+            multiplier: 3
+          }, {
+            label: "7%",
+            multiplier: 7
+          }, {
+            label: "12%",
+            multiplier: 12
+          }].map(({
+            label,
+            multiplier
+          }) => {
+            const answerKey = `phase4-${multiplier}`;
+            const correctAmount = (multiplier * onePercent).toFixed(1);
+            return <div key={label} className="bg-gray-50 p-4 rounded-lg space-y-3">
+                  <div className="text-center">
+                    <Badge variant="outline" className="text-lg px-4 py-2 mb-2">
+                      {label}
+                    </Badge>
+                    <div className="text-sm text-muted-foreground">
+                      {multiplier} × {onePercent.toFixed(1)} = ?
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Input type="number" step="0.1" placeholder="answer" value={userAnswers[answerKey] || ''} onChange={e => setUserAnswers(prev => ({
+                  ...prev,
+                  [answerKey]: e.target.value
+                }))} className="flex-1" />
+                    <Button onClick={() => checkAnswer(answerKey, userAnswers[answerKey], parseFloat(correctAmount))} disabled={!userAnswers[answerKey]} size="sm">
+                      ✓
+                    </Button>
+                  </div>
+                </div>;
+          })}
+          </div>
+        </div>
+      </div>
+    </Card>;
+  const renderPhase5 = () => <Card className="p-6 border-2 border-blue-200 bg-blue-50">
       <div className="flex items-center gap-3 mb-6">
         <Lightbulb className="h-8 w-8 text-blue-600" />
         <h3 className="text-2xl font-bold text-blue-800">Percentage → Amount 🦅</h3>
@@ -427,7 +494,7 @@ const Learning = () => {
             emoji
           }) => {
             const correctAmount = Math.round(percentage / 100 * totalAnimals);
-            const questionId = `phase4-${animal}`;
+            const questionId = `phase5-${animal}`;
             return <div key={animal} className="bg-gray-50 p-4 rounded-lg space-y-3">
                   <div className="text-center">
                     <Badge variant="outline" className="text-lg px-4 py-2 mb-2">
@@ -441,73 +508,6 @@ const Learning = () => {
                   [questionId]: e.target.value
                 }))} className="flex-1" />
                     <Button onClick={() => checkAnswer(questionId, userAnswers[questionId], correctAmount)} disabled={!userAnswers[questionId]} size="sm">
-                      ✓
-                    </Button>
-                  </div>
-                </div>;
-          })}
-          </div>
-        </div>
-      </div>
-    </Card>;
-  const renderPhase5 = () => <Card className="p-6 border-2 border-purple-200 bg-purple-50">
-      <div className="flex items-center gap-3 mb-6">
-        <CheckCircle className="h-8 w-8 text-purple-600" />
-        <h3 className="text-2xl font-bold text-purple-800">Master 1% 📊</h3>
-      </div>
-      
-      <div className="space-y-6">
-        {/* 1% Visual */}
-        <div className="bg-white p-6 rounded-xl border border-purple-200">
-          <h4 className="text-lg font-bold mb-4 text-purple-700">🔍 Find 1%</h4>
-          
-          <VisualCalculator operation="divide" values={[totalAnimals, "100"]} result={`${onePercent.toFixed(1)} animals`} color="purple" />
-          
-          <div className="mt-4 text-center">
-            <Badge variant="secondary" className="text-lg px-4 py-2">
-              1% = {onePercent.toFixed(1)} animals
-            </Badge>
-          </div>
-        </div>
-
-        {/* Interactive Building */}
-        <div className="bg-white p-6 rounded-xl border border-purple-200">
-          <h4 className="text-lg font-bold mb-4 text-purple-700">🔧 Build Any %</h4>
-          
-          <div className="grid md:grid-cols-2 gap-4">
-            {[{
-            label: "1%",
-            multiplier: 1
-          }, {
-            label: "3%",
-            multiplier: 3
-          }, {
-            label: "7%",
-            multiplier: 7
-          }, {
-            label: "12%",
-            multiplier: 12
-          }].map(({
-            label,
-            multiplier
-          }) => {
-            const answerKey = `phase5-${multiplier}`;
-            const correctAmount = (multiplier * onePercent).toFixed(1);
-            return <div key={label} className="bg-gray-50 p-4 rounded-lg space-y-3">
-                  <div className="text-center">
-                    <Badge variant="outline" className="text-lg px-4 py-2 mb-2">
-                      {label}
-                    </Badge>
-                    <div className="text-sm text-muted-foreground">
-                      {multiplier} × {onePercent.toFixed(1)} = ?
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Input type="number" step="0.1" placeholder="answer" value={userAnswers[answerKey] || ''} onChange={e => setUserAnswers(prev => ({
-                  ...prev,
-                  [answerKey]: e.target.value
-                }))} className="flex-1" />
-                    <Button onClick={() => checkAnswer(answerKey, userAnswers[answerKey], parseFloat(correctAmount))} disabled={!userAnswers[answerKey]} size="sm">
                       ✓
                     </Button>
                   </div>
