@@ -57,9 +57,13 @@ const Visualization = () => {
           </Button>
           <h1 className="text-3xl font-space-grotesk font-bold">📊 Understanding Your Collection</h1>
           <Button 
-            onClick={() => navigate('/learning')}
+            onClick={() => navigate('/learning', { 
+              state: { 
+                collected: collectedData, 
+                totalCollected: totalAnimals
+              }
+            })}
             className="game-button"
-            disabled
           >
             Next: Learn Math 🧮
           </Button>
@@ -239,7 +243,15 @@ const Visualization = () => {
               <Button onClick={() => navigate('/')} className="game-button-secondary">
                 🎮 Play Again
               </Button>
-              <Button className="game-button" disabled>
+              <Button 
+                onClick={() => navigate('/learning', { 
+                  state: { 
+                    collected: collectedData, 
+                    totalCollected: totalAnimals
+                  }
+                })} 
+                className="game-button"
+              >
                 🧮 Learn Percentages
               </Button>
               <Button onClick={() => navigate('/')} className="game-button-secondary">
