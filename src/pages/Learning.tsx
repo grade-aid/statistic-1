@@ -72,11 +72,19 @@ const Learning = () => {
     color?: string;
   }) => (
     <div className={`bg-gradient-to-r from-${color}-100 to-${color}-50 p-4 rounded-xl border-2 border-${color}-200`}>
+      <div className="text-center mb-3">
+        <Badge variant="outline" className="bg-white/70 text-sm font-semibold">
+          {operation === 'percentage' && '📊 How to Calculate Percentage'}
+          {operation === 'multiply' && '🔢 Percentage to Amount'}
+          {operation === 'divide' && '➗ Finding 1%'}
+        </Badge>
+      </div>
       <div className="flex items-center justify-center gap-4 text-xl font-bold">
         <Badge variant="outline" className="text-lg px-4 py-2">{values[0]}</Badge>
         <div className={`w-10 h-10 rounded-full bg-${color}-500 flex items-center justify-center text-white`}>
           {operation === 'divide' && <Divide size={18} />}
           {operation === 'multiply' && <X size={18} />}
+          {operation === 'percentage' && <Divide size={18} />}
         </div>
         <Badge variant="outline" className="text-lg px-4 py-2">{values[1]}</Badge>
         {operation === 'percentage' && (
@@ -93,6 +101,13 @@ const Learning = () => {
         <Badge variant="secondary" className={`text-lg px-4 py-2 bg-${color}-600 text-white`}>
           {result}
         </Badge>
+      </div>
+      <div className="text-center mt-3">
+        <p className="text-sm text-gray-600">
+          {operation === 'percentage' && 'Formula: (Part ÷ Total) × 100 = Percentage'}
+          {operation === 'multiply' && 'Formula: Percentage × Total = Amount'}
+          {operation === 'divide' && 'Formula: Total ÷ 100 = 1%'}
+        </p>
       </div>
     </div>
   );
