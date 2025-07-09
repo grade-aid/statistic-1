@@ -1,31 +1,45 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, PieChart, BarChart3 } from "lucide-react";
 
 const Visualization = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   
-  // Sample data - in a real app this would come from the game state
-  const [animalData] = useState({
+  // Get data from navigation state or use fallback data
+  const gameState = location.state as {
+    collected?: {
+      mammals: number;
+      birds: number;
+      reptiles: number;
+      fish: number;
+      insects: number;
+    };
+    totalCollected?: number;
+    animalConfig?: any;
+  } | null;
+
+  const collectedData = gameState?.collected || {
     mammals: 12,
     birds: 8,
     reptiles: 6,
     fish: 10,
-    insects: 4,
-    total: 40
-  });
+    insects: 4
+  };
+
+  const totalAnimals = gameState?.totalCollected || Object.values(collectedData).reduce((sum, count) => sum + count, 0);
 
   const animalConfig = {
     mammals: { emoji: '🐘', color: 'mammals-red', name: 'Mammals' },
-    birds: { emoji: '🦅', color: 'birds-blue', name: 'Birds' },
-    reptiles: { emoji: '🐍', color: 'reptiles-green', name: 'Reptiles' },
-    fish: { emoji: '🐟', color: 'fish-cyan', name: 'Fish' },
-    insects: { emoji: '🐛', color: 'insects-yellow', name: 'Insects' }
+    birds: { emoji: '🦅', color: 'mammals-red', name: 'Birds' },
+    reptiles: { emoji: '🐍', color: 'mammals-red', name: 'Reptiles' },
+    fish: { emoji: '🐟', color: 'mammals-red', name: 'Fish' },
+    insects: { emoji: '🐛', color: 'mammals-red', name: 'Insects' }
   };
 
-  const dataEntries = Object.entries(animalData).filter(([key]) => key !== 'total');
+  const dataEntries = Object.entries(collectedData);
   const maxValue = Math.max(...dataEntries.map(([, value]) => value));
 
   return (
@@ -58,7 +72,7 @@ const Visualization = () => {
               🎉 Mission Complete!
             </h2>
             <p className="text-xl font-dm-sans mb-6">
-              You collected <span className="font-bold text-primary">{animalData.total}</span> animals total!
+              You collected <span className="font-bold text-primary">{totalAnimals}</span> animals total!
             </p>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               {Object.entries(animalConfig).map(([type, config]) => (
@@ -66,7 +80,7 @@ const Visualization = () => {
                   <div className={`w-16 h-16 rounded-full bg-${config.color} flex items-center justify-center text-3xl mx-auto mb-2 border-4 border-brand-black`}>
                     {config.emoji}
                   </div>
-                  <p className="font-dm-sans font-bold text-2xl">{animalData[type as keyof typeof animalData]}</p>
+                  <p className="font-dm-sans font-bold text-2xl">{collectedData[type as keyof typeof collectedData]}</p>
                   <p className="font-dm-sans text-sm text-muted-foreground">{config.name}</p>
                 </div>
               ))}
@@ -135,7 +149,7 @@ const Visualization = () => {
                 <div className="grid grid-cols-1 gap-2">
                   {dataEntries.map(([type, count]) => {
                     const config = animalConfig[type as keyof typeof animalConfig];
-                    const percentage = Math.round((count / animalData.total) * 100);
+                    const percentage = Math.round((count / totalAnimals) * 100);
                     
                     return (
                       <div key={type} className="flex items-center justify-between px-4 py-2 bg-muted rounded-lg">
