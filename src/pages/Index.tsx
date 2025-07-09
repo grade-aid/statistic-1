@@ -279,7 +279,7 @@ const Index = () => {
           };
         })
       );
-    }, 300); // Slightly slower for better gameplay balance
+    }, 150); // Much faster movement
     
     return () => clearInterval(interval);
   }, [phase, hunters.length, isWall, playerPosition]);
