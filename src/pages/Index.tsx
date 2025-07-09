@@ -133,11 +133,11 @@ const Index = () => {
   }, []);
   const generateHunters = useCallback((wallPositions: Position[]) => {
     const newHunters: Hunter[] = [];
-    const hunterEmojis = ['🐺'];
+    const hunterEmojis = ['🐺', '🦖'];
     const isWallPosition = (pos: Position) => {
       return wallPositions.some(wall => wall.x === pos.x && wall.y === pos.y);
     };
-    for (let i = 0; i < 1; i++) {
+    for (let i = 0; i < 2; i++) {
       let position: Position;
       let attempts = 0;
       do {
