@@ -238,6 +238,21 @@ const Learning = () => {
           </div>
         </div>
         
+        {/* Color Legend */}
+        <div className="flex flex-wrap gap-2 justify-center mt-3">
+          {Object.entries(animalConfig).map(([type, config]) => (
+            <div key={type} className="flex items-center gap-1">
+              <div 
+                className="w-3 h-3 rounded-sm" 
+                style={{ backgroundColor: config.color }}
+              />
+              <span className="text-xs text-muted-foreground">
+                {config.emoji} {config.name}
+              </span>
+            </div>
+          ))}
+        </div>
+        
         <div className="text-lg font-bold text-center">{percentage}%</div>
       </div>;
   };
