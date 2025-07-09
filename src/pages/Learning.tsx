@@ -382,66 +382,54 @@ const Learning = () => {
   const renderPhase4 = () => <Card className="p-6 border-2 border-purple-200 bg-purple-50">
       <div className="flex items-center gap-3 mb-6">
         <CheckCircle className="h-8 w-8 text-purple-600" />
-        <h3 className="text-2xl font-bold text-purple-800">Master 1% 📊</h3>
+        <h3 className="text-2xl font-bold text-purple-800">Go from % to decimal 🔢</h3>
       </div>
       
       <div className="space-y-6">
-        {/* 1% Visual */}
+        {/* Decimal Visual */}
         <div className="bg-white p-6 rounded-xl border border-purple-200">
-          <h4 className="text-lg font-bold mb-4 text-purple-700">🔍 Find 1%</h4>
+          <h4 className="text-lg font-bold mb-4 text-purple-700">🔍 Convert % to Decimal</h4>
           
-          <VisualCalculator operation="divide" values={[totalAnimals, "100"]} result={`${onePercent.toFixed(1)} animals`} color="purple" />
+          <VisualCalculator operation="divide" values={[`${mammalsPercentage}%`, "100"]} result={`${(mammalsPercentage / 100).toFixed(2)}`} color="purple" />
           
           <div className="mt-4 text-center">
             <Badge variant="secondary" className="text-lg px-4 py-2">
-              1% = {onePercent.toFixed(1)} animals
+              {mammalsPercentage}% = {(mammalsPercentage / 100).toFixed(2)} decimal
             </Badge>
           </div>
         </div>
 
-        {/* Interactive Building */}
+        {/* Interactive Practice with all animals */}
         <div className="bg-white p-6 rounded-xl border border-purple-200">
-          <h4 className="text-lg font-bold mb-4 text-purple-700">🔧 Build Any %</h4>
+          <h4 className="text-lg font-bold mb-4 text-purple-700">🔧 Convert All Animal % to Decimals</h4>
           
           <div className="grid md:grid-cols-2 gap-4">
-            {[{
-            label: "1%",
-            multiplier: 1
-          }, {
-            label: "3%",
-            multiplier: 3
-          }, {
-            label: "7%",
-            multiplier: 7
-          }, {
-            label: "12%",
-            multiplier: 12
-          }].map(({
-            label,
-            multiplier
-          }) => {
-            const answerKey = `phase4-${multiplier}`;
-            const correctAmount = (multiplier * onePercent).toFixed(1);
-            return <div key={label} className="bg-gray-50 p-4 rounded-lg space-y-3">
-                  <div className="text-center">
-                    <Badge variant="outline" className="text-lg px-4 py-2 mb-2">
-                      {label}
-                    </Badge>
-                    <div className="text-sm text-muted-foreground">
-                      {multiplier} × {onePercent.toFixed(1)} = ?
+            {Object.entries(collectedData).map(([type, count]) => {
+              const config = animalConfig[type as keyof typeof animalConfig];
+              const percentage = totalAnimals > 0 ? Math.round(count / totalAnimals * 100) : 0;
+              const correctDecimal = (percentage / 100).toFixed(2);
+              const answerKey = `phase4-${type}`;
+              return <div key={type} className="bg-gray-50 p-4 rounded-lg space-y-3">
+                    <div className="text-center">
+                      <div className="text-2xl mb-2">{config.emoji}</div>
+                      <Badge variant="outline" className="text-lg px-4 py-2 mb-2">
+                        {percentage}% → ? decimal
+                      </Badge>
+                      <div className="text-sm text-muted-foreground">
+                        {percentage} ÷ 100 = ?
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Input type="number" step="0.1" placeholder="answer" value={userAnswers[answerKey] || ''} onChange={e => setUserAnswers(prev => ({
-                  ...prev,
-                  [answerKey]: e.target.value
-                }))} className="flex-1" />
-                    <Button onClick={() => checkAnswer(answerKey, userAnswers[answerKey], parseFloat(correctAmount))} disabled={!userAnswers[answerKey]} size="sm">
-                      ✓
-                    </Button>
-                  </div>
-                </div>;
-          })}
+                    <div className="flex gap-2">
+                      <Input type="number" step="0.01" placeholder="0.00" value={userAnswers[answerKey] || ""} onChange={e => setUserAnswers(prev => ({
+                    ...prev,
+                    [answerKey]: e.target.value
+                  }))} className="flex-1" />
+                      <Button onClick={() => checkAnswer(answerKey, userAnswers[answerKey], parseFloat(correctDecimal))} disabled={!userAnswers[answerKey]} size="sm">
+                        ✓
+                      </Button>
+                    </div>
+                  </div>;
+            })}
           </div>
         </div>
       </div>
