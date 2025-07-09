@@ -148,25 +148,44 @@ const Learning = () => {
     name: string;
   }) => {
     const percentage = total > 0 ? Math.round(count / total * 100) : 0;
-    
+
     // Get all animal data for pie chart
     const dataEntries = Object.entries(collectedData);
-    
+
     // Animal config for colors
     const animalConfig = {
-      mammals: { emoji: '🐘', color: '#ef4444', name: 'Mammals' },
-      birds: { emoji: '🦅', color: '#3b82f6', name: 'Birds' },  
-      reptiles: { emoji: '🐍', color: '#22c55e', name: 'Reptiles' },
-      fish: { emoji: '🐟', color: '#06b6d4', name: 'Fish' },
-      insects: { emoji: '🐛', color: '#eab308', name: 'Insects' }
+      mammals: {
+        emoji: '🐘',
+        color: '#ef4444',
+        name: 'Mammals'
+      },
+      birds: {
+        emoji: '🦅',
+        color: '#3b82f6',
+        name: 'Birds'
+      },
+      reptiles: {
+        emoji: '🐍',
+        color: '#22c55e',
+        name: 'Reptiles'
+      },
+      fish: {
+        emoji: '🐟',
+        color: '#06b6d4',
+        name: 'Fish'
+      },
+      insects: {
+        emoji: '🐛',
+        color: '#eab308',
+        name: 'Insects'
+      }
     };
-    
     return <div className="bg-white p-4 rounded-lg border space-y-3">
         <div className="flex items-center gap-3">
           <span className="text-3xl">{emoji}</span>
           <div>
             <div className="text-lg font-bold">{name}</div>
-            <div className="text-2xl font-bold text-primary">{count}</div>
+            
           </div>
         </div>
         
@@ -175,71 +194,46 @@ const Learning = () => {
           <div className="relative w-32 h-32">
             <svg className="w-full h-full" viewBox="0 0 200 200">
               {(() => {
-                let startAngle = 0;
-                const radius = 80;
-                const centerX = 100;
-                const centerY = 100;
-                
-                return dataEntries.map(([type, animalCount]) => {
-                  const animalPercentage = (animalCount / total) * 100;
-                  const angle = (animalPercentage / 100) * 360;
-                  const endAngle = startAngle + angle;
-                  
-                  // Convert angles to radians
-                  const startAngleRad = (startAngle * Math.PI) / 180;
-                  const endAngleRad = (endAngle * Math.PI) / 180;
-                  
-                  // Calculate path coordinates
-                  const x1 = centerX + radius * Math.cos(startAngleRad);
-                  const y1 = centerY + radius * Math.sin(startAngleRad);
-                  const x2 = centerX + radius * Math.cos(endAngleRad);
-                  const y2 = centerY + radius * Math.sin(endAngleRad);
-                  
-                  const largeArcFlag = angle > 180 ? 1 : 0;
-                  
-                  const pathData = [
-                    `M ${centerX} ${centerY}`,
-                    `L ${x1} ${y1}`,
-                    `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`,
-                    'Z'
-                  ].join(' ');
-                  
-                  // Label position (middle of slice)
-                  const labelAngle = (startAngle + endAngle) / 2;
-                  const labelAngleRad = (labelAngle * Math.PI) / 180;
-                  const labelRadius = radius * 0.7;
-                  const labelX = centerX + labelRadius * Math.cos(labelAngleRad);
-                  const labelY = centerY + labelRadius * Math.sin(labelAngleRad);
-                  
-                  const config = animalConfig[type as keyof typeof animalConfig];
-                  const slice = (
-                    <g key={type}>
-                      <path
-                        d={pathData}
-                        fill={config.color}
-                        stroke="white"
-                        strokeWidth="4"
-                        className="transition-all duration-300"
-                      />
-                      {animalPercentage > 5 && (
-                        <text
-                          x={labelX}
-                          y={labelY}
-                          textAnchor="middle"
-                          dy="0.3em"
-                          className="text-sm font-bold fill-white"
-                          style={{ textShadow: '1px 1px 1px rgba(0,0,0,0.5)' }}
-                        >
+              let startAngle = 0;
+              const radius = 80;
+              const centerX = 100;
+              const centerY = 100;
+              return dataEntries.map(([type, animalCount]) => {
+                const animalPercentage = animalCount / total * 100;
+                const angle = animalPercentage / 100 * 360;
+                const endAngle = startAngle + angle;
+
+                // Convert angles to radians
+                const startAngleRad = startAngle * Math.PI / 180;
+                const endAngleRad = endAngle * Math.PI / 180;
+
+                // Calculate path coordinates
+                const x1 = centerX + radius * Math.cos(startAngleRad);
+                const y1 = centerY + radius * Math.sin(startAngleRad);
+                const x2 = centerX + radius * Math.cos(endAngleRad);
+                const y2 = centerY + radius * Math.sin(endAngleRad);
+                const largeArcFlag = angle > 180 ? 1 : 0;
+                const pathData = [`M ${centerX} ${centerY}`, `L ${x1} ${y1}`, `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`, 'Z'].join(' ');
+
+                // Label position (middle of slice)
+                const labelAngle = (startAngle + endAngle) / 2;
+                const labelAngleRad = labelAngle * Math.PI / 180;
+                const labelRadius = radius * 0.7;
+                const labelX = centerX + labelRadius * Math.cos(labelAngleRad);
+                const labelY = centerY + labelRadius * Math.sin(labelAngleRad);
+                const config = animalConfig[type as keyof typeof animalConfig];
+                const slice = <g key={type}>
+                      <path d={pathData} fill={config.color} stroke="white" strokeWidth="4" className="transition-all duration-300" />
+                      {animalPercentage > 5 && <text x={labelX} y={labelY} textAnchor="middle" dy="0.3em" className="text-sm font-bold fill-white" style={{
+                    textShadow: '1px 1px 1px rgba(0,0,0,0.5)'
+                  }}>
                           {animalCount}
-                        </text>
-                      )}
-                    </g>
-                  );
-                  
-                  startAngle = endAngle;
-                  return slice;
-                });
-              })()}
+                        </text>}
+                    </g>;
+                startAngle = endAngle;
+                return slice;
+              });
+            })()}
             </svg>
           </div>
         </div>
