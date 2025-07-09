@@ -27,6 +27,13 @@ interface Animal {
   color: string;
 }
 
+interface Hunter {
+  id: string;
+  position: Position;
+  emoji: string;
+  direction: 'up' | 'down' | 'left' | 'right';
+}
+
 const GRID_SIZE = 15;
 const CELL_SIZE = 24;
 
@@ -35,6 +42,8 @@ const Index = () => {
   const [phase, setPhase] = useState<GamePhase>('start');
   const [playerPosition, setPlayerPosition] = useState<Position>({ x: 1, y: 1 });
   const [animals, setAnimals] = useState<Animal[]>([]);
+  const [hunters, setHunters] = useState<Hunter[]>([]);
+  const [lives, setLives] = useState(3);
   const [collected, setCollected] = useState<GameState>({
     mammals: 0,
     birds: 0,
@@ -43,6 +52,7 @@ const Index = () => {
     insects: 0
   });
   const [totalTarget, setTotalTarget] = useState(20);
+  const [walls, setWalls] = useState<Position[]>([]);
 
   const animalConfig = {
     mammals: { emoji: '🐘', color: 'mammals-red' },
@@ -52,10 +62,32 @@ const Index = () => {
     insects: { emoji: '🐛', color: 'insects-yellow' }
   };
 
+  const generateWalls = useCallback(() => {
+    const newWalls: Position[] = [];
+    // Generate maze-like walls
+    for (let x = 0; x < GRID_SIZE; x++) {
+      for (let y = 0; y < GRID_SIZE; y++) {
+        // Border walls
+        if (x === 0 || x === GRID_SIZE - 1 || y === 0 || y === GRID_SIZE - 1) {
+          newWalls.push({ x, y });
+        }
+        // Internal maze walls
+        else if ((x % 3 === 0 && y % 3 === 0) && Math.random() > 0.5) {
+          newWalls.push({ x, y });
+        }
+      }
+    }
+    setWalls(newWalls);
+  }, []);
+
+  const isWall = useCallback((pos: Position) => {
+    return walls.some(wall => wall.x === pos.x && wall.y === pos.y);
+  }, [walls]);
+
   const generateAnimals = useCallback(() => {
     const newAnimals: Animal[] = [];
     const animalTypes = Object.keys(animalConfig) as Array<keyof GameState>;
-    const totalAnimals = 20;
+    const totalAnimals = 15;
     setTotalTarget(totalAnimals);
     
     for (let i = 0; i < totalAnimals; i++) {
@@ -72,6 +104,7 @@ const Index = () => {
         attempts++;
       } while (
         (position.x === 1 && position.y === 1) ||
+        isWall(position) ||
         newAnimals.some(animal => animal.position.x === position.x && animal.position.y === position.y) &&
         attempts < 50
       );
@@ -86,13 +119,47 @@ const Index = () => {
     }
     
     setAnimals(newAnimals);
-  }, []);
+  }, [isWall]);
+
+  const generateHunters = useCallback(() => {
+    const newHunters: Hunter[] = [];
+    const hunterEmojis = ['🐺', '🦖', '👹'];
+    
+    for (let i = 0; i < 3; i++) {
+      let position: Position;
+      let attempts = 0;
+      do {
+        position = {
+          x: Math.floor(Math.random() * (GRID_SIZE - 2)) + 1,
+          y: Math.floor(Math.random() * (GRID_SIZE - 2)) + 1
+        };
+        attempts++;
+      } while (
+        (position.x === 1 && position.y === 1) ||
+        isWall(position) ||
+        newHunters.some(hunter => hunter.position.x === position.x && hunter.position.y === position.y) &&
+        attempts < 50
+      );
+      
+      newHunters.push({
+        id: `hunter-${i}`,
+        position,
+        emoji: hunterEmojis[i],
+        direction: ['up', 'down', 'left', 'right'][Math.floor(Math.random() * 4)] as any
+      });
+    }
+    
+    setHunters(newHunters);
+  }, [isWall]);
 
   const startGame = () => {
     setPhase('game');
     setPlayerPosition({ x: 1, y: 1 });
+    setLives(3);
     setCollected({ mammals: 0, birds: 0, reptiles: 0, fish: 0, insects: 0 });
+    generateWalls();
     generateAnimals();
+    generateHunters();
   };
 
   const movePlayer = useCallback((direction: string) => {
@@ -121,9 +188,92 @@ const Index = () => {
           break;
       }
       
-      return { x: newX, y: newY };
+      const newPos = { x: newX, y: newY };
+      
+      // Check for wall collision
+      if (isWall(newPos)) {
+        return prev;
+      }
+      
+      return newPos;
     });
-  }, [phase]);
+  }, [phase, isWall]);
+
+  // Hunter movement AI
+  useEffect(() => {
+    if (phase !== 'game' || hunters.length === 0) return;
+    
+    const interval = setInterval(() => {
+      setHunters(prevHunters => 
+        prevHunters.map(hunter => {
+          const directions = ['up', 'down', 'left', 'right'] as const;
+          let newPosition = { ...hunter.position };
+          let newDirection = hunter.direction;
+          
+          // Try to move in current direction
+          switch (hunter.direction) {
+            case 'up':
+              newPosition.y = Math.max(0, hunter.position.y - 1);
+              break;
+            case 'down':
+              newPosition.y = Math.min(GRID_SIZE - 1, hunter.position.y + 1);
+              break;
+            case 'left':
+              newPosition.x = Math.max(0, hunter.position.x - 1);
+              break;
+            case 'right':
+              newPosition.x = Math.min(GRID_SIZE - 1, hunter.position.x + 1);
+              break;
+          }
+          
+          // If hit wall or no movement, change direction randomly
+          if (isWall(newPosition) || (newPosition.x === hunter.position.x && newPosition.y === hunter.position.y)) {
+            newDirection = directions[Math.floor(Math.random() * directions.length)];
+            newPosition = hunter.position; // Stay in place this turn
+          }
+          
+          return {
+            ...hunter,
+            position: newPosition,
+            direction: newDirection
+          };
+        })
+      );
+    }, 500);
+    
+    return () => clearInterval(interval);
+  }, [phase, hunters.length, isWall]);
+
+  // Check for hunter collision (player death)
+  useEffect(() => {
+    const hunterAtPosition = hunters.find(
+      hunter => hunter.position.x === playerPosition.x && hunter.position.y === playerPosition.y
+    );
+    
+    if (hunterAtPosition && phase === 'game') {
+      setLives(prev => {
+        const newLives = prev - 1;
+        if (newLives <= 0) {
+          // Game over
+          setPhase('start');
+          toast({
+            title: "💀 Game Over!",
+            description: "Better luck next time!",
+            duration: 3000
+          });
+        } else {
+          // Respawn player
+          setPlayerPosition({ x: 1, y: 1 });
+          toast({
+            title: `💔 Hit by ${hunterAtPosition.emoji}!`,
+            description: `${newLives} lives remaining`,
+            duration: 2000
+          });
+        }
+        return newLives;
+      });
+    }
+  }, [playerPosition, hunters, phase, toast]);
 
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
@@ -193,9 +343,18 @@ const Index = () => {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-6">
             <h2 className="text-3xl font-space-grotesk font-bold mb-2">Collect Animals</h2>
-            <p className="text-xl font-dm-sans">
-              {totalCollected} / {totalTarget} animals
-            </p>
+            <div className="flex items-center justify-center gap-4 mb-2">
+              <div className="flex items-center gap-1">
+                {Array.from({ length: 3 }, (_, i) => (
+                  <span key={i} className="text-2xl">
+                    {i < lives ? '❤️' : '🖤'}
+                  </span>
+                ))}
+              </div>
+              <p className="text-xl font-dm-sans">
+                {totalCollected} / {totalTarget} animals
+              </p>
+            </div>
           </div>
 
           <div className="grid gap-6 lg:grid-cols-3">
@@ -217,6 +376,21 @@ const Index = () => {
                     🧑‍🚀
                   </div>
                   
+                  {/* Walls */}
+                  {walls.map((wall, index) => (
+                    <div
+                      key={`wall-${index}`}
+                      className="absolute bg-brand-blue border border-brand-black"
+                      style={{
+                        left: wall.x * CELL_SIZE + 16,
+                        top: wall.y * CELL_SIZE + 16,
+                        width: CELL_SIZE - 2,
+                        height: CELL_SIZE - 2
+                      }}
+                    />
+                  ))}
+                  
+                  {/* Animals */}
                   {animals.map(animal => (
                     <div
                       key={animal.id}
@@ -230,6 +404,22 @@ const Index = () => {
                       }}
                     >
                       {animal.emoji}
+                    </div>
+                  ))}
+                  
+                  {/* Hunters */}
+                  {hunters.map(hunter => (
+                    <div
+                      key={hunter.id}
+                      className="absolute rounded-full border-2 border-red-500 bg-red-600 flex items-center justify-center text-lg transition-all duration-300"
+                      style={{
+                        left: hunter.position.x * CELL_SIZE + 16,
+                        top: hunter.position.y * CELL_SIZE + 16,
+                        width: CELL_SIZE - 2,
+                        height: CELL_SIZE - 2
+                      }}
+                    >
+                      {hunter.emoji}
                     </div>
                   ))}
                 </div>
