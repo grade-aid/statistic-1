@@ -74,25 +74,14 @@ const Learning = () => {
         setCalculatorInput("");
       }
     } else {
-      const newInput = calculatorDisplay === "0" || calculatorDisplay === "Error" 
-        ? value 
-        : calculatorInput + value;
+      const newInput = calculatorDisplay === "0" || calculatorDisplay === "Error" ? value : calculatorInput + value;
       setCalculatorInput(newInput);
       setCalculatorDisplay(newInput);
     }
   };
-
   const CalculatorModal = () => {
-    const buttons = [
-      ["C", "±", "%", "÷"],
-      ["7", "8", "9", "×"],
-      ["4", "5", "6", "-"],
-      ["1", "2", "3", "+"],
-      ["0", ".", "="]
-    ];
-
-    return (
-      <Dialog open={isCalculatorOpen} onOpenChange={setIsCalculatorOpen}>
+    const buttons = [["C", "±", "%", "÷"], ["7", "8", "9", "×"], ["4", "5", "6", "-"], ["1", "2", "3", "+"], ["0", ".", "="]];
+    return <Dialog open={isCalculatorOpen} onOpenChange={setIsCalculatorOpen}>
         <DialogContent className="w-80">
           <DialogHeader>
             <DialogTitle>Calculator</DialogTitle>
@@ -102,32 +91,18 @@ const Learning = () => {
               {calculatorDisplay}
             </div>
             <div className="grid grid-cols-4 gap-2">
-              {buttons.flat().map((btn, idx) => (
-                <Button
-                  key={idx}
-                  variant={["C", "±", "%", "÷", "×", "-", "+", "="].includes(btn) ? "secondary" : "outline"}
-                  className={`h-12 text-lg font-semibold ${
-                    btn === "0" ? "col-span-2" : ""
-                  } ${
-                    ["C", "±", "%", "÷", "×", "-", "+", "="].includes(btn) 
-                      ? "bg-orange-500 hover:bg-orange-600 text-white" 
-                      : "bg-gray-600 hover:bg-gray-500 text-white"
-                  }`}
-                  onClick={() => {
-                    let value = btn;
-                    if (btn === "×") value = "*";
-                    if (btn === "÷") value = "/";
-                    handleCalculatorInput(value);
-                  }}
-                >
+              {buttons.flat().map((btn, idx) => <Button key={idx} variant={["C", "±", "%", "÷", "×", "-", "+", "="].includes(btn) ? "secondary" : "outline"} className={`h-12 text-lg font-semibold ${btn === "0" ? "col-span-2" : ""} ${["C", "±", "%", "÷", "×", "-", "+", "="].includes(btn) ? "bg-orange-500 hover:bg-orange-600 text-white" : "bg-gray-600 hover:bg-gray-500 text-white"}`} onClick={() => {
+              let value = btn;
+              if (btn === "×") value = "*";
+              if (btn === "÷") value = "/";
+              handleCalculatorInput(value);
+            }}>
                   {btn}
-                </Button>
-              ))}
+                </Button>)}
             </div>
           </div>
         </DialogContent>
-      </Dialog>
-    );
+      </Dialog>;
   };
   const totalAnimals = Object.values(collectedData).reduce((sum: number, count: number) => sum + count, 0);
   const animalConfig = {
@@ -270,12 +245,7 @@ const Learning = () => {
             {/* Calculator Button */}
             <Dialog>
               <DialogTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="absolute -top-2 -right-2 w-6 h-6 p-0 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 z-10"
-                  onClick={() => setIsCalculatorOpen(true)}
-                >
+                <Button variant="outline" size="sm" className="absolute -top-2 -right-2 w-6 h-6 p-0 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 z-10" onClick={() => setIsCalculatorOpen(true)}>
                   <HelpCircle size={14} />
                 </Button>
               </DialogTrigger>
@@ -376,9 +346,7 @@ const Learning = () => {
             <div className="space-y-4">
               <VisualCalculator operation="percentage" values={[collectedData.mammals, totalAnimals]} result={`${mammalsPercentage}%`} color="green" />
               <div className="text-center">
-                <Badge variant="secondary" className="text-lg px-4 py-2">
-                  Fraction: {collectedData.mammals}/{totalAnimals}
-                </Badge>
+                
               </div>
             </div>
           </div>
