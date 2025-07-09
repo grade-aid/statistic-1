@@ -242,14 +242,16 @@ const Learning = () => {
         {/* Mini Pie Chart from Visualization */}
         <div className="flex justify-center">
           <div className="relative w-32 h-32">
-            {/* Calculator Button */}
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="absolute -top-2 -right-2 w-6 h-6 p-0 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 z-10" onClick={() => setIsCalculatorOpen(true)}>
-                  <HelpCircle size={14} />
-                </Button>
-              </DialogTrigger>
-            </Dialog>
+            {/* Calculator Button - hide for mammals */}
+            {name !== 'Mammals' && (
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="absolute -top-2 -right-2 w-6 h-6 p-0 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 z-10" onClick={() => setIsCalculatorOpen(true)}>
+                    <HelpCircle size={14} />
+                  </Button>
+                </DialogTrigger>
+              </Dialog>
+            )}
             <svg className="w-full h-full" viewBox="0 0 200 200">
               {(() => {
               let startAngle = 0;
