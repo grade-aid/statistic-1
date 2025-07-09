@@ -5,8 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, CheckCircle, Calculator, Lightbulb, Divide, X, Equal } from "lucide-react";
+import { ArrowLeft, CheckCircle, Calculator, Lightbulb, Divide, X, Equal, HelpCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 interface AnimalData {
   mammals: number;
   birds: number;
@@ -57,6 +58,77 @@ const Learning = () => {
     };
   };
   const collectedData = getStoredData();
+
+  // Calculator functions
+  const handleCalculatorInput = (value: string) => {
+    if (value === "C") {
+      setCalculatorDisplay("0");
+      setCalculatorInput("");
+    } else if (value === "=") {
+      try {
+        const result = eval(calculatorInput);
+        setCalculatorDisplay(result.toString());
+        setCalculatorInput(result.toString());
+      } catch {
+        setCalculatorDisplay("Error");
+        setCalculatorInput("");
+      }
+    } else {
+      const newInput = calculatorDisplay === "0" || calculatorDisplay === "Error" 
+        ? value 
+        : calculatorInput + value;
+      setCalculatorInput(newInput);
+      setCalculatorDisplay(newInput);
+    }
+  };
+
+  const CalculatorModal = () => {
+    const buttons = [
+      ["C", "±", "%", "÷"],
+      ["7", "8", "9", "×"],
+      ["4", "5", "6", "-"],
+      ["1", "2", "3", "+"],
+      ["0", ".", "="]
+    ];
+
+    return (
+      <Dialog open={isCalculatorOpen} onOpenChange={setIsCalculatorOpen}>
+        <DialogContent className="w-80">
+          <DialogHeader>
+            <DialogTitle>Calculator</DialogTitle>
+          </DialogHeader>
+          <div className="bg-gray-900 text-white p-4 rounded-lg">
+            <div className="bg-black p-3 rounded mb-3 text-right text-2xl font-mono">
+              {calculatorDisplay}
+            </div>
+            <div className="grid grid-cols-4 gap-2">
+              {buttons.flat().map((btn, idx) => (
+                <Button
+                  key={idx}
+                  variant={["C", "±", "%", "÷", "×", "-", "+", "="].includes(btn) ? "secondary" : "outline"}
+                  className={`h-12 text-lg font-semibold ${
+                    btn === "0" ? "col-span-2" : ""
+                  } ${
+                    ["C", "±", "%", "÷", "×", "-", "+", "="].includes(btn) 
+                      ? "bg-orange-500 hover:bg-orange-600 text-white" 
+                      : "bg-gray-600 hover:bg-gray-500 text-white"
+                  }`}
+                  onClick={() => {
+                    let value = btn;
+                    if (btn === "×") value = "*";
+                    if (btn === "÷") value = "/";
+                    handleCalculatorInput(value);
+                  }}
+                >
+                  {btn}
+                </Button>
+              ))}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  };
   const totalAnimals = Object.values(collectedData).reduce((sum: number, count: number) => sum + count, 0);
   const animalConfig = {
     mammals: {
@@ -87,6 +159,9 @@ const Learning = () => {
   const [showAnswers, setShowAnswers] = useState<{
     [key: string]: boolean;
   }>({});
+  const [calculatorInput, setCalculatorInput] = useState("");
+  const [calculatorDisplay, setCalculatorDisplay] = useState("0");
+  const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
 
   // Calculate correct answers - ensure numbers are properly typed
   const mammalsPercentage = totalAnimals > 0 ? Math.round(collectedData.mammals / totalAnimals * 100) : 0;
@@ -192,6 +267,19 @@ const Learning = () => {
         {/* Mini Pie Chart from Visualization */}
         <div className="flex justify-center">
           <div className="relative w-32 h-32">
+            {/* Calculator Button */}
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="absolute -top-2 -right-2 w-6 h-6 p-0 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 z-10"
+                  onClick={() => setIsCalculatorOpen(true)}
+                >
+                  <HelpCircle size={14} />
+                </Button>
+              </DialogTrigger>
+            </Dialog>
             <svg className="w-full h-full" viewBox="0 0 200 200">
               {(() => {
               let startAngle = 0;
@@ -508,6 +596,7 @@ const Learning = () => {
           </Button>
         </div>
       </div>
+      <CalculatorModal />
     </div>;
 };
 export default Learning;
