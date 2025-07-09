@@ -130,16 +130,49 @@ const Visualization = () => {
               <h3 className="text-2xl font-space-grotesk font-bold">Pie Chart View</h3>
             </div>
             
-            {/* Simple visual pie representation */}
+            {/* Pie Chart - SVG Implementation */}
             <div className="space-y-4">
               <div className="relative w-64 h-64 mx-auto">
-                {/* Pie segments - simplified visual representation */}
-                <div className="w-full h-full rounded-full border-8 border-brand-black relative overflow-hidden bg-mammals-red">
-                  {/* This is a simplified version - a real pie chart would use SVG or Canvas */}
-                  <div className="absolute inset-0 flex items-center justify-center text-white font-bold text-6xl">
-                    🐘
-                  </div>
-                </div>
+                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                  {(() => {
+                    let cumulativePercentage = 0;
+                    const colors = {
+                      mammals: '#ef4444', // red
+                      birds: '#ef4444',
+                      reptiles: '#ef4444',
+                      fish: '#ef4444',
+                      insects: '#ef4444'
+                    };
+                    
+                    return dataEntries.map(([type, count], index) => {
+                      const percentage = (count / totalAnimals) * 100;
+                      const strokeDasharray = `${percentage} ${100 - percentage}`;
+                      const strokeDashoffset = -cumulativePercentage;
+                      cumulativePercentage += percentage;
+                      
+                      return (
+                        <circle
+                          key={type}
+                          cx="50"
+                          cy="50"
+                          r="15.9155"
+                          fill="transparent"
+                          stroke={colors[type as keyof typeof colors]}
+                          strokeWidth="32"
+                          strokeDasharray={strokeDasharray}
+                          strokeDashoffset={strokeDashoffset}
+                          className="transition-all duration-1000"
+                        />
+                      );
+                    });
+                  })()}
+                  
+                  {/* Center circle with total */}
+                  <circle cx="50" cy="50" r="15" fill="white" stroke="#000" strokeWidth="2"/>
+                  <text x="50" y="50" textAnchor="middle" dy="0.3em" className="text-xs font-bold fill-black">
+                    {totalAnimals}
+                  </text>
+                </svg>
               </div>
               
               <div className="text-center">
