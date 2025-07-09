@@ -120,12 +120,12 @@ const Learning = () => {
         </div>
         <Badge variant="outline" className="text-lg px-4 py-2">{values[1]}</Badge>
         {operation === 'percentage' && <>
-            <div className={`w-10 h-10 rounded-full bg-${color}-500 flex items-center justify-center text-white`}>
+            <div className={`w-10 h-10 rounded-full bg-${color}-500 flex items-center justify-center text-black`}>
               <X size={18} />
             </div>
             <Badge variant="outline" className="text-lg px-4 py-2">100</Badge>
           </>}
-        <div className={`w-10 h-10 rounded-full bg-${color}-600 flex items-center justify-center text-white`}>
+        <div className={`w-10 h-10 rounded-full bg-${color}-600 flex items-center justify-center text-black`}>
           <Equal size={18} />
         </div>
         <Badge variant="secondary" className={`text-lg px-4 py-2 bg-${color}-600 text-white`}>
