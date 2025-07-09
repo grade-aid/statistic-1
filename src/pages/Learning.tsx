@@ -148,6 +148,13 @@ const Learning = () => {
     name: string;
   }) => {
     const percentage = total > 0 ? Math.round(count / total * 100) : 0;
+    
+    // Mini pie chart
+    const radius = 20;
+    const circumference = 2 * Math.PI * radius;
+    const strokeDasharray = circumference;
+    const strokeDashoffset = circumference - (percentage / 100) * circumference;
+    
     return <div className="bg-white p-4 rounded-lg border space-y-3">
         <div className="flex items-center gap-3">
           <span className="text-3xl">{emoji}</span>
@@ -156,8 +163,39 @@ const Learning = () => {
             <div className="text-2xl font-bold text-primary">{count}</div>
           </div>
         </div>
-        <Progress value={percentage} className="h-4" />
-        <div className="text-lg font-bold text-center">{percentage}%</div>
+        
+        {/* Mini Pie Chart */}
+        <div className="flex justify-center">
+          <div className="relative w-12 h-12">
+            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 50 50">
+              {/* Background circle */}
+              <circle
+                cx="25"
+                cy="25"
+                r={radius}
+                fill="none"
+                stroke="#e5e7eb"
+                strokeWidth="6"
+              />
+              {/* Progress circle */}
+              <circle
+                cx="25"
+                cy="25"
+                r={radius}
+                fill="none"
+                stroke="hsl(var(--primary))"
+                strokeWidth="6"
+                strokeDasharray={strokeDasharray}
+                strokeDashoffset={strokeDashoffset}
+                className="transition-all duration-1000 ease-out"
+              />
+            </svg>
+            {/* Percentage text in center */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-xs font-bold">{percentage}%</span>
+            </div>
+          </div>
+        </div>
       </div>;
   };
   const checkAnswer = (questionId: string, userAnswer: string, correctAnswer: number) => {
