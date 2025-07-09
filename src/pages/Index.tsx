@@ -210,12 +210,24 @@ const Index = () => {
           let newPosition = { ...hunter.position };
           let newDirection = hunter.direction;
           
-          // Random direction change (30% chance each move)
-          if (Math.random() < 0.3) {
+          // 60% chance to hunt player, 40% chance random movement
+          if (Math.random() < 0.6) {
+            // Calculate direction towards player
+            const dx = playerPosition.x - hunter.position.x;
+            const dy = playerPosition.y - hunter.position.y;
+            
+            // Choose direction that gets closer to player
+            if (Math.abs(dx) > Math.abs(dy)) {
+              newDirection = dx > 0 ? 'right' : 'left';
+            } else if (dy !== 0) {
+              newDirection = dy > 0 ? 'down' : 'up';
+            }
+          } else {
+            // Random movement
             newDirection = directions[Math.floor(Math.random() * directions.length)];
           }
           
-          // Try to move in current direction
+          // Try to move in chosen direction
           switch (newDirection) {
             case 'up':
               newPosition.y = Math.max(0, hunter.position.y - 1);
@@ -231,10 +243,33 @@ const Index = () => {
               break;
           }
           
-          // If hit wall, pick random new direction and stay in place
-          if (isWall(newPosition) || (newPosition.x === hunter.position.x && newPosition.y === hunter.position.y)) {
-            newDirection = directions[Math.floor(Math.random() * directions.length)];
-            newPosition = hunter.position;
+          // If hit wall, try alternative direction or stay put
+          if (isWall(newPosition)) {
+            // Try perpendicular directions
+            const altDirections = newDirection === 'up' || newDirection === 'down' 
+              ? ['left', 'right'] 
+              : ['up', 'down'];
+            
+            for (const altDir of altDirections) {
+              let altPos = { ...hunter.position };
+              switch (altDir) {
+                case 'up': altPos.y = Math.max(0, hunter.position.y - 1); break;
+                case 'down': altPos.y = Math.min(GRID_SIZE - 1, hunter.position.y + 1); break;
+                case 'left': altPos.x = Math.max(0, hunter.position.x - 1); break;
+                case 'right': altPos.x = Math.min(GRID_SIZE - 1, hunter.position.x + 1); break;
+              }
+              
+              if (!isWall(altPos)) {
+                newPosition = altPos;
+                newDirection = altDir as any;
+                break;
+              }
+            }
+            
+            // If all directions blocked, stay in place
+            if (isWall(newPosition)) {
+              newPosition = hunter.position;
+            }
           }
           
           return {
@@ -244,10 +279,10 @@ const Index = () => {
           };
         })
       );
-    }, 200); // Much faster movement (was 500ms, now 200ms)
+    }, 300); // Slightly slower for better gameplay balance
     
     return () => clearInterval(interval);
-  }, [phase, hunters.length, isWall]);
+  }, [phase, hunters.length, isWall, playerPosition]);
 
   // Check for hunter collision (player death)
   useEffect(() => {
