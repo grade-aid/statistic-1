@@ -61,7 +61,23 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+				'brand-purple': 'hsl(var(--brand-purple))',
+				'brand-orange': 'hsl(var(--brand-orange))',
+				'brand-blue': 'hsl(var(--brand-blue))',
+				'brand-black': 'hsl(var(--brand-black))',
+				'soft-white': 'hsl(var(--soft-white))',
+				'input-gray': 'hsl(var(--input-gray))',
+				'border-gray': 'hsl(var(--border-gray))',
+				'mammals-red': 'hsl(var(--mammals-red))',
+				'birds-blue': 'hsl(var(--birds-blue))',
+				'reptiles-green': 'hsl(var(--reptiles-green))',
+				'fish-cyan': 'hsl(var(--fish-cyan))',
+				'insects-yellow': 'hsl(var(--insects-yellow))'
+			},
+			fontFamily: {
+				'space-grotesk': ['Space Grotesk', 'sans-serif'],
+				'dm-sans': ['DM Sans', 'sans-serif'],
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

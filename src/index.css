@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -8,33 +10,50 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* GradeAid Brand Colors */
+    --brand-purple: 262 100% 50%;
+    --brand-orange: 22 100% 50%;
+    --brand-blue: 224 100% 50%;
+    --brand-black: 240 8% 19%;
+    --soft-white: 0 0% 98%;
+    --input-gray: 0 0% 94%;
+    --border-gray: 220 13% 91%;
+    
+    /* Animal Category Colors */
+    --mammals-red: 0 84% 60%;
+    --birds-blue: 214 100% 60%;
+    --reptiles-green: 142 76% 36%;
+    --fish-cyan: 185 100% 50%;
+    --insects-yellow: 48 100% 67%;
+    
+    /* Base Design System */
+    --background: 0 0% 98%;
+    --foreground: 240 8% 19%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 240 8% 19%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 240 8% 19%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 262 100% 50%;
+    --primary-foreground: 0 0% 98%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 22 100% 50%;
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 0 0% 94%;
+    --muted-foreground: 215 16% 47%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 224 100% 50%;
+    --accent-foreground: 0 0% 98%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 220 13% 91%;
+    --input: 0 0% 94%;
+    --ring: 262 100% 50%;
 
     --radius: 0.5rem;
 
@@ -101,5 +120,62 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    font-family: 'DM Sans', system-ui, sans-serif;
+    font-size: 18px;
+    line-height: 1.5;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+  }
+  
+  /* GradeAid Component Styles */
+  .game-button {
+    @apply rounded-full shadow-lg border-b-[10px] border-l-[10px] border-brand-black 
+           bg-primary text-primary-foreground font-medium text-xl uppercase
+           min-h-[44px] px-8 py-3 transition-all duration-200
+           hover:scale-105 focus:outline-none focus:ring-4 focus:ring-ring
+           active:scale-95;
+    box-shadow: -10px 10px 40px rgba(0, 0, 0, 0.25);
+  }
+  
+  .game-button-secondary {
+    @apply rounded-full shadow-lg border-b-[10px] border-l-[10px] border-brand-black 
+           bg-secondary text-secondary-foreground font-medium text-xl uppercase
+           min-h-[44px] px-8 py-3 transition-all duration-200
+           hover:scale-105 focus:outline-none focus:ring-4 focus:ring-ring
+           active:scale-95;
+    box-shadow: -10px 10px 40px rgba(0, 0, 0, 0.25);
+  }
+  
+  .game-card {
+    @apply rounded-[50px] border-b-[10px] border-l-[10px] border-brand-black
+           bg-card text-card-foreground p-8 shadow-lg;
+  }
+  
+  .animal-category-mammals { @apply bg-mammals-red; }
+  .animal-category-birds { @apply bg-birds-blue; }
+  .animal-category-reptiles { @apply bg-reptiles-green; }
+  .animal-category-fish { @apply bg-fish-cyan; }
+  .animal-category-insects { @apply bg-insects-yellow; }
+  
+  /* Animations for collection game */
+  @keyframes collect-bounce {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+  }
+  
+  @keyframes success-glow {
+    0%, 100% { box-shadow: 0 0 20px rgba(111, 0, 255, 0.3); }
+    50% { box-shadow: 0 0 40px rgba(111, 0, 255, 0.6); }
+  }
+  
+  .collect-animation {
+    animation: collect-bounce 0.3s ease-in-out;
+  }
+  
+  .success-glow {
+    animation: success-glow 2s ease-in-out infinite;
   }
 }
