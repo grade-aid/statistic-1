@@ -128,7 +128,7 @@ const Learning = () => {
         <div className={`w-10 h-10 rounded-full bg-${color}-600 flex items-center justify-center text-black`}>
           <Equal size={18} />
         </div>
-        <Badge variant="secondary" className={`text-lg px-4 py-2 bg-${color}-600 text-white`}>
+        <Badge variant="secondary" className="text-lg px-4 py-2 bg-orange-600 text-white">
           {result}
         </Badge>
       </div>
