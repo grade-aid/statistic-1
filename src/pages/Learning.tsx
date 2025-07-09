@@ -113,7 +113,7 @@ const Learning = () => {
       </div>
       <div className="flex items-center justify-center gap-4 text-xl font-bold">
         <Badge variant="outline" className="text-lg px-4 py-2">{values[0]}</Badge>
-        <div className={`w-10 h-10 rounded-full bg-${color}-500 flex items-center justify-center text-white`}>
+        <div className={`w-10 h-10 rounded-full bg-${color}-500 flex items-center justify-center text-black`}>
           {operation === 'divide' && <Divide size={18} />}
           {operation === 'multiply' && <X size={18} />}
           {operation === 'percentage' && <Divide size={18} />}
