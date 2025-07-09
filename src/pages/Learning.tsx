@@ -24,7 +24,23 @@ const Learning = () => {
   const getStoredData = (): AnimalData => {
     const stored = localStorage.getItem("animalData");
     if (stored) {
-      return JSON.parse(stored);
+      try {
+        return JSON.parse(stored);
+      } catch {
+        return { mammals: 0, birds: 0, reptiles: 0, fish: 0, insects: 0 };
+      }
+    }
+    // If no data exists, try the old gameState format
+    const oldStored = localStorage.getItem("gameState");
+    if (oldStored) {
+      try {
+        const gameState = JSON.parse(oldStored);
+        if (gameState.collected) {
+          return gameState.collected;
+        }
+      } catch {
+        // Fall through to default
+      }
     }
     return { mammals: 0, birds: 0, reptiles: 0, fish: 0, insects: 0 };
   };
