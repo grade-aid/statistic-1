@@ -314,17 +314,16 @@ const Learning = () => {
     // Use higher tolerance for percentage questions (whole numbers)
     const tolerance = correctAnswer > 10 ? 1.0 : 0.1;
     const isCorrect = Math.abs(parseFloat(userAnswer) - correctAnswer) < tolerance;
-    
     if (isCorrect) {
       // Update answer state to correct
       setAnswerStates(prev => ({
         ...prev,
         [questionId]: 'correct'
       }));
-      
+
       // Trigger confetti animation
       setShowConfetti(true);
-      
+
       // Clear confetti after animation
       setTimeout(() => setShowConfetti(false), 3000);
     } else {
@@ -333,13 +332,13 @@ const Learning = () => {
         ...prev,
         [questionId]: 'incorrect'
       }));
-      
+
       // Trigger shake animation
       setShakingQuestions(prev => ({
         ...prev,
         [questionId]: true
       }));
-      
+
       // Clear shake animation
       setTimeout(() => {
         setShakingQuestions(prev => ({
@@ -348,7 +347,6 @@ const Learning = () => {
         }));
       }, 500);
     }
-    
     return isCorrect;
   };
   const renderPhase3 = () => <Card className="p-6 border-2 border-green-200 bg-green-50">
@@ -383,34 +381,14 @@ const Learning = () => {
             const questionId = `phase3-${type}`;
             const answerState = answerStates[questionId] || 'unanswered';
             const isShaking = shakingQuestions[questionId] || false;
-            
-            return <div key={type} className={`bg-gray-50 p-4 rounded-lg space-y-3 transition-colors duration-300 ${
-              answerState === 'correct' ? 'bg-green-100 border-2 border-green-300' : 
-              answerState === 'incorrect' ? 'bg-red-50 border-2 border-red-200' : ''
-            } ${isShaking ? 'animate-shake' : ''}`}>
+            return <div key={type} className={`bg-gray-50 p-4 rounded-lg space-y-3 transition-colors duration-300 ${answerState === 'correct' ? 'bg-green-100 border-2 border-green-300' : answerState === 'incorrect' ? 'bg-red-50 border-2 border-red-200' : ''} ${isShaking ? 'animate-shake' : ''}`}>
                   <AnimalVisual count={count} emoji={config.emoji} total={totalAnimals} name={config.name} showPercentages={false} />
                   <div className="flex gap-2">
-                    <Input 
-                      type="number" 
-                      placeholder="%" 
-                      value={userAnswers[questionId] || ''} 
-                      onChange={e => setUserAnswers(prev => ({
-                        ...prev,
-                        [questionId]: e.target.value
-                      }))} 
-                      className={`flex-1 ${
-                        answerState === 'correct' ? 'border-green-500 bg-green-50' : 
-                        answerState === 'incorrect' ? 'border-red-500 bg-red-50' : ''
-                      }`}
-                      disabled={answerState === 'correct'}
-                    />
-                    <Button 
-                      onClick={() => checkAnswer(questionId, userAnswers[questionId], correctPercentage)} 
-                      disabled={!userAnswers[questionId] || answerState === 'correct'} 
-                      size="sm"
-                      variant={answerState === 'correct' ? 'default' : 'outline'}
-                      className={answerState === 'correct' ? 'bg-green-600 hover:bg-green-700' : ''}
-                    >
+                    <Input type="number" placeholder="%" value={userAnswers[questionId] || ''} onChange={e => setUserAnswers(prev => ({
+                  ...prev,
+                  [questionId]: e.target.value
+                }))} className={`flex-1 ${answerState === 'correct' ? 'border-green-500 bg-green-50' : answerState === 'incorrect' ? 'border-red-500 bg-red-50' : ''}`} disabled={answerState === 'correct'} />
+                    <Button onClick={() => checkAnswer(questionId, userAnswers[questionId], correctPercentage)} disabled={!userAnswers[questionId] || answerState === 'correct'} size="sm" variant={answerState === 'correct' ? 'default' : 'outline'} className={answerState === 'correct' ? 'bg-green-600 hover:bg-green-700' : ''}>
                       {answerState === 'correct' ? '✅' : '✓'}
                     </Button>
                   </div>
@@ -455,11 +433,7 @@ const Learning = () => {
               const questionId = `phase4-${type}`;
               const answerState = answerStates[questionId] || 'unanswered';
               const isShaking = shakingQuestions[questionId] || false;
-              
-               return <div key={type} className={`bg-gray-50 p-4 rounded-lg space-y-3 transition-colors duration-300 ${
-                 answerState === 'correct' ? 'bg-green-100 border-2 border-green-300' : 
-                 answerState === 'incorrect' ? 'bg-red-50 border-2 border-red-200' : ''
-               } ${isShaking ? 'animate-shake' : ''}`}>
+              return <div key={type} className={`bg-gray-50 p-4 rounded-lg space-y-3 transition-colors duration-300 ${answerState === 'correct' ? 'bg-green-100 border-2 border-green-300' : answerState === 'incorrect' ? 'bg-red-50 border-2 border-red-200' : ''} ${isShaking ? 'animate-shake' : ''}`}>
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-2xl">{config.emoji}</span>
                         <div>
@@ -478,28 +452,11 @@ const Learning = () => {
                       </div>
                       
                       <div className="flex gap-2">
-                        <Input 
-                          type="number" 
-                          step="0.01" 
-                          placeholder="0,00" 
-                          value={userAnswers[questionId] || ''} 
-                          onChange={e => setUserAnswers(prev => ({
-                            ...prev,
-                            [questionId]: e.target.value
-                          }))} 
-                          className={`flex-1 ${
-                            answerState === 'correct' ? 'border-green-500 bg-green-50' : 
-                            answerState === 'incorrect' ? 'border-red-500 bg-red-50' : ''
-                          }`}
-                          disabled={answerState === 'correct'}
-                        />
-                        <Button 
-                          onClick={() => checkAnswer(questionId, userAnswers[questionId], correctDecimal)} 
-                          disabled={!userAnswers[questionId] || answerState === 'correct'} 
-                          size="sm"
-                          variant={answerState === 'correct' ? 'default' : 'outline'}
-                          className={answerState === 'correct' ? 'bg-green-600 hover:bg-green-700' : ''}
-                        >
+                        <Input type="number" step="0.01" placeholder="0,00" value={userAnswers[questionId] || ''} onChange={e => setUserAnswers(prev => ({
+                    ...prev,
+                    [questionId]: e.target.value
+                  }))} className={`flex-1 ${answerState === 'correct' ? 'border-green-500 bg-green-50' : answerState === 'incorrect' ? 'border-red-500 bg-red-50' : ''}`} disabled={answerState === 'correct'} />
+                        <Button onClick={() => checkAnswer(questionId, userAnswers[questionId], correctDecimal)} disabled={!userAnswers[questionId] || answerState === 'correct'} size="sm" variant={answerState === 'correct' ? 'default' : 'outline'} className={answerState === 'correct' ? 'bg-green-600 hover:bg-green-700' : ''}>
                           {answerState === 'correct' ? '✅' : '✓'}
                         </Button>
                       </div>
@@ -555,11 +512,7 @@ const Learning = () => {
             const correctAmount = (multiplier * onePercent).toFixed(1);
             const answerState = answerStates[answerKey] || 'unanswered';
             const isShaking = shakingQuestions[answerKey] || false;
-            
-            return <div key={label} className={`bg-gray-50 p-4 rounded-lg space-y-3 transition-colors duration-300 ${
-              answerState === 'correct' ? 'bg-green-100 border-2 border-green-300' : 
-              answerState === 'incorrect' ? 'bg-red-50 border-2 border-red-200' : ''
-            } ${isShaking ? 'animate-shake' : ''}`}>
+            return <div key={label} className={`bg-gray-50 p-4 rounded-lg space-y-3 transition-colors duration-300 ${answerState === 'correct' ? 'bg-green-100 border-2 border-green-300' : answerState === 'incorrect' ? 'bg-red-50 border-2 border-red-200' : ''} ${isShaking ? 'animate-shake' : ''}`}>
                   <div className="text-center">
                     <Badge variant="outline" className="text-lg px-4 py-2 mb-2">
                       {label}
@@ -569,28 +522,11 @@ const Learning = () => {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Input 
-                      type="number" 
-                      step="0.1" 
-                      placeholder="answer" 
-                      value={userAnswers[answerKey] || ''} 
-                      onChange={e => setUserAnswers(prev => ({
-                        ...prev,
-                        [answerKey]: e.target.value
-                      }))} 
-                      className={`flex-1 ${
-                        answerState === 'correct' ? 'border-green-500 bg-green-50' : 
-                        answerState === 'incorrect' ? 'border-red-500 bg-red-50' : ''
-                      }`}
-                      disabled={answerState === 'correct'}
-                    />
-                    <Button 
-                      onClick={() => checkAnswer(answerKey, userAnswers[answerKey], parseFloat(correctAmount))} 
-                      disabled={!userAnswers[answerKey] || answerState === 'correct'} 
-                      size="sm"
-                      variant={answerState === 'correct' ? 'default' : 'outline'}
-                      className={answerState === 'correct' ? 'bg-green-600 hover:bg-green-700' : ''}
-                    >
+                    <Input type="number" step="0.1" placeholder="answer" value={userAnswers[answerKey] || ''} onChange={e => setUserAnswers(prev => ({
+                  ...prev,
+                  [answerKey]: e.target.value
+                }))} className={`flex-1 ${answerState === 'correct' ? 'border-green-500 bg-green-50' : answerState === 'incorrect' ? 'border-red-500 bg-red-50' : ''}`} disabled={answerState === 'correct'} />
+                    <Button onClick={() => checkAnswer(answerKey, userAnswers[answerKey], parseFloat(correctAmount))} disabled={!userAnswers[answerKey] || answerState === 'correct'} size="sm" variant={answerState === 'correct' ? 'default' : 'outline'} className={answerState === 'correct' ? 'bg-green-600 hover:bg-green-700' : ''}>
                       {answerState === 'correct' ? '✅' : '✓'}
                     </Button>
                   </div>
@@ -629,9 +565,7 @@ const Learning = () => {
 
         {/* Phase Navigation */}
         <div className="flex justify-center gap-4 mb-8">
-          {[3, 4, 5].map(phase => <Button key={phase} variant={currentPhase === phase ? "default" : "outline"} onClick={() => setCurrentPhase(phase)} className="min-w-[120px]">
-              Phase {phase}
-            </Button>)}
+          {[3, 4, 5].map(phase => {})}
         </div>
 
         {/* Current Phase Content */}
