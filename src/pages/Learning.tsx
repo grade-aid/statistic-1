@@ -513,6 +513,104 @@ const Learning = () => {
     }
     return isCorrect;
   };
+
+  // Auto-fill function for testing purposes
+  const autoFillAnswers = () => {
+    console.log(`🔧 Auto-filling answers for Phase ${currentPhase}`);
+    
+    if (currentPhase === 3) {
+      // Phase 3: Fill in correct percentages for all non-mammal animals
+      const newAnswers: { [key: string]: string } = {};
+      const newAnswerStates: { [key: string]: 'correct' | 'incorrect' | 'unanswered' } = {};
+      
+      Object.entries(collectedData).filter(([type]) => type !== 'mammals').forEach(([type, count]) => {
+        const correctPercentage = totalAnimals > 0 ? Math.round(count / totalAnimals * 100) : 0;
+        const questionId = `phase3-${type}`;
+        newAnswers[questionId] = correctPercentage.toString();
+        newAnswerStates[questionId] = 'correct';
+      });
+      
+      setUserAnswers(prev => ({ ...prev, ...newAnswers }));
+      setAnswerStates(prev => ({ ...prev, ...newAnswerStates }));
+      
+      // Trigger confetti and check completion
+      setShowConfetti(true);
+      setTimeout(() => {
+        setShowConfetti(false);
+        checkPhaseCompletion(3);
+      }, 1000);
+    }
+    else if (currentPhase === 4) {
+      // Phase 4: Fill in correct decimals for all non-mammal animals
+      const newAnswers: { [key: string]: string } = {};
+      const newAnswerStates: { [key: string]: 'correct' | 'incorrect' | 'unanswered' } = {};
+      
+      Object.entries(collectedData).filter(([type]) => type !== 'mammals').forEach(([type, count]) => {
+        const percentage = totalAnimals > 0 ? Math.round(count / totalAnimals * 100) : 0;
+        const correctDecimal = percentage / 100;
+        const questionId = `phase4-${type}`;
+        newAnswers[questionId] = correctDecimal.toFixed(2);
+        newAnswerStates[questionId] = 'correct';
+      });
+      
+      setUserAnswers(prev => ({ ...prev, ...newAnswers }));
+      setAnswerStates(prev => ({ ...prev, ...newAnswerStates }));
+      
+      // Trigger confetti and check completion
+      setShowConfetti(true);
+      setTimeout(() => {
+        setShowConfetti(false);
+        checkPhaseCompletion(4);
+      }, 1000);
+    }
+    else if (currentPhase === 5) {
+      // Phase 5: Fill in correct values for all multipliers
+      const newAnswers: { [key: string]: string } = {};
+      const newAnswerStates: { [key: string]: 'correct' | 'incorrect' | 'unanswered' } = {};
+      
+      [1, 3, 7, 12].forEach(multiplier => {
+        const correctAmount = (multiplier * onePercent).toFixed(1);
+        const questionId = `phase5-${multiplier}`;
+        newAnswers[questionId] = correctAmount;
+        newAnswerStates[questionId] = 'correct';
+      });
+      
+      setUserAnswers(prev => ({ ...prev, ...newAnswers }));
+      setAnswerStates(prev => ({ ...prev, ...newAnswerStates }));
+      
+      // Trigger confetti and check completion
+      setShowConfetti(true);
+      setTimeout(() => {
+        setShowConfetti(false);
+        checkPhaseCompletion(5);
+      }, 1000);
+    }
+    else if (currentPhase === 6) {
+      // Phase 6: Auto-sort all animals into correct zones
+      const newDroppedItems = { low: [], medium: [], high: [] } as { [key: string]: string[] };
+      
+      Object.entries(collectedData).forEach(([type, count]) => {
+        const percentage = totalAnimals > 0 ? Math.round(count / totalAnimals * 100) : 0;
+        
+        if (percentage >= 0 && percentage <= 15) {
+          newDroppedItems.low.push(type);
+        } else if (percentage >= 16 && percentage <= 35) {
+          newDroppedItems.medium.push(type);
+        } else if (percentage >= 36 && percentage <= 100) {
+          newDroppedItems.high.push(type);
+        }
+      });
+      
+      setDroppedItems(newDroppedItems);
+      
+      // Trigger confetti and check completion
+      setShowConfetti(true);
+      setTimeout(() => {
+        setShowConfetti(false);
+        checkPhaseCompletion(6);
+      }, 1000);
+    }
+  };
   const renderPhase3 = () => <Card className="p-6 border-2 border-green-200 bg-green-50">
       <div className="flex items-center gap-3 mb-6">
         <Calculator className="h-8 w-8 text-green-600" />
@@ -865,9 +963,18 @@ const Learning = () => {
         {currentPhase === 6 && renderPhase6()}
 
         {/* Navigation */}
-        <div className="flex justify-start mt-8">
+        <div className="flex justify-between items-center mt-8">
           <Button variant="outline" onClick={() => setCurrentPhase(Math.max(3, currentPhase - 1))} disabled={currentPhase === 3}>
             Previous Phase
+          </Button>
+          
+          {/* Auto-fill button for testing */}
+          <Button 
+            variant="destructive" 
+            onClick={autoFillAnswers}
+            className="bg-red-500 hover:bg-red-600"
+          >
+            🔧 Auto-Fill Answers (Testing)
           </Button>
         </div>
       </div>
