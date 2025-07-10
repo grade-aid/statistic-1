@@ -162,6 +162,7 @@ const Learning = () => {
   };
   const [currentPhase, setCurrentPhase] = useState(3);
   const [isCollectingFood, setIsCollectingFood] = useState(false);
+  const [tempFoodData, setTempFoodData] = useState<FoodData>(foodData);
   const [userAnswers, setUserAnswers] = useState<{
     [key: string]: string;
   }>({});
@@ -665,7 +666,6 @@ const Learning = () => {
 
   // Food Collection Interface
   const renderFoodCollection = () => {
-    const [tempFoodData, setTempFoodData] = useState<FoodData>(foodData);
     
     const handleFoodClick = (foodType: keyof FoodData) => {
       setTempFoodData(prev => ({
@@ -678,6 +678,8 @@ const Learning = () => {
       saveFoodData(tempFoodData);
       setIsCollectingFood(false);
       setCurrentPhase(7);
+      // Reset temp food data for future collections
+      setTempFoodData(tempFoodData);
     };
 
     return (
@@ -1234,11 +1236,12 @@ const Learning = () => {
             <Button 
               onClick={() => {
                 if (currentPhase === 6) {
+                  setTempFoodData(foodData); // Initialize temp data
                   setIsCollectingFood(true);
                 } else {
                   setCurrentPhase(Math.min(10, currentPhase + 1));
                 }
-              }} 
+              }}
               disabled={currentPhase === 10}
             >
               {currentPhase === 6 ? 'Collect Food Data' : 'Next Phase'}
