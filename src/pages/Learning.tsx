@@ -155,7 +155,7 @@ const Learning = () => {
     color?: string;
   }) => <div className={`bg-gradient-to-r from-${color}-100 to-${color}-50 p-4 rounded-xl border-2 border-${color}-200`}>
       <div className="text-center mb-3">
-        
+        <div className="text-sm font-medium text-muted-foreground mb-1">🐘 Mammals Calculation</div>
       </div>
       <div className="flex items-center justify-center gap-4 text-xl font-bold">
         <Badge variant="outline" className="text-lg px-4 py-2">{values[0]}</Badge>
