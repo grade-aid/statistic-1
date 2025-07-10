@@ -56,51 +56,6 @@ const Learning = () => {
   };
   const collectedData = getStoredData();
 
-  // Calculator functions
-  const handleCalculatorInput = (value: string) => {
-    if (value === "C") {
-      setCalculatorDisplay("0");
-      setCalculatorInput("");
-    } else if (value === "=") {
-      try {
-        const result = eval(calculatorInput);
-        setCalculatorDisplay(result.toString());
-        setCalculatorInput(result.toString());
-      } catch {
-        setCalculatorDisplay("Error");
-        setCalculatorInput("");
-      }
-    } else {
-      const newInput = calculatorDisplay === "0" || calculatorDisplay === "Error" ? value : calculatorInput + value;
-      setCalculatorInput(newInput);
-      setCalculatorDisplay(newInput);
-    }
-  };
-  const CalculatorModal = () => {
-    const buttons = [["C", "±", "", "÷"], ["7", "8", "9", "×"], ["4", "5", "6", "-"], ["1", "2", "3", "+"], ["0", ".", "="]];
-    return <Dialog open={isCalculatorOpen} onOpenChange={setIsCalculatorOpen}>
-        <DialogContent className="w-80">
-          <DialogHeader>
-            <DialogTitle>Calculator</DialogTitle>
-          </DialogHeader>
-          <div className="bg-gray-900 text-white p-4 rounded-lg">
-            <div className="bg-black p-3 rounded mb-3 text-right text-2xl font-mono">
-              {calculatorDisplay}
-            </div>
-            <div className="grid grid-cols-4 gap-2">
-              {buttons.flat().map((btn, idx) => btn === "" ? <div key={idx} className="h-12" /> : <Button key={idx} variant={["C", "±", "÷", "×", "-", "+", "="].includes(btn) ? "secondary" : "outline"} className={`h-12 text-lg font-semibold transition-all duration-150 ease-out focus-visible:ring-0 focus:ring-0 select-none ${btn === "0" ? "col-span-2" : ""} ${["C", "±", "÷", "×", "-", "+", "="].includes(btn) ? "!bg-orange-500 hover:!bg-orange-600 active:!bg-orange-700 active:!scale-95 !text-white" : "!bg-gray-600 hover:!bg-gray-500 active:!bg-gray-700 active:!scale-95 !text-white"}`} onClick={() => {
-              let value = btn;
-              if (btn === "×") value = "*";
-              if (btn === "÷") value = "/";
-              handleCalculatorInput(value);
-            }}>
-                  {btn}
-                </Button>)}
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>;
-  };
   const totalAnimals = Object.values(collectedData).reduce((sum: number, count: number) => sum + count, 0);
   
   // Consolidated animalConfig with all properties
@@ -142,9 +97,6 @@ const Learning = () => {
     [key: string]: boolean;
   }>({});
   const [showConfetti, setShowConfetti] = useState(false);
-  const [calculatorInput, setCalculatorInput] = useState("");
-  const [calculatorDisplay, setCalculatorDisplay] = useState("0");
-  const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
   
   // Drag and drop state for Phase 6
   const [draggedItem, setDraggedItem] = useState<string | null>(null);
@@ -298,14 +250,6 @@ const Learning = () => {
         {/* Mini Pie Chart from Visualization */}
         <div className="flex justify-center">
           <div className="relative w-32 h-32">
-            {/* Calculator Button */}
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="absolute -top-2 -right-2 w-6 h-6 p-0 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 z-10" onClick={() => setIsCalculatorOpen(true)}>
-                  <HelpCircle size={14} />
-                </Button>
-              </DialogTrigger>
-            </Dialog>
             <svg className="w-full h-full" viewBox="0 0 200 200">
               {(() => {
               let startAngle = 0;
@@ -696,13 +640,6 @@ const Learning = () => {
                         <div>
                           <div className="flex items-center gap-1">
                             <span className="text-xs font-semibold">{config.name}</span>
-                            <Dialog>
-                              <DialogTrigger asChild>
-                                <Button variant="outline" size="sm" className="w-4 h-4 p-0 rounded-full bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => setIsCalculatorOpen(true)}>
-                                  <HelpCircle size={10} />
-                                </Button>
-                              </DialogTrigger>
-                            </Dialog>
                           </div>
                           <div className="text-xs text-muted-foreground">{percentage}% → ? decimal</div>
                         </div>
@@ -775,18 +712,6 @@ const Learning = () => {
                         <Badge variant="outline" className="text-sm px-2 py-1">
                           {label}
                         </Badge>
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              className="w-4 h-4 p-0 rounded-full bg-primary text-primary-foreground hover:bg-primary/90" 
-                              onClick={() => setIsCalculatorOpen(true)}
-                            >
-                              <Calculator size={10} />
-                            </Button>
-                          </DialogTrigger>
-                        </Dialog>
                       </div>
                       <div className="text-xs text-muted-foreground">
                         {multiplier} × {onePercent.toFixed(1)} = ?
@@ -955,14 +880,6 @@ const Learning = () => {
             </h1>
           </div>
           <div className="flex items-center gap-2">
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-1 text-xs px-2 py-1">
-                  <Calculator size={14} />
-                  Calculator
-                </Button>
-              </DialogTrigger>
-            </Dialog>
             <Button
               variant="outline"
               onClick={() => navigate("/")}
@@ -1010,7 +927,7 @@ const Learning = () => {
           </Button>
         </div>
       </div>
-      <CalculatorModal />
+      
       <Confetti trigger={showConfetti} />
     </div>;
 };
