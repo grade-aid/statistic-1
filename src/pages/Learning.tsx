@@ -513,14 +513,28 @@ const Learning = () => {
             const answerState = answerStates[answerKey] || 'unanswered';
             const isShaking = shakingQuestions[answerKey] || false;
             return <div key={label} className={`bg-gray-50 p-4 rounded-lg space-y-3 transition-colors duration-300 ${answerState === 'correct' ? 'bg-green-100 border-2 border-green-300' : answerState === 'incorrect' ? 'bg-red-50 border-2 border-red-200' : ''} ${isShaking ? 'animate-shake' : ''}`}>
-                  <div className="text-center">
-                    <Badge variant="outline" className="text-lg px-4 py-2 mb-2">
-                      {label}
-                    </Badge>
-                    <div className="text-sm text-muted-foreground">
-                      {multiplier} × {onePercent.toFixed(1)} = ?
+                    <div className="text-center">
+                      <div className="flex items-center justify-center gap-2 mb-2">
+                        <Badge variant="outline" className="text-lg px-4 py-2">
+                          {label}
+                        </Badge>
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="w-6 h-6 p-0 rounded-full bg-primary text-primary-foreground hover:bg-primary/90" 
+                              onClick={() => setIsCalculatorOpen(true)}
+                            >
+                              <Calculator size={14} />
+                            </Button>
+                          </DialogTrigger>
+                        </Dialog>
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {multiplier} × {onePercent.toFixed(1)} = ?
+                      </div>
                     </div>
-                  </div>
                   <div className="flex gap-2">
                     <Input type="number" step="0.1" placeholder="answer" value={userAnswers[answerKey] || ''} onChange={e => setUserAnswers(prev => ({
                   ...prev,
