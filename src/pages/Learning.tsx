@@ -102,26 +102,33 @@ const Learning = () => {
       </Dialog>;
   };
   const totalAnimals = Object.values(collectedData).reduce((sum: number, count: number) => sum + count, 0);
+  
+  // Consolidated animalConfig with all properties
   const animalConfig = {
     mammals: {
       emoji: '🐘',
-      name: 'Mammals'
+      name: 'Mammals',
+      color: '#ef4444'
     },
     birds: {
       emoji: '🦅',
-      name: 'Birds'
+      name: 'Birds',
+      color: '#3b82f6'
     },
     reptiles: {
       emoji: '🐍',
-      name: 'Reptiles'
+      name: 'Reptiles',
+      color: '#22c55e'
     },
     fish: {
       emoji: '🐟',
-      name: 'Fish'
+      name: 'Fish',
+      color: '#06b6d4'
     },
     insects: {
       emoji: '🐛',
-      name: 'Insects'
+      name: 'Insects',
+      color: '#eab308'
     }
   };
   const [currentPhase, setCurrentPhase] = useState(3);
@@ -276,34 +283,7 @@ const Learning = () => {
     // Get all animal data for pie chart
     const dataEntries = Object.entries(collectedData);
 
-    // Animal config for colors
-    const animalConfig = {
-      mammals: {
-        emoji: '🐘',
-        color: '#ef4444',
-        name: 'Mammals'
-      },
-      birds: {
-        emoji: '🦅',
-        color: '#3b82f6',
-        name: 'Birds'
-      },
-      reptiles: {
-        emoji: '🐍',
-        color: '#22c55e',
-        name: 'Reptiles'
-      },
-      fish: {
-        emoji: '🐟',
-        color: '#06b6d4',
-        name: 'Fish'
-      },
-      insects: {
-        emoji: '🐛',
-        color: '#eab308',
-        name: 'Insects'
-      }
-    };
+    // Use the consolidated animalConfig from parent scope
     return <div className="bg-white p-4 rounded-lg border space-y-3">
         <div className="flex items-center gap-3">
           <span className="text-3xl">{emoji}</span>
@@ -467,9 +447,28 @@ const Learning = () => {
   };
 
   const checkAnswer = (questionId: string, userAnswer: string, correctAnswer: number) => {
+    // Add detailed debugging for fish question
+    if (questionId === 'phase3-fish') {
+      console.log(`🐟 FISH QUESTION DEBUG:`);
+      console.log(`- Question ID: ${questionId}`);
+      console.log(`- User Answer: "${userAnswer}"`);
+      console.log(`- Correct Answer: ${correctAnswer}`);
+      console.log(`- Fish Count: ${collectedData.fish}`);
+      console.log(`- Total Animals: ${totalAnimals}`);
+      console.log(`- Fish Percentage Calculation: ${collectedData.fish} / ${totalAnimals} * 100 = ${totalAnimals > 0 ? Math.round(collectedData.fish / totalAnimals * 100) : 0}`);
+    }
+    
     // Use higher tolerance for percentage questions (whole numbers)
     const tolerance = correctAnswer > 10 ? 1.0 : 0.1;
     const isCorrect = Math.abs(parseFloat(userAnswer) - correctAnswer) < tolerance;
+    
+    // More debugging for fish question
+    if (questionId === 'phase3-fish') {
+      console.log(`- Tolerance: ${tolerance}`);
+      console.log(`- Parsed User Answer: ${parseFloat(userAnswer)}`);
+      console.log(`- Difference: ${Math.abs(parseFloat(userAnswer) - correctAnswer)}`);
+      console.log(`- Is Correct: ${isCorrect}`);
+    }
     if (isCorrect) {
       // Update answer state to correct
       setAnswerStates(prev => ({
