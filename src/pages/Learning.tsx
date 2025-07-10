@@ -127,7 +127,7 @@ const Learning = () => {
       name: 'Insects'
     }
   };
-  const [currentPhase, setCurrentPhase] = useState(3);
+  const [currentPhase, setCurrentPhase] = useState(1);
   const [userAnswers, setUserAnswers] = useState<{
     [key: string]: string;
   }>({});
@@ -560,22 +560,21 @@ const Learning = () => {
 
         {/* Phase Navigation */}
         <div className="flex justify-center gap-4 mb-8">
-          {[3, 4, 5].map(phase => <Button key={phase} variant={currentPhase === phase ? "default" : "outline"} onClick={() => setCurrentPhase(phase)} className="w-24">
+          {[1, 2].map(phase => <Button key={phase} variant={currentPhase === phase ? "default" : "outline"} onClick={() => setCurrentPhase(phase)} className="w-24">
               Phase {phase}
             </Button>)}
         </div>
 
         {/* Current Phase Content */}
-        {currentPhase === 3 && renderPhase3()}
-        {currentPhase === 4 && renderPhase4()}
-        {currentPhase === 5 && renderPhase5()}
+        {currentPhase === 1 && <div>Phase 1 content</div>}
+        {currentPhase === 2 && <div>Phase 2 content</div>}
 
         {/* Navigation */}
         <div className="flex justify-between mt-8">
-          <Button variant="outline" onClick={() => setCurrentPhase(Math.max(3, currentPhase - 1))} disabled={currentPhase === 3}>
+          <Button variant="outline" onClick={() => setCurrentPhase(Math.max(1, currentPhase - 1))} disabled={currentPhase === 1}>
             Previous Phase
           </Button>
-          <Button onClick={() => setCurrentPhase(Math.min(5, currentPhase + 1))} disabled={currentPhase === 5}>
+          <Button onClick={() => setCurrentPhase(Math.min(2, currentPhase + 1))} disabled={currentPhase === 2}>
             Next Phase
           </Button>
         </div>
