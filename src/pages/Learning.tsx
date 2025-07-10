@@ -842,12 +842,9 @@ const Learning = () => {
         {currentPhase === 6 && renderPhase6()}
 
         {/* Navigation */}
-        <div className="flex justify-between mt-8">
+        <div className="flex justify-start mt-8">
           <Button variant="outline" onClick={() => setCurrentPhase(Math.max(3, currentPhase - 1))} disabled={currentPhase === 3}>
             Previous Phase
-          </Button>
-          <Button onClick={() => setCurrentPhase(Math.min(6, currentPhase + 1))} disabled={currentPhase === 6}>
-            Next Phase
           </Button>
         </div>
       </div>
