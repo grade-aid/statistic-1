@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, CheckCircle, Calculator, Lightbulb, Divide, X, Equal, HelpCircle } from "lucide-react";
+import { CheckCircle, Calculator, Lightbulb, Divide, X, Equal, HelpCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import Confetti from "@/components/Confetti";
 interface AnimalData {
@@ -760,10 +760,6 @@ const Learning = () => {
   return <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8">
       <div className="max-w-4xl mx-auto space-y-8">
         {/* Header */}
-        <Button onClick={() => navigate('/')} variant="outline" className="mb-4">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back Home
-        </Button>
         
         <Badge variant="outline" className="text-lg px-4 py-2">
           Using your {totalAnimals} animals!
