@@ -187,12 +187,14 @@ const Learning = () => {
     count,
     emoji,
     total,
-    name
+    name,
+    showPercentages = false
   }: {
     count: number;
     emoji: string;
     total: number;
     name: string;
+    showPercentages?: boolean;
   }) => {
     const percentage = total > 0 ? Math.round(count / total * 100) : 0;
 
@@ -282,7 +284,7 @@ const Learning = () => {
                       {animalPercentage > 5 && <text x={labelX} y={labelY} textAnchor="middle" dy="0.3em" className="text-sm font-bold fill-white" style={{
                     textShadow: '1px 1px 1px rgba(0,0,0,0.5)'
                   }}>
-                          {Math.round(animalPercentage)}%
+                          {showPercentages ? `${Math.round(animalPercentage)}%` : animalCount}
                         </text>}
                     </g>;
                 startAngle = endAngle;
@@ -359,7 +361,7 @@ const Learning = () => {
           <h4 className="text-lg font-bold mb-4 text-green-700">📚 Example: Mammals</h4>
           
           <div className="grid md:grid-cols-2 gap-6">
-            <AnimalVisual count={collectedData.mammals} emoji="🐘" total={totalAnimals} name="Mammals" />
+            <AnimalVisual count={collectedData.mammals} emoji="🐘" total={totalAnimals} name="Mammals" showPercentages={false} />
             <div className="space-y-4">
               <VisualCalculator operation="percentage" values={[collectedData.mammals, totalAnimals]} result={`${mammalsPercentage}%`} color="green" />
               <div className="text-center">
@@ -384,7 +386,7 @@ const Learning = () => {
               answerState === 'correct' ? 'bg-green-100 border-2 border-green-300' : 
               answerState === 'incorrect' ? 'bg-red-50 border-2 border-red-200' : ''
             } ${isShaking ? 'animate-shake' : ''}`}>
-                  <AnimalVisual count={count} emoji={config.emoji} total={totalAnimals} name={config.name} />
+                  <AnimalVisual count={count} emoji={config.emoji} total={totalAnimals} name={config.name} showPercentages={false} />
                   <div className="flex gap-2">
                     <Input 
                       type="number" 
@@ -432,7 +434,7 @@ const Learning = () => {
             <h4 className="text-lg font-bold mb-4 text-blue-700">📚 Example: Mammals</h4>
             
             <div className="grid md:grid-cols-2 gap-6">
-              <AnimalVisual count={collectedData.mammals} emoji="🐘" total={totalAnimals} name="Mammals" />
+              <AnimalVisual count={collectedData.mammals} emoji="🐘" total={totalAnimals} name="Mammals" showPercentages={true} />
               <div className="space-y-4">
                 <VisualCalculator operation="divide" values={[`${mammalsPercentage}%`, "100"]} result={mammalsDecimal.toFixed(2)} color="blue" />
                 
