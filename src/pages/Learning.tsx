@@ -147,6 +147,7 @@ const Learning = () => {
     high: []
   });
   const [completedTasks, setCompletedTasks] = useState<{[key: string]: boolean}>({});
+  const [phaseCompleted, setPhaseCompleted] = useState<{[key: number]: boolean}>({});
 
   // Calculate correct answers - ensure numbers are properly typed
   const mammalsPercentage = totalAnimals > 0 ? Math.round(collectedData.mammals / totalAnimals * 100) : 0;
@@ -184,6 +185,11 @@ const Learning = () => {
         setShowConfetti(true);
         setTimeout(() => setShowConfetti(false), 2000);
       }
+      
+      // Check if phase 6 is completed after this drop
+      setTimeout(() => {
+        checkPhaseCompletion(6);
+      }, 500);
       
       setDraggedItem(null);
     }
@@ -379,6 +385,67 @@ const Learning = () => {
         
       </div>;
   };
+  // Check if a phase is completed
+  const checkPhaseCompletion = (phase: number) => {
+    if (phaseCompleted[phase]) return false; // Already completed
+    
+    let isCompleted = false;
+    
+    if (phase === 3) {
+      // Phase 3: All animal percentage calculations (excluding mammals which is example)
+      const phase3Questions = Object.keys(collectedData).filter(type => type !== 'mammals');
+      isCompleted = phase3Questions.every(type => answerStates[`phase3-${type}`] === 'correct');
+    } 
+    else if (phase === 4) {
+      // Phase 4: All animal decimal conversions (excluding mammals which is example)
+      const phase4Questions = Object.keys(collectedData).filter(type => type !== 'mammals');
+      isCompleted = phase4Questions.every(type => answerStates[`phase4-${type}`] === 'correct');
+    }
+    else if (phase === 5) {
+      // Phase 5: All percentage multiplication tasks
+      const phase5Questions = [1, 3, 7, 12];
+      isCompleted = phase5Questions.every(multiplier => answerStates[`phase5-${multiplier}`] === 'correct');
+    }
+    else if (phase === 6) {
+      // Phase 6: All animals sorted correctly
+      const totalAnimalsCount = Object.keys(collectedData).length;
+      const sortedAnimalsCount = Object.values(droppedItems).flat().length;
+      
+      // Check if all animals are sorted and correctly placed
+      isCompleted = sortedAnimalsCount === totalAnimalsCount && 
+        Object.values(droppedItems).flat().every(animalType => {
+          // Find which zone this animal is in
+          const zone = Object.keys(droppedItems).find(zoneName => 
+            droppedItems[zoneName].includes(animalType)
+          );
+          return zone && checkDragDropAnswer(animalType, zone);
+        });
+    }
+    
+    if (isCompleted && !phaseCompleted[phase]) {
+      // Mark phase as completed
+      setPhaseCompleted(prev => ({
+        ...prev,
+        [phase]: true
+      }));
+      
+      // Show confetti celebration
+      setShowConfetti(true);
+      
+      // Auto-advance to next phase after celebration
+      setTimeout(() => {
+        setShowConfetti(false);
+        if (phase < 6) {
+          setCurrentPhase(phase + 1);
+        }
+      }, 3000);
+      
+      return true;
+    }
+    
+    return false;
+  };
+
   const checkAnswer = (questionId: string, userAnswer: string, correctAnswer: number) => {
     // Use higher tolerance for percentage questions (whole numbers)
     const tolerance = correctAnswer > 10 ? 1.0 : 0.1;
@@ -395,6 +462,11 @@ const Learning = () => {
 
       // Clear confetti after animation
       setTimeout(() => setShowConfetti(false), 3000);
+      
+      // Check if phase is completed after this answer
+      setTimeout(() => {
+        checkPhaseCompletion(currentPhase);
+      }, 500);
     } else {
       // Update answer state to incorrect
       setAnswerStates(prev => ({
