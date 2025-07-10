@@ -177,6 +177,15 @@ const Learning = () => {
   const [currentPhase, setCurrentPhase] = useState(3);
   const [isCollectingFood, setIsCollectingFood] = useState(false);
   const [tempFoodData, setTempFoodData] = useState<FoodData>(foodData);
+  
+  // Food Collection Game State
+  const [foodPlayerPosition, setFoodPlayerPosition] = useState<Position>({ x: 1, y: 1 });
+  const [foodItems, setFoodItems] = useState<Array<{id: string; type: keyof FoodData; position: Position; emoji: string}>>([]);
+  const [foodHunters, setFoodHunters] = useState<Hunter[]>([]);
+  const [foodLives, setFoodLives] = useState(9);
+  const [foodWalls, setFoodWalls] = useState<Position[]>([]);
+  const [isGameInitialized, setIsGameInitialized] = useState(false);
+  
   const [userAnswers, setUserAnswers] = useState<{
     [key: string]: string;
   }>({});
@@ -194,6 +203,305 @@ const Learning = () => {
   // Calculate correct answers - ensure numbers are properly typed
   const mammalsPercentage = totalAnimals > 0 ? Math.round(collectedData.mammals / totalAnimals * 100) : 0;
   const onePercent = totalAnimals > 0 ? totalAnimals / 100 : 0;
+
+  // Food Collection Game Constants
+  const FOOD_GRID_SIZE = 15;
+  const FOOD_CELL_SIZE = 28;
+
+  // Food Collection Game Functions
+  const generateFoodWalls = useCallback(() => {
+    const newWalls: Position[] = [];
+    for (let x = 0; x < FOOD_GRID_SIZE; x++) {
+      for (let y = 0; y < FOOD_GRID_SIZE; y++) {
+        if (x === 0 || x === FOOD_GRID_SIZE - 1 || y === 0 || y === FOOD_GRID_SIZE - 1) {
+          newWalls.push({ x, y });
+        } else if (x % 3 === 0 && y % 3 === 0 && Math.random() > 0.5) {
+          newWalls.push({ x, y });
+        }
+      }
+    }
+    return newWalls;
+  }, []);
+
+  const isFoodWall = useCallback((pos: Position) => {
+    return foodWalls.some(wall => wall.x === pos.x && wall.y === pos.y);
+  }, [foodWalls]);
+
+  const generateFoodItems = useCallback((wallPositions: Position[]) => {
+    const newFoodItems: Array<{id: string; type: keyof FoodData; position: Position; emoji: string}> = [];
+    const foodTypes = Object.keys(foodConfig) as Array<keyof FoodData>;
+    const totalItems = Math.floor(Math.random() * 21) + 20; // 20-40 items
+    
+    const isWallPosition = (pos: Position) => {
+      return wallPositions.some(wall => wall.x === pos.x && wall.y === pos.y);
+    };
+
+    for (let i = 0; i < totalItems; i++) {
+      const type = foodTypes[Math.floor(Math.random() * foodTypes.length)];
+      const config = foodConfig[type];
+      let position: Position;
+      let attempts = 0;
+      
+      do {
+        position = {
+          x: Math.floor(Math.random() * (FOOD_GRID_SIZE - 2)) + 1,
+          y: Math.floor(Math.random() * (FOOD_GRID_SIZE - 2)) + 1
+        };
+        attempts++;
+      } while ((
+        (position.x === 1 && position.y === 1) || 
+        isWallPosition(position) || 
+        newFoodItems.some(item => item.position.x === position.x && item.position.y === position.y)
+      ) && attempts < 50);
+
+      newFoodItems.push({
+        id: `${type}-${i}`,
+        type,
+        position,
+        emoji: config.emoji
+      });
+    }
+    setFoodItems(newFoodItems);
+  }, []);
+
+  const generateFoodHunters = useCallback((wallPositions: Position[]) => {
+    const newHunters: Hunter[] = [];
+    const hunterEmojis = ['🐺', '🦖'];
+    
+    const isWallPosition = (pos: Position) => {
+      return wallPositions.some(wall => wall.x === pos.x && wall.y === pos.y);
+    };
+
+    for (let i = 0; i < 2; i++) {
+      let position: Position;
+      let attempts = 0;
+      
+      do {
+        position = {
+          x: Math.floor(Math.random() * (FOOD_GRID_SIZE - 2)) + 1,
+          y: Math.floor(Math.random() * (FOOD_GRID_SIZE - 2)) + 1
+        };
+        attempts++;
+      } while ((
+        (position.x === 1 && position.y === 1) || 
+        isWallPosition(position) || 
+        newHunters.some(hunter => hunter.position.x === position.x && hunter.position.y === position.y)
+      ) && attempts < 50);
+
+      newHunters.push({
+        id: `food-hunter-${i}`,
+        position,
+        emoji: hunterEmojis[i],
+        direction: ['up', 'down', 'left', 'right'][Math.floor(Math.random() * 4)] as any
+      });
+    }
+    setFoodHunters(newHunters);
+  }, []);
+
+  const moveFoodPlayer = useCallback((direction: string) => {
+    setFoodPlayerPosition(prev => {
+      let newX = prev.x;
+      let newY = prev.y;
+      
+      switch (direction) {
+        case 'up':
+        case 'w':
+          newY = Math.max(0, prev.y - 1);
+          break;
+        case 'down':
+        case 's':
+          newY = Math.min(FOOD_GRID_SIZE - 1, prev.y + 1);
+          break;
+        case 'left':
+        case 'a':
+          newX = Math.max(0, prev.x - 1);
+          break;
+        case 'right':
+        case 'd':
+          newX = Math.min(FOOD_GRID_SIZE - 1, prev.x + 1);
+          break;
+      }
+      
+      const newPos = { x: newX, y: newY };
+      if (isFoodWall(newPos)) {
+        return prev;
+      }
+      return newPos;
+    });
+  }, [isFoodWall]);
+
+  // Initialize game when collecting food starts
+  useEffect(() => {
+    if (isCollectingFood && !isGameInitialized) {
+      const newWalls = generateFoodWalls();
+      setFoodWalls(newWalls);
+      generateFoodItems(newWalls);
+      generateFoodHunters(newWalls);
+      setIsGameInitialized(true);
+      setFoodPlayerPosition({ x: 1, y: 1 });
+      setFoodLives(9);
+    }
+  }, [isCollectingFood, isGameInitialized, generateFoodWalls, generateFoodItems, generateFoodHunters]);
+
+  // Food Hunter movement
+  useEffect(() => {
+    if (!isCollectingFood || !isGameInitialized || foodHunters.length === 0) return;
+    
+    const interval = setInterval(() => {
+      setFoodHunters(prevHunters => prevHunters.map(hunter => {
+        const directions = ['up', 'down', 'left', 'right'] as const;
+        let newPosition = { ...hunter.position };
+        let newDirection = hunter.direction;
+
+        if (Math.random() < 0.6) {
+          const dx = foodPlayerPosition.x - hunter.position.x;
+          const dy = foodPlayerPosition.y - hunter.position.y;
+
+          if (Math.abs(dx) > Math.abs(dy)) {
+            newDirection = dx > 0 ? 'right' : 'left';
+          } else if (dy !== 0) {
+            newDirection = dy > 0 ? 'down' : 'up';
+          }
+        } else {
+          newDirection = directions[Math.floor(Math.random() * directions.length)];
+        }
+
+        switch (newDirection) {
+          case 'up':
+            newPosition.y = Math.max(0, hunter.position.y - 1);
+            break;
+          case 'down':
+            newPosition.y = Math.min(FOOD_GRID_SIZE - 1, hunter.position.y + 1);
+            break;
+          case 'left':
+            newPosition.x = Math.max(0, hunter.position.x - 1);
+            break;
+          case 'right':
+            newPosition.x = Math.min(FOOD_GRID_SIZE - 1, hunter.position.x + 1);
+            break;
+        }
+
+        if (isFoodWall(newPosition)) {
+          const altDirections = newDirection === 'up' || newDirection === 'down' ? ['left', 'right'] : ['up', 'down'];
+          for (const altDir of altDirections) {
+            let altPos = { ...hunter.position };
+            switch (altDir) {
+              case 'up':
+                altPos.y = Math.max(0, hunter.position.y - 1);
+                break;
+              case 'down':
+                altPos.y = Math.min(FOOD_GRID_SIZE - 1, hunter.position.y + 1);
+                break;
+              case 'left':
+                altPos.x = Math.max(0, hunter.position.x - 1);
+                break;
+              case 'right':
+                altPos.x = Math.min(FOOD_GRID_SIZE - 1, hunter.position.x + 1);
+                break;
+            }
+            if (!isFoodWall(altPos)) {
+              newPosition = altPos;
+              newDirection = altDir as any;
+              break;
+            }
+          }
+
+          if (isFoodWall(newPosition)) {
+            newPosition = hunter.position;
+          }
+        }
+
+        return { ...hunter, position: newPosition, direction: newDirection };
+      }));
+    }, 400);
+
+    return () => clearInterval(interval);
+  }, [isCollectingFood, isGameInitialized, foodHunters.length, isFoodWall, foodPlayerPosition]);
+
+  // Check for hunter collision
+  useEffect(() => {
+    if (!isCollectingFood) return;
+    
+    const hunterAtPosition = foodHunters.find(hunter => 
+      hunter.position.x === foodPlayerPosition.x && hunter.position.y === foodPlayerPosition.y
+    );
+    
+    if (hunterAtPosition && isGameInitialized) {
+      setFoodLives(prev => {
+        const newLives = prev - 1;
+        if (newLives <= 0) {
+          // Reset game
+          setFoodPlayerPosition({ x: 1, y: 1 });
+          setIsGameInitialized(false);
+          setFoodLives(9);
+          setTempFoodData({ fruits: 0, vegetables: 0, grains: 0, proteins: 0, dairy: 0 });
+          toast({
+            title: "💀 Game Over!",
+            description: "Try again to collect food!",
+            duration: 3000
+          });
+        } else {
+          setFoodPlayerPosition({ x: 1, y: 1 });
+          toast({
+            title: `💔 Hit by ${hunterAtPosition.emoji}!`,
+            description: `${newLives} lives remaining`,
+            duration: 2000
+          });
+        }
+        return newLives;
+      });
+    }
+  }, [isCollectingFood, foodPlayerPosition, foodHunters, isGameInitialized, toast]);
+
+  // Handle keyboard input for food game
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (!isCollectingFood) return;
+      
+      const key = e.key.toLowerCase();
+      if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'w', 'a', 's', 'd'].includes(key)) {
+        e.preventDefault();
+        const direction = key.replace('arrow', '');
+        moveFoodPlayer(direction);
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [moveFoodPlayer, isCollectingFood]);
+
+  // Check for food collection
+  useEffect(() => {
+    if (!isCollectingFood) return;
+    
+    const foodAtPosition = foodItems.find(item => 
+      item.position.x === foodPlayerPosition.x && item.position.y === foodPlayerPosition.y
+    );
+    
+    if (foodAtPosition) {
+      setFoodItems(prev => prev.filter(item => item.id !== foodAtPosition.id));
+      setTempFoodData(prev => ({
+        ...prev,
+        [foodAtPosition.type]: prev[foodAtPosition.type] + 1
+      }));
+    }
+  }, [isCollectingFood, foodPlayerPosition, foodItems]);
+
+  // Check if game is complete
+  useEffect(() => {
+    if (!isCollectingFood) return;
+    
+    const totalFoodCollected = Object.values(tempFoodData).reduce((sum, count) => sum + count, 0);
+    
+    if (totalFoodCollected >= 15 && foodItems.length === 0) {
+      setTimeout(() => {
+        saveFoodData(tempFoodData);
+        setIsCollectingFood(false);
+        setIsGameInitialized(false); // Reset for next time
+        setCurrentPhase(7);
+      }, 1000);
+    }
+  }, [isCollectingFood, tempFoodData, foodItems.length]);
 
   // Visual Components
   const VisualCalculator = ({
@@ -589,302 +897,9 @@ const Learning = () => {
         </div>
       </Card>;
 
-  // Food Collection Game - Similar to animal collection but with food items
+  // Food Collection Game - Now just renders the UI using top-level state
   const renderFoodCollectionGame = () => {
-    const FOOD_GRID_SIZE = 15;
-    const FOOD_CELL_SIZE = 28;
-    
-    const [foodPlayerPosition, setFoodPlayerPosition] = useState<Position>({ x: 1, y: 1 });
-    const [foodItems, setFoodItems] = useState<Array<{id: string; type: keyof FoodData; position: Position; emoji: string}>>([]);
-    const [foodHunters, setFoodHunters] = useState<Hunter[]>([]);
-    const [foodLives, setFoodLives] = useState(9);
-    const [foodWalls, setFoodWalls] = useState<Position[]>([]);
-    const [isGameInitialized, setIsGameInitialized] = useState(false);
-
-    const generateFoodWalls = useCallback(() => {
-      const newWalls: Position[] = [];
-      for (let x = 0; x < FOOD_GRID_SIZE; x++) {
-        for (let y = 0; y < FOOD_GRID_SIZE; y++) {
-          if (x === 0 || x === FOOD_GRID_SIZE - 1 || y === 0 || y === FOOD_GRID_SIZE - 1) {
-            newWalls.push({ x, y });
-          } else if (x % 3 === 0 && y % 3 === 0 && Math.random() > 0.5) {
-            newWalls.push({ x, y });
-          }
-        }
-      }
-      return newWalls;
-    }, []);
-
-    const isFoodWall = useCallback((pos: Position) => {
-      return foodWalls.some(wall => wall.x === pos.x && wall.y === pos.y);
-    }, [foodWalls]);
-
-    const generateFoodItems = useCallback((wallPositions: Position[]) => {
-      const newFoodItems: Array<{id: string; type: keyof FoodData; position: Position; emoji: string}> = [];
-      const foodTypes = Object.keys(foodConfig) as Array<keyof FoodData>;
-      const totalItems = Math.floor(Math.random() * 21) + 20; // 20-40 items
-      
-      const isWallPosition = (pos: Position) => {
-        return wallPositions.some(wall => wall.x === pos.x && wall.y === pos.y);
-      };
-
-      for (let i = 0; i < totalItems; i++) {
-        const type = foodTypes[Math.floor(Math.random() * foodTypes.length)];
-        const config = foodConfig[type];
-        let position: Position;
-        let attempts = 0;
-        
-        do {
-          position = {
-            x: Math.floor(Math.random() * (FOOD_GRID_SIZE - 2)) + 1,
-            y: Math.floor(Math.random() * (FOOD_GRID_SIZE - 2)) + 1
-          };
-          attempts++;
-        } while ((
-          (position.x === 1 && position.y === 1) || 
-          isWallPosition(position) || 
-          newFoodItems.some(item => item.position.x === position.x && item.position.y === position.y)
-        ) && attempts < 50);
-
-        newFoodItems.push({
-          id: `${type}-${i}`,
-          type,
-          position,
-          emoji: config.emoji
-        });
-      }
-      setFoodItems(newFoodItems);
-    }, []);
-
-    const generateFoodHunters = useCallback((wallPositions: Position[]) => {
-      const newHunters: Hunter[] = [];
-      const hunterEmojis = ['🐺', '🦖'];
-      
-      const isWallPosition = (pos: Position) => {
-        return wallPositions.some(wall => wall.x === pos.x && wall.y === pos.y);
-      };
-
-      for (let i = 0; i < 2; i++) {
-        let position: Position;
-        let attempts = 0;
-        
-        do {
-          position = {
-            x: Math.floor(Math.random() * (FOOD_GRID_SIZE - 2)) + 1,
-            y: Math.floor(Math.random() * (FOOD_GRID_SIZE - 2)) + 1
-          };
-          attempts++;
-        } while ((
-          (position.x === 1 && position.y === 1) || 
-          isWallPosition(position) || 
-          newHunters.some(hunter => hunter.position.x === position.x && hunter.position.y === position.y)
-        ) && attempts < 50);
-
-        newHunters.push({
-          id: `food-hunter-${i}`,
-          position,
-          emoji: hunterEmojis[i],
-          direction: ['up', 'down', 'left', 'right'][Math.floor(Math.random() * 4)] as any
-        });
-      }
-      setFoodHunters(newHunters);
-    }, []);
-
-    // Initialize game when component mounts
-    useEffect(() => {
-      if (!isGameInitialized) {
-        const newWalls = generateFoodWalls();
-        setFoodWalls(newWalls);
-        generateFoodItems(newWalls);
-        generateFoodHunters(newWalls);
-        setIsGameInitialized(true);
-      }
-    }, [isGameInitialized, generateFoodWalls, generateFoodItems, generateFoodHunters]);
-
-    const moveFoodPlayer = useCallback((direction: string) => {
-      setFoodPlayerPosition(prev => {
-        let newX = prev.x;
-        let newY = prev.y;
-        
-        switch (direction) {
-          case 'up':
-          case 'w':
-            newY = Math.max(0, prev.y - 1);
-            break;
-          case 'down':
-          case 's':
-            newY = Math.min(FOOD_GRID_SIZE - 1, prev.y + 1);
-            break;
-          case 'left':
-          case 'a':
-            newX = Math.max(0, prev.x - 1);
-            break;
-          case 'right':
-          case 'd':
-            newX = Math.min(FOOD_GRID_SIZE - 1, prev.x + 1);
-            break;
-        }
-        
-        const newPos = { x: newX, y: newY };
-        if (isFoodWall(newPos)) {
-          return prev;
-        }
-        return newPos;
-      });
-    }, [isFoodWall]);
-
-    // Food Hunter movement
-    useEffect(() => {
-      if (!isGameInitialized || foodHunters.length === 0) return;
-      
-      const interval = setInterval(() => {
-        setFoodHunters(prevHunters => prevHunters.map(hunter => {
-          const directions = ['up', 'down', 'left', 'right'] as const;
-          let newPosition = { ...hunter.position };
-          let newDirection = hunter.direction;
-
-          if (Math.random() < 0.6) {
-            const dx = foodPlayerPosition.x - hunter.position.x;
-            const dy = foodPlayerPosition.y - hunter.position.y;
-
-            if (Math.abs(dx) > Math.abs(dy)) {
-              newDirection = dx > 0 ? 'right' : 'left';
-            } else if (dy !== 0) {
-              newDirection = dy > 0 ? 'down' : 'up';
-            }
-          } else {
-            newDirection = directions[Math.floor(Math.random() * directions.length)];
-          }
-
-          switch (newDirection) {
-            case 'up':
-              newPosition.y = Math.max(0, hunter.position.y - 1);
-              break;
-            case 'down':
-              newPosition.y = Math.min(FOOD_GRID_SIZE - 1, hunter.position.y + 1);
-              break;
-            case 'left':
-              newPosition.x = Math.max(0, hunter.position.x - 1);
-              break;
-            case 'right':
-              newPosition.x = Math.min(FOOD_GRID_SIZE - 1, hunter.position.x + 1);
-              break;
-          }
-
-          if (isFoodWall(newPosition)) {
-            const altDirections = newDirection === 'up' || newDirection === 'down' ? ['left', 'right'] : ['up', 'down'];
-            for (const altDir of altDirections) {
-              let altPos = { ...hunter.position };
-              switch (altDir) {
-                case 'up':
-                  altPos.y = Math.max(0, hunter.position.y - 1);
-                  break;
-                case 'down':
-                  altPos.y = Math.min(FOOD_GRID_SIZE - 1, hunter.position.y + 1);
-                  break;
-                case 'left':
-                  altPos.x = Math.max(0, hunter.position.x - 1);
-                  break;
-                case 'right':
-                  altPos.x = Math.min(FOOD_GRID_SIZE - 1, hunter.position.x + 1);
-                  break;
-              }
-              if (!isFoodWall(altPos)) {
-                newPosition = altPos;
-                newDirection = altDir as any;
-                break;
-              }
-            }
-
-            if (isFoodWall(newPosition)) {
-              newPosition = hunter.position;
-            }
-          }
-
-          return { ...hunter, position: newPosition, direction: newDirection };
-        }));
-      }, 400);
-
-      return () => clearInterval(interval);
-    }, [isGameInitialized, foodHunters.length, isFoodWall, foodPlayerPosition]);
-
-    // Check for hunter collision
-    useEffect(() => {
-      const hunterAtPosition = foodHunters.find(hunter => 
-        hunter.position.x === foodPlayerPosition.x && hunter.position.y === foodPlayerPosition.y
-      );
-      
-      if (hunterAtPosition && isGameInitialized) {
-        setFoodLives(prev => {
-          const newLives = prev - 1;
-          if (newLives <= 0) {
-            // Reset game
-            setFoodPlayerPosition({ x: 1, y: 1 });
-            setIsGameInitialized(false);
-            setFoodLives(9);
-            setTempFoodData({ fruits: 0, vegetables: 0, grains: 0, proteins: 0, dairy: 0 });
-            toast({
-              title: "💀 Game Over!",
-              description: "Try again to collect food!",
-              duration: 3000
-            });
-          } else {
-            setFoodPlayerPosition({ x: 1, y: 1 });
-            toast({
-              title: `💔 Hit by ${hunterAtPosition.emoji}!`,
-              description: `${newLives} lives remaining`,
-              duration: 2000
-            });
-          }
-          return newLives;
-        });
-      }
-    }, [foodPlayerPosition, foodHunters, isGameInitialized, toast]);
-
-    // Handle keyboard input for food game
-    useEffect(() => {
-      const handleKeyPress = (e: KeyboardEvent) => {
-        if (!isCollectingFood) return;
-        
-        const key = e.key.toLowerCase();
-        if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'w', 'a', 's', 'd'].includes(key)) {
-          e.preventDefault();
-          const direction = key.replace('arrow', '');
-          moveFoodPlayer(direction);
-        }
-      };
-      
-      window.addEventListener('keydown', handleKeyPress);
-      return () => window.removeEventListener('keydown', handleKeyPress);
-    }, [moveFoodPlayer, isCollectingFood]);
-
-    // Check for food collection
-    useEffect(() => {
-      const foodAtPosition = foodItems.find(item => 
-        item.position.x === foodPlayerPosition.x && item.position.y === foodPlayerPosition.y
-      );
-      
-      if (foodAtPosition) {
-        setFoodItems(prev => prev.filter(item => item.id !== foodAtPosition.id));
-        setTempFoodData(prev => ({
-          ...prev,
-          [foodAtPosition.type]: prev[foodAtPosition.type] + 1
-        }));
-      }
-    }, [foodPlayerPosition, foodItems]);
-
     const totalFoodCollected = Object.values(tempFoodData).reduce((sum, count) => sum + count, 0);
-
-    // Check if game is complete
-    useEffect(() => {
-      if (totalFoodCollected >= 15 && foodItems.length === 0) {
-        setTimeout(() => {
-          saveFoodData(tempFoodData);
-          setIsCollectingFood(false);
-          setCurrentPhase(7);
-        }, 1000);
-      }
-    }, [totalFoodCollected, foodItems.length, tempFoodData]);
 
     return (
       <div className="min-h-screen bg-background p-4">
