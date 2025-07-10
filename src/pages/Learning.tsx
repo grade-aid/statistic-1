@@ -138,10 +138,72 @@ const Learning = () => {
   const [calculatorInput, setCalculatorInput] = useState("");
   const [calculatorDisplay, setCalculatorDisplay] = useState("0");
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
+  
+  // Drag and drop state for Phase 6
+  const [draggedItem, setDraggedItem] = useState<string | null>(null);
+  const [droppedItems, setDroppedItems] = useState<{[key: string]: string}>({});
+  const [completedTasks, setCompletedTasks] = useState<{[key: string]: boolean}>({});
 
   // Calculate correct answers - ensure numbers are properly typed
   const mammalsPercentage = totalAnimals > 0 ? Math.round(collectedData.mammals / totalAnimals * 100) : 0;
   const onePercent = totalAnimals > 0 ? totalAnimals / 100 : 0;
+
+  // Drag and drop handlers
+  const handleDragStart = (e: React.DragEvent, itemId: string) => {
+    setDraggedItem(itemId);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (e: React.DragEvent, targetId: string) => {
+    e.preventDefault();
+    if (draggedItem) {
+      setDroppedItems(prev => ({
+        ...prev,
+        [targetId]: draggedItem
+      }));
+      
+      // Check if it's correct
+      const isCorrect = checkDragDropAnswer(draggedItem, targetId);
+      if (isCorrect) {
+        setCompletedTasks(prev => ({
+          ...prev,
+          [targetId]: true
+        }));
+        setShowConfetti(true);
+        setTimeout(() => setShowConfetti(false), 2000);
+      }
+      
+      setDraggedItem(null);
+    }
+  };
+
+  const checkDragDropAnswer = (draggedId: string, targetId: string): boolean => {
+    // Define correct matches based on percentage ranges
+    const animalPercentages = Object.entries(collectedData).map(([type, count]) => ({
+      type,
+      percentage: totalAnimals > 0 ? Math.round(count / totalAnimals * 100) : 0
+    }));
+
+    const draggedAnimal = animalPercentages.find(animal => animal.type === draggedId);
+    if (!draggedAnimal) return false;
+
+    // Define percentage ranges
+    const ranges = {
+      'low': [0, 15],      // 0-15%
+      'medium': [16, 35],  // 16-35%
+      'high': [36, 100]    // 36-100%
+    };
+
+    const targetRange = ranges[targetId as keyof typeof ranges];
+    if (!targetRange) return false;
+
+    return draggedAnimal.percentage >= targetRange[0] && draggedAnimal.percentage <= targetRange[1];
+  };
 
   // Visual Components
   const VisualCalculator = ({
@@ -550,6 +612,125 @@ const Learning = () => {
         </div>
       </div>
     </Card>;
+
+  const renderPhase6 = () => {
+    // Calculate animal percentages for drag and drop
+    const animalPercentages = Object.entries(collectedData).map(([type, count]) => ({
+      type,
+      count,
+      percentage: totalAnimals > 0 ? Math.round(count / totalAnimals * 100) : 0,
+      config: animalConfig[type as keyof typeof animalConfig]
+    }));
+
+    const dropZones = [
+      { id: 'low', label: '0-15%', emoji: '🔻', color: 'from-red-100 to-red-50 border-red-200' },
+      { id: 'medium', label: '16-35%', emoji: '📊', color: 'from-yellow-100 to-yellow-50 border-yellow-200' },
+      { id: 'high', label: '36-100%', emoji: '📈', color: 'from-green-100 to-green-50 border-green-200' }
+    ];
+
+    return (
+      <Card className="p-6 border-2 border-orange-200 bg-orange-50">
+        <div className="flex items-center gap-3 mb-6">
+          <Badge className="h-8 w-8 text-orange-600 bg-orange-100 border-orange-300">🎯</Badge>
+          <h3 className="text-2xl font-bold text-orange-800">Analyze Data 📊</h3>
+        </div>
+        
+        <div className="space-y-6">
+          {/* Instructions */}
+          <div className="bg-white p-6 rounded-xl border border-orange-200">
+            <h4 className="text-lg font-bold mb-4 text-orange-700">🎮 Drag & Drop Challenge</h4>
+            <div className="text-center mb-4">
+              <Badge variant="outline" className="text-sm px-3 py-1">
+                Sort animals by their percentage ranges
+              </Badge>
+            </div>
+          </div>
+
+          {/* Draggable Animals */}
+          <div className="bg-white p-6 rounded-xl border border-orange-200">
+            <h4 className="text-lg font-bold mb-4 text-orange-700">🐾 Animals to Sort</h4>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              {animalPercentages.map(({ type, count, percentage, config }) => (
+                <div
+                  key={type}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, type)}
+                  className={`bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-lg border-2 border-gray-200 cursor-move hover:shadow-lg transition-all duration-200 text-center ${
+                    draggedItem === type ? 'opacity-50 scale-95' : ''
+                  } ${
+                    Object.values(droppedItems).includes(type) ? 'opacity-30' : ''
+                  }`}
+                >
+                  <div className="text-3xl mb-2">{config.emoji}</div>
+                  <div className="font-semibold text-sm">{config.name}</div>
+                  <div className="text-xs text-muted-foreground">{count} animals</div>
+                  <Badge variant="secondary" className="text-xs mt-1">
+                    {percentage}%
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Drop Zones */}
+          <div className="bg-white p-6 rounded-xl border border-orange-200">
+            <h4 className="text-lg font-bold mb-4 text-orange-700">📋 Percentage Ranges</h4>
+            <div className="grid md:grid-cols-3 gap-4">
+              {dropZones.map((zone) => (
+                <div
+                  key={zone.id}
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(e, zone.id)}
+                  className={`bg-gradient-to-br ${zone.color} p-6 rounded-lg border-2 border-dashed min-h-32 flex flex-col items-center justify-center transition-all duration-300 ${
+                    draggedItem ? 'border-opacity-100 bg-opacity-50' : 'border-opacity-30'
+                  } ${
+                    completedTasks[zone.id] ? 'border-green-500 bg-green-100' : ''
+                  }`}
+                >
+                  <div className="text-2xl mb-2">{zone.emoji}</div>
+                  <div className="font-bold text-lg mb-1">{zone.label}</div>
+                  
+                  {/* Show dropped animal */}
+                  {droppedItems[zone.id] && (
+                    <div className="mt-3 p-2 bg-white rounded-lg border shadow-sm">
+                      <div className="text-2xl mb-1">
+                        {animalConfig[droppedItems[zone.id] as keyof typeof animalConfig]?.emoji}
+                      </div>
+                      <div className="text-xs font-semibold">
+                        {animalConfig[droppedItems[zone.id] as keyof typeof animalConfig]?.name}
+                      </div>
+                      {completedTasks[zone.id] && (
+                        <div className="text-green-600 text-xs mt-1">✅ Correct!</div>
+                      )}
+                    </div>
+                  )}
+                  
+                  {!droppedItems[zone.id] && (
+                    <div className="text-sm text-muted-foreground text-center">
+                      Drop animal here
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Progress */}
+          {Object.keys(completedTasks).length > 0 && (
+            <div className="bg-white p-4 rounded-xl border border-orange-200">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-sm font-semibold">Progress:</span>
+                <Progress value={(Object.keys(completedTasks).length / 3) * 100} className="flex-1" />
+                <span className="text-sm text-muted-foreground">
+                  {Object.keys(completedTasks).length}/3
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+      </Card>
+    );
+  };
   if (totalAnimals === 0) {
     return <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8 flex items-center justify-center">
         <Card className="p-8 text-center">
@@ -582,13 +763,14 @@ const Learning = () => {
         {currentPhase === 3 && renderPhase3()}
         {currentPhase === 4 && renderPhase4()}
         {currentPhase === 5 && renderPhase5()}
+        {currentPhase === 6 && renderPhase6()}
 
         {/* Navigation */}
         <div className="flex justify-between mt-8">
           <Button variant="outline" onClick={() => setCurrentPhase(Math.max(3, currentPhase - 1))} disabled={currentPhase === 3}>
             Previous Phase
           </Button>
-          <Button onClick={() => setCurrentPhase(Math.min(5, currentPhase + 1))} disabled={currentPhase === 5}>
+          <Button onClick={() => setCurrentPhase(Math.min(6, currentPhase + 1))} disabled={currentPhase === 6}>
             Next Phase
           </Button>
         </div>
