@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, PieChart, BarChart3 } from "lucide-react";
+
 const Visualization = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -73,12 +74,16 @@ const Visualization = () => {
         <div className="flex items-center justify-between mb-6">
           
           <h1 className="text-3xl font-space-grotesk font-bold">📊 Understanding Your Collection</h1>
-          <Button onClick={() => navigate('/learning', {
-          state: {
-            collected: collectedData,
-            totalCollected: totalAnimals
-          }
-        })} className="game-button">
+          <Button 
+            onClick={() => navigate('/learning', {
+              state: {
+                collected: collectedData,
+                totalCollected: totalAnimals
+              }
+            })} 
+            className="game-button text-2xl px-12 py-6" 
+            size="lg"
+          >
             Next: Learn Math 🧮
           </Button>
         </div>
@@ -222,4 +227,5 @@ const Visualization = () => {
       </div>
     </div>;
 };
+
 export default Visualization;
