@@ -155,7 +155,7 @@ const Learning = () => {
     color?: string;
   }) => <div className={`bg-gradient-to-r from-${color}-100 to-${color}-50 p-4 rounded-xl border-2 border-${color}-200`}>
       <div className="text-center mb-3">
-        
+        {operation === 'divide' && <p className="text-sm text-muted-foreground">Turn percentage to decimal</p>}
       </div>
       <div className="flex items-center justify-center gap-4 text-xl font-bold">
         <Badge variant="outline" className="text-lg px-4 py-2">{values[0]}</Badge>
@@ -179,7 +179,7 @@ const Learning = () => {
         </Badge>
       </div>
       <div className="text-center mt-3">
-        
+        {operation === 'divide' && <p className="text-xs text-muted-foreground">Example: 20% becomes 20, then 20 ÷ 100 = 0.20</p>}
       </div>
     </div>;
   const AnimalVisual = ({
