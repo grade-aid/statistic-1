@@ -238,14 +238,6 @@ const Learning = () => {
         {/* Mini Pie Chart from Visualization */}
         <div className="flex justify-center">
           <div className="relative w-32 h-32">
-            {/* Calculator Button */}
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="absolute -top-2 -right-2 w-6 h-6 p-0 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 z-10" onClick={() => setIsCalculatorOpen(true)}>
-                  <HelpCircle size={14} />
-                </Button>
-              </DialogTrigger>
-            </Dialog>
             <svg className="w-full h-full" viewBox="0 0 200 200">
               {(() => {
               let startAngle = 0;
@@ -363,9 +355,6 @@ const Learning = () => {
                   ...prev,
                   [questionId]: e.target.value
                 }))} className="flex-1" />
-                    <Button onClick={() => checkAnswer(questionId, userAnswers[questionId], correctPercentage)} disabled={!userAnswers[questionId]} size="sm">
-                      ✓
-                    </Button>
                   </div>
                 </div>;
           })}
@@ -449,13 +438,6 @@ const Learning = () => {
                       }))} 
                       className="flex-1" 
                     />
-                    <Button 
-                      onClick={() => checkAnswer(questionId, userAnswers[questionId], correctDecimal)} 
-                      disabled={!userAnswers[questionId]} 
-                      size="sm"
-                    >
-                      ✓
-                    </Button>
                   </div>
                 </div>
               );
@@ -521,9 +503,6 @@ const Learning = () => {
                   ...prev,
                   [answerKey]: e.target.value
                 }))} className="flex-1" />
-                    <Button onClick={() => checkAnswer(answerKey, userAnswers[answerKey], parseFloat(correctAmount))} disabled={!userAnswers[answerKey]} size="sm">
-                      ✓
-                    </Button>
                   </div>
                 </div>;
           })}
@@ -580,7 +559,7 @@ const Learning = () => {
           </Button>
         </div>
       </div>
-      <CalculatorModal />
+      
     </div>;
 };
 export default Learning;
