@@ -442,7 +442,7 @@ const Learning = () => {
         if (phase < 6) {
           setCurrentPhase(phase + 1);
         }
-      }, 3000);
+      }, 1000);
       
       return true;
     }
