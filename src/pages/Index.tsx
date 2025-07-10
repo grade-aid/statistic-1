@@ -104,14 +104,29 @@ const Index = () => {
   const generateAnimals = useCallback((wallPositions: Position[]) => {
     const newAnimals: Animal[] = [];
     const animalTypes = Object.keys(animalConfig) as Array<keyof GameState>;
-    const totalAnimals = Math.floor(Math.random() * 31) + 20; // Random number from 20 to 50
+    
+    // Use strategic animal counts for clean percentages (multiples of 5%)
+    const animalDistributions = [
+      { total: 20, counts: [4, 3, 5, 4, 4] }, // 20%, 15%, 25%, 20%, 20%
+      { total: 25, counts: [5, 5, 5, 5, 5] }, // 20% each
+      { total: 50, counts: [10, 5, 15, 10, 10] }, // 20%, 10%, 30%, 20%, 20%
+      { total: 20, counts: [3, 4, 3, 5, 5] }, // 15%, 20%, 15%, 25%, 25%
+      { total: 25, counts: [6, 4, 5, 5, 5] }, // 24%, 16%, 20%, 20%, 20%
+    ];
+    
+    const selectedDistribution = animalDistributions[Math.floor(Math.random() * animalDistributions.length)];
+    const totalAnimals = selectedDistribution.total;
     setTotalTarget(totalAnimals);
     const isWallPosition = (pos: Position) => {
       return wallPositions.some(wall => wall.x === pos.x && wall.y === pos.y);
     };
-    for (let i = 0; i < totalAnimals; i++) {
-      const type = animalTypes[Math.floor(Math.random() * animalTypes.length)];
+    // Generate animals based on the strategic distribution
+    let animalIndex = 0;
+    animalTypes.forEach((type, typeIndex) => {
+      const count = selectedDistribution.counts[typeIndex];
       const config = animalConfig[type];
+      
+      for (let i = 0; i < count; i++) {
       let position: Position;
       let attempts = 0;
       do {
@@ -121,14 +136,16 @@ const Index = () => {
         };
         attempts++;
       } while ((position.x === 1 && position.y === 1 || isWallPosition(position) || newAnimals.some(animal => animal.position.x === position.x && animal.position.y === position.y)) && attempts < 50);
-      newAnimals.push({
-        id: `${type}-${i}`,
-        type,
-        position,
-        emoji: config.emoji,
-        color: config.color
-      });
-    }
+        newAnimals.push({
+          id: `${type}-${animalIndex}`,
+          type,
+          position,
+          emoji: config.emoji,
+          color: config.color
+        });
+        animalIndex++;
+      }
+    });
     setAnimals(newAnimals);
   }, []);
   const generateHunters = useCallback((wallPositions: Position[]) => {
@@ -299,7 +316,7 @@ const Index = () => {
           direction: newDirection
         };
       }));
-    }, 400); // Slower movement
+    }, 250); // Faster movement for harder difficulty
 
     return () => clearInterval(interval);
   }, [phase, hunters.length, isWall, playerPosition]);
