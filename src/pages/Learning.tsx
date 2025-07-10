@@ -425,7 +425,7 @@ const Learning = () => {
                       </div>
                       
                       <div className="flex gap-2">
-                        <Input type="number" step="0.01" placeholder="0.00" value={userAnswers[questionId] || ''} onChange={e => setUserAnswers(prev => ({
+                        <Input type="number" step="0.01" placeholder="0,00" value={userAnswers[questionId] || ''} onChange={e => setUserAnswers(prev => ({
                     ...prev,
                     [questionId]: e.target.value
                   }))} className="flex-1" />
