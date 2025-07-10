@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, CheckCircle, Calculator, Lightbulb, Divide, X, Equal, HelpCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
 import Confetti from "@/components/Confetti";
 interface AnimalData {
   mammals: number;
@@ -15,8 +16,28 @@ interface AnimalData {
   fish: number;
   insects: number;
 }
+interface FoodData {
+  fruits: number;
+  vegetables: number;
+  grains: number;
+  proteins: number;
+  dairy: number;
+}
+interface Position {
+  x: number;
+  y: number;
+}
+interface Hunter {
+  id: string;
+  position: Position;
+  emoji: string;
+  direction: 'up' | 'down' | 'left' | 'right';
+}
 const Learning = () => {
   const navigate = useNavigate();
+  const {
+    toast
+  } = useToast();
 
   // Get data from localStorage (same as other pages)
   const getStoredData = (): AnimalData => {
@@ -55,6 +76,63 @@ const Learning = () => {
     };
   };
   const collectedData = getStoredData();
+
+  // Food data functions
+  const getFoodData = (): FoodData => {
+    const stored = localStorage.getItem("foodData");
+    if (stored) {
+      try {
+        return JSON.parse(stored);
+      } catch {
+        return {
+          fruits: 0,
+          vegetables: 0,
+          grains: 0,
+          proteins: 0,
+          dairy: 0
+        };
+      }
+    }
+    return {
+      fruits: 0,
+      vegetables: 0,
+      grains: 0,
+      proteins: 0,
+      dairy: 0
+    };
+  };
+  const saveFoodData = (data: FoodData) => {
+    localStorage.setItem("foodData", JSON.stringify(data));
+  };
+  const foodData = getFoodData();
+  const totalFood = Object.values(foodData).reduce((sum: number, count: number) => sum + count, 0);
+  const foodConfig = {
+    fruits: {
+      emoji: '🍎',
+      name: 'Fruits',
+      color: '#ef4444'
+    },
+    vegetables: {
+      emoji: '🥕',
+      name: 'Vegetables',
+      color: '#22c55e'
+    },
+    grains: {
+      emoji: '🌾',
+      name: 'Grains',
+      color: '#eab308'
+    },
+    proteins: {
+      emoji: '🥩',
+      name: 'Proteins',
+      color: '#8b5cf6'
+    },
+    dairy: {
+      emoji: '🧀',
+      name: 'Dairy',
+      color: '#06b6d4'
+    }
+  };
 
   // Calculator functions
   const handleCalculatorInput = (value: string) => {
@@ -125,6 +203,24 @@ const Learning = () => {
     }
   };
   const [currentPhase, setCurrentPhase] = useState(3);
+  const [isCollectingFood, setIsCollectingFood] = useState(false);
+  const [tempFoodData, setTempFoodData] = useState<FoodData>(foodData);
+
+  // Food Collection Game State
+  const [foodPlayerPosition, setFoodPlayerPosition] = useState<Position>({
+    x: 1,
+    y: 1
+  });
+  const [foodItems, setFoodItems] = useState<Array<{
+    id: string;
+    type: keyof FoodData;
+    position: Position;
+    emoji: string;
+  }>>([]);
+  const [foodHunters, setFoodHunters] = useState<Hunter[]>([]);
+  const [foodLives, setFoodLives] = useState(9);
+  const [foodWalls, setFoodWalls] = useState<Position[]>([]);
+  const [isGameInitialized, setIsGameInitialized] = useState(false);
   const [userAnswers, setUserAnswers] = useState<{
     [key: string]: string;
   }>({});
@@ -138,79 +234,305 @@ const Learning = () => {
   const [calculatorInput, setCalculatorInput] = useState("");
   const [calculatorDisplay, setCalculatorDisplay] = useState("0");
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
-  
-  // Drag and drop state for Phase 6
-  const [draggedItem, setDraggedItem] = useState<string | null>(null);
-  const [droppedItems, setDroppedItems] = useState<{[key: string]: string[]}>({
-    low: [],
-    medium: [],
-    high: []
-  });
-  const [completedTasks, setCompletedTasks] = useState<{[key: string]: boolean}>({});
 
   // Calculate correct answers - ensure numbers are properly typed
   const mammalsPercentage = totalAnimals > 0 ? Math.round(collectedData.mammals / totalAnimals * 100) : 0;
   const onePercent = totalAnimals > 0 ? totalAnimals / 100 : 0;
 
-  // Drag and drop handlers
-  const handleDragStart = (e: React.DragEvent, itemId: string) => {
-    setDraggedItem(itemId);
-    e.dataTransfer.effectAllowed = 'move';
-  };
+  // Food Collection Game Constants
+  const FOOD_GRID_SIZE = 15;
+  const FOOD_CELL_SIZE = 28;
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-  };
-
-  const handleDrop = (e: React.DragEvent, targetId: string) => {
-    e.preventDefault();
-    if (draggedItem) {
-      // Remove animal from other zones first
-      setDroppedItems(prev => {
-        const newItems = { ...prev };
-        // Remove from all zones
-        Object.keys(newItems).forEach(zone => {
-          newItems[zone] = newItems[zone].filter(animal => animal !== draggedItem);
-        });
-        // Add to target zone
-        newItems[targetId] = [...newItems[targetId], draggedItem];
-        return newItems;
-      });
-      
-      // Check if it's correct
-      const isCorrect = checkDragDropAnswer(draggedItem, targetId);
-      if (isCorrect) {
-        setShowConfetti(true);
-        setTimeout(() => setShowConfetti(false), 2000);
+  // Food Collection Game Functions
+  const generateFoodWalls = useCallback(() => {
+    const newWalls: Position[] = [];
+    for (let x = 0; x < FOOD_GRID_SIZE; x++) {
+      for (let y = 0; y < FOOD_GRID_SIZE; y++) {
+        if (x === 0 || x === FOOD_GRID_SIZE - 1 || y === 0 || y === FOOD_GRID_SIZE - 1) {
+          newWalls.push({
+            x,
+            y
+          });
+        } else if (x % 3 === 0 && y % 3 === 0 && Math.random() > 0.5) {
+          newWalls.push({
+            x,
+            y
+          });
+        }
       }
-      
-      setDraggedItem(null);
     }
-  };
+    return newWalls;
+  }, []);
+  const isFoodWall = useCallback((pos: Position) => {
+    return foodWalls.some(wall => wall.x === pos.x && wall.y === pos.y);
+  }, [foodWalls]);
+  const generateFoodItems = useCallback((wallPositions: Position[]) => {
+    const newFoodItems: Array<{
+      id: string;
+      type: keyof FoodData;
+      position: Position;
+      emoji: string;
+    }> = [];
+    const foodTypes = Object.keys(foodConfig) as Array<keyof FoodData>;
+    const totalItems = Math.floor(Math.random() * 21) + 20; // 20-40 items
 
-  const checkDragDropAnswer = (draggedId: string, targetId: string): boolean => {
-    // Define correct matches based on percentage ranges
-    const animalPercentages = Object.entries(collectedData).map(([type, count]) => ({
-      type,
-      percentage: totalAnimals > 0 ? Math.round(count / totalAnimals * 100) : 0
-    }));
-
-    const draggedAnimal = animalPercentages.find(animal => animal.type === draggedId);
-    if (!draggedAnimal) return false;
-
-    // Define percentage ranges
-    const ranges = {
-      'low': [0, 15],      // 0-15%
-      'medium': [16, 35],  // 16-35%
-      'high': [36, 100]    // 36-100%
+    const isWallPosition = (pos: Position) => {
+      return wallPositions.some(wall => wall.x === pos.x && wall.y === pos.y);
     };
+    for (let i = 0; i < totalItems; i++) {
+      const type = foodTypes[Math.floor(Math.random() * foodTypes.length)];
+      const config = foodConfig[type];
+      let position: Position;
+      let attempts = 0;
+      do {
+        position = {
+          x: Math.floor(Math.random() * (FOOD_GRID_SIZE - 2)) + 1,
+          y: Math.floor(Math.random() * (FOOD_GRID_SIZE - 2)) + 1
+        };
+        attempts++;
+      } while ((position.x === 1 && position.y === 1 || isWallPosition(position) || newFoodItems.some(item => item.position.x === position.x && item.position.y === position.y)) && attempts < 50);
+      newFoodItems.push({
+        id: `${type}-${i}`,
+        type,
+        position,
+        emoji: config.emoji
+      });
+    }
+    setFoodItems(newFoodItems);
+  }, []);
+  const generateFoodHunters = useCallback((wallPositions: Position[]) => {
+    const newHunters: Hunter[] = [];
+    const hunterEmojis = ['🐺', '🦖'];
+    const isWallPosition = (pos: Position) => {
+      return wallPositions.some(wall => wall.x === pos.x && wall.y === pos.y);
+    };
+    for (let i = 0; i < 2; i++) {
+      let position: Position;
+      let attempts = 0;
+      do {
+        position = {
+          x: Math.floor(Math.random() * (FOOD_GRID_SIZE - 2)) + 1,
+          y: Math.floor(Math.random() * (FOOD_GRID_SIZE - 2)) + 1
+        };
+        attempts++;
+      } while ((position.x === 1 && position.y === 1 || isWallPosition(position) || newHunters.some(hunter => hunter.position.x === position.x && hunter.position.y === position.y)) && attempts < 50);
+      newHunters.push({
+        id: `food-hunter-${i}`,
+        position,
+        emoji: hunterEmojis[i],
+        direction: ['up', 'down', 'left', 'right'][Math.floor(Math.random() * 4)] as any
+      });
+    }
+    setFoodHunters(newHunters);
+  }, []);
+  const moveFoodPlayer = useCallback((direction: string) => {
+    setFoodPlayerPosition(prev => {
+      let newX = prev.x;
+      let newY = prev.y;
+      switch (direction) {
+        case 'up':
+        case 'w':
+          newY = Math.max(0, prev.y - 1);
+          break;
+        case 'down':
+        case 's':
+          newY = Math.min(FOOD_GRID_SIZE - 1, prev.y + 1);
+          break;
+        case 'left':
+        case 'a':
+          newX = Math.max(0, prev.x - 1);
+          break;
+        case 'right':
+        case 'd':
+          newX = Math.min(FOOD_GRID_SIZE - 1, prev.x + 1);
+          break;
+      }
+      const newPos = {
+        x: newX,
+        y: newY
+      };
+      if (isFoodWall(newPos)) {
+        return prev;
+      }
+      return newPos;
+    });
+  }, [isFoodWall]);
 
-    const targetRange = ranges[targetId as keyof typeof ranges];
-    if (!targetRange) return false;
+  // Initialize game when collecting food starts
+  useEffect(() => {
+    if (isCollectingFood && !isGameInitialized) {
+      const newWalls = generateFoodWalls();
+      setFoodWalls(newWalls);
+      generateFoodItems(newWalls);
+      generateFoodHunters(newWalls);
+      setIsGameInitialized(true);
+      setFoodPlayerPosition({
+        x: 1,
+        y: 1
+      });
+      setFoodLives(9);
+    }
+  }, [isCollectingFood, isGameInitialized, generateFoodWalls, generateFoodItems, generateFoodHunters]);
 
-    return draggedAnimal.percentage >= targetRange[0] && draggedAnimal.percentage <= targetRange[1];
-  };
+  // Food Hunter movement
+  useEffect(() => {
+    if (!isCollectingFood || !isGameInitialized || foodHunters.length === 0) return;
+    const interval = setInterval(() => {
+      setFoodHunters(prevHunters => prevHunters.map(hunter => {
+        const directions = ['up', 'down', 'left', 'right'] as const;
+        let newPosition = {
+          ...hunter.position
+        };
+        let newDirection = hunter.direction;
+        if (Math.random() < 0.6) {
+          const dx = foodPlayerPosition.x - hunter.position.x;
+          const dy = foodPlayerPosition.y - hunter.position.y;
+          if (Math.abs(dx) > Math.abs(dy)) {
+            newDirection = dx > 0 ? 'right' : 'left';
+          } else if (dy !== 0) {
+            newDirection = dy > 0 ? 'down' : 'up';
+          }
+        } else {
+          newDirection = directions[Math.floor(Math.random() * directions.length)];
+        }
+        switch (newDirection) {
+          case 'up':
+            newPosition.y = Math.max(0, hunter.position.y - 1);
+            break;
+          case 'down':
+            newPosition.y = Math.min(FOOD_GRID_SIZE - 1, hunter.position.y + 1);
+            break;
+          case 'left':
+            newPosition.x = Math.max(0, hunter.position.x - 1);
+            break;
+          case 'right':
+            newPosition.x = Math.min(FOOD_GRID_SIZE - 1, hunter.position.x + 1);
+            break;
+        }
+        if (isFoodWall(newPosition)) {
+          const altDirections = newDirection === 'up' || newDirection === 'down' ? ['left', 'right'] : ['up', 'down'];
+          for (const altDir of altDirections) {
+            let altPos = {
+              ...hunter.position
+            };
+            switch (altDir) {
+              case 'up':
+                altPos.y = Math.max(0, hunter.position.y - 1);
+                break;
+              case 'down':
+                altPos.y = Math.min(FOOD_GRID_SIZE - 1, hunter.position.y + 1);
+                break;
+              case 'left':
+                altPos.x = Math.max(0, hunter.position.x - 1);
+                break;
+              case 'right':
+                altPos.x = Math.min(FOOD_GRID_SIZE - 1, hunter.position.x + 1);
+                break;
+            }
+            if (!isFoodWall(altPos)) {
+              newPosition = altPos;
+              newDirection = altDir as any;
+              break;
+            }
+          }
+          if (isFoodWall(newPosition)) {
+            newPosition = hunter.position;
+          }
+        }
+        return {
+          ...hunter,
+          position: newPosition,
+          direction: newDirection
+        };
+      }));
+    }, 400);
+    return () => clearInterval(interval);
+  }, [isCollectingFood, isGameInitialized, foodHunters.length, isFoodWall, foodPlayerPosition]);
+
+  // Check for hunter collision
+  useEffect(() => {
+    if (!isCollectingFood) return;
+    const hunterAtPosition = foodHunters.find(hunter => hunter.position.x === foodPlayerPosition.x && hunter.position.y === foodPlayerPosition.y);
+    if (hunterAtPosition && isGameInitialized) {
+      setFoodLives(prev => {
+        const newLives = prev - 1;
+        if (newLives <= 0) {
+          // Reset game
+          setFoodPlayerPosition({
+            x: 1,
+            y: 1
+          });
+          setIsGameInitialized(false);
+          setFoodLives(9);
+          setTempFoodData({
+            fruits: 0,
+            vegetables: 0,
+            grains: 0,
+            proteins: 0,
+            dairy: 0
+          });
+          toast({
+            title: "💀 Game Over!",
+            description: "Try again to collect food!",
+            duration: 3000
+          });
+        } else {
+          setFoodPlayerPosition({
+            x: 1,
+            y: 1
+          });
+          toast({
+            title: `💔 Hit by ${hunterAtPosition.emoji}!`,
+            description: `${newLives} lives remaining`,
+            duration: 2000
+          });
+        }
+        return newLives;
+      });
+    }
+  }, [isCollectingFood, foodPlayerPosition, foodHunters, isGameInitialized, toast]);
+
+  // Handle keyboard input for food game
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (!isCollectingFood) return;
+      const key = e.key.toLowerCase();
+      if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'w', 'a', 's', 'd'].includes(key)) {
+        e.preventDefault();
+        const direction = key.replace('arrow', '');
+        moveFoodPlayer(direction);
+      }
+    };
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [moveFoodPlayer, isCollectingFood]);
+
+  // Check for food collection
+  useEffect(() => {
+    if (!isCollectingFood) return;
+    const foodAtPosition = foodItems.find(item => item.position.x === foodPlayerPosition.x && item.position.y === foodPlayerPosition.y);
+    if (foodAtPosition) {
+      setFoodItems(prev => prev.filter(item => item.id !== foodAtPosition.id));
+      setTempFoodData(prev => ({
+        ...prev,
+        [foodAtPosition.type]: prev[foodAtPosition.type] + 1
+      }));
+    }
+  }, [isCollectingFood, foodPlayerPosition, foodItems]);
+
+  // Check if game is complete
+  useEffect(() => {
+    if (!isCollectingFood) return;
+    const totalFoodCollected = Object.values(tempFoodData).reduce((sum, count) => sum + count, 0);
+    if (totalFoodCollected >= 15 && foodItems.length === 0) {
+      setTimeout(() => {
+        saveFoodData(tempFoodData);
+        setIsCollectingFood(false);
+        setIsGameInitialized(false); // Reset for next time
+        setCurrentPhase(7);
+      }, 1000);
+    }
+  }, [isCollectingFood, tempFoodData, foodItems.length]);
 
   // Visual Components
   const VisualCalculator = ({
@@ -473,8 +795,8 @@ const Learning = () => {
     const mammalsDecimal = mammalsPercentage / 100;
     return <Card className="p-6 border-2 border-blue-200 bg-blue-50">
         <div className="flex items-center gap-3 mb-6">
-          <Lightbulb className="h-8 w-8 text-blue-600" />
-          <h3 className="text-2xl font-bold text-blue-800">Percentage → Decimal 🔢</h3>
+          
+          
         </div>
         
         <div className="space-y-6">
@@ -582,28 +904,14 @@ const Learning = () => {
             const answerState = answerStates[answerKey] || 'unanswered';
             const isShaking = shakingQuestions[answerKey] || false;
             return <div key={label} className={`bg-gray-50 p-4 rounded-lg space-y-3 transition-colors duration-300 ${answerState === 'correct' ? 'bg-green-100 border-2 border-green-300' : answerState === 'incorrect' ? 'bg-red-50 border-2 border-red-200' : ''} ${isShaking ? 'animate-shake' : ''}`}>
-                    <div className="text-center">
-                      <div className="flex items-center justify-center gap-2 mb-2">
-                        <Badge variant="outline" className="text-lg px-4 py-2">
-                          {label}
-                        </Badge>
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              className="w-6 h-6 p-0 rounded-full bg-primary text-primary-foreground hover:bg-primary/90" 
-                              onClick={() => setIsCalculatorOpen(true)}
-                            >
-                              <Calculator size={14} />
-                            </Button>
-                          </DialogTrigger>
-                        </Dialog>
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        {multiplier} × {onePercent.toFixed(1)} = ?
-                      </div>
+                  <div className="text-center">
+                    <Badge variant="outline" className="text-lg px-4 py-2 mb-2">
+                      {label}
+                    </Badge>
+                    <div className="text-sm text-muted-foreground">
+                      {multiplier} × {onePercent.toFixed(1)} = ?
                     </div>
+                  </div>
                   <div className="flex gap-2">
                     <Input type="number" step="0.1" placeholder="answer" value={userAnswers[answerKey] || ''} onChange={e => setUserAnswers(prev => ({
                   ...prev,
@@ -617,132 +925,606 @@ const Learning = () => {
           })}
           </div>
         </div>
-      </div>
-    </Card>;
+        </div>
+      </Card>;
 
+  // Food Collection Game - Now just renders the UI using top-level state
+  const renderFoodCollectionGame = () => {
+    const totalFoodCollected = Object.values(tempFoodData).reduce((sum, count) => sum + count, 0);
+    return <div className="min-h-screen bg-background p-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-6">
+            <h2 className="text-3xl font-bold mb-2">🍎 Collect Food Items</h2>
+            <div className="flex items-center justify-center gap-4 mb-2">
+              <div className="flex items-center gap-1">
+                {Array.from({
+                length: 9
+              }, (_, i) => <span key={i} className="text-2xl">
+                    {i < foodLives ? '❤️' : '🖤'}
+                  </span>)}
+              </div>
+              <p className="text-xl">
+                {totalFoodCollected} food items collected
+              </p>
+            </div>
+          </div>
+
+          <div className="grid gap-6 lg:grid-cols-3">
+            <div className="lg:col-span-2">
+              <Card className="p-4">
+                <div className="relative bg-muted rounded-xl p-4 mx-auto" style={{
+                width: FOOD_GRID_SIZE * FOOD_CELL_SIZE + 32,
+                height: FOOD_GRID_SIZE * FOOD_CELL_SIZE + 32
+              }}>
+                  {/* Player */}
+                  <div className="absolute bg-purple-500 rounded-full border-2 border-black transition-all duration-150 flex items-center justify-center text-lg z-10" style={{
+                  left: foodPlayerPosition.x * FOOD_CELL_SIZE + 16,
+                  top: foodPlayerPosition.y * FOOD_CELL_SIZE + 16,
+                  width: FOOD_CELL_SIZE - 2,
+                  height: FOOD_CELL_SIZE - 2
+                }}>
+                    🐱
+                  </div>
+                  
+                  {/* Walls */}
+                  {foodWalls.map((wall, index) => <div key={`food-wall-${index}`} className="absolute bg-blue-600 border border-black" style={{
+                  left: wall.x * FOOD_CELL_SIZE + 16,
+                  top: wall.y * FOOD_CELL_SIZE + 16,
+                  width: FOOD_CELL_SIZE - 2,
+                  height: FOOD_CELL_SIZE - 2
+                }} />)}
+                  
+                  {/* Food Items */}
+                  {foodItems.map(item => <div key={item.id} className="absolute rounded-full border border-black flex items-center justify-center bg-yellow-400" style={{
+                  left: item.position.x * FOOD_CELL_SIZE + 16,
+                  top: item.position.y * FOOD_CELL_SIZE + 16,
+                  width: FOOD_CELL_SIZE - 2,
+                  height: FOOD_CELL_SIZE - 2,
+                  fontSize: '16px'
+                }}>
+                      {item.emoji}
+                    </div>)}
+                  
+                  {/* Hunters */}
+                  {foodHunters.map(hunter => <div key={hunter.id} className="absolute rounded-full border-2 border-red-500 bg-red-600 flex items-center justify-center text-lg transition-all duration-300" style={{
+                  left: hunter.position.x * FOOD_CELL_SIZE + 16,
+                  top: hunter.position.y * FOOD_CELL_SIZE + 16,
+                  width: FOOD_CELL_SIZE - 2,
+                  height: FOOD_CELL_SIZE - 2
+                }}>
+                      {hunter.emoji}
+                    </div>)}
+                </div>
+                <p className="text-center text-sm text-muted-foreground mt-4">
+                  Use arrow keys or WASD to move • Collect 15+ items to continue
+                </p>
+              </Card>
+            </div>
+
+            <Card className="p-4">
+              <h3 className="text-xl font-bold mb-4">Food Collection</h3>
+              <div className="space-y-3">
+                {Object.entries(foodConfig).map(([type, config]) => <div key={type} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-yellow-400 flex items-center justify-center text-xs border border-black">
+                        {config.emoji}
+                      </div>
+                      <span className="text-sm capitalize">{config.name}</span>
+                    </div>
+                    <span className="font-bold">
+                      {tempFoodData[type as keyof FoodData]}
+                    </span>
+                  </div>)}
+              </div>
+            </Card>
+          </div>
+        </div>
+      </div>;
+  };
+
+  // Phase 6: Find percentage of a number (using animal data)
   const renderPhase6 = () => {
-    // Calculate animal percentages for drag and drop
-    const animalPercentages = Object.entries(collectedData).map(([type, count]) => ({
-      type,
-      count,
-      percentage: totalAnimals > 0 ? Math.round(count / totalAnimals * 100) : 0,
-      config: animalConfig[type as keyof typeof animalConfig]
-    }));
-
-    const dropZones = [
-      { id: 'low', label: '0-15%', emoji: '🔻', color: 'from-red-100 to-red-50 border-red-200' },
-      { id: 'medium', label: '16-35%', emoji: '📊', color: 'from-yellow-100 to-yellow-50 border-yellow-200' },
-      { id: 'high', label: '36-100%', emoji: '📈', color: 'from-green-100 to-green-50 border-green-200' }
-    ];
-
-    return (
-      <Card className="p-6 border-2 border-orange-200 bg-orange-50">
+    const problems = [{
+      animal: 'mammals',
+      percentage: 25,
+      emoji: '🐘'
+    }, {
+      animal: 'birds',
+      percentage: 40,
+      emoji: '🦅'
+    }, {
+      animal: 'reptiles',
+      percentage: 30,
+      emoji: '🐍'
+    }, {
+      animal: 'fish',
+      percentage: 20,
+      emoji: '🐟'
+    }];
+    return <Card className="p-6 border-2 border-orange-200 bg-orange-50">
         <div className="flex items-center gap-3 mb-6">
-          <Badge className="h-8 w-8 text-orange-600 bg-orange-100 border-orange-300">🎯</Badge>
-          <h3 className="text-2xl font-bold text-orange-800">Analyze Data 📊</h3>
+          <Calculator className="h-8 w-8 text-orange-600" />
+          <h3 className="text-2xl font-bold text-orange-800">Find Percentage of a Number 📊</h3>
         </div>
         
         <div className="space-y-6">
-          {/* Instructions */}
+          {/* Example */}
           <div className="bg-white p-6 rounded-xl border border-orange-200">
-            <h4 className="text-lg font-bold mb-4 text-orange-700">🎮 Drag & Drop Challenge</h4>
-            <div className="text-center mb-4">
-              <Badge variant="outline" className="text-sm px-3 py-1">
-                Sort animals by their percentage ranges
-              </Badge>
-            </div>
-          </div>
-
-          {/* Draggable Animals */}
-          <div className="bg-white p-6 rounded-xl border border-orange-200">
-            <h4 className="text-lg font-bold mb-4 text-orange-700">🐾 Animals to Sort</h4>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-              {animalPercentages.map(({ type, count, percentage, config }) => (
-                <div
-                  key={type}
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, type)}
-                  className={`bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-lg border-2 border-gray-200 cursor-move hover:shadow-lg transition-all duration-200 text-center ${
-                    draggedItem === type ? 'opacity-50 scale-95' : ''
-                  } ${
-                    Object.values(droppedItems).some(animals => animals.includes(type)) ? 'opacity-30' : ''
-                  }`}
-                >
-                  <div className="text-3xl mb-2">{config.emoji}</div>
-                  <div className="font-semibold text-sm">{config.name}</div>
-                  <div className="text-xs text-muted-foreground">{count} animals</div>
-                  <Badge variant="secondary" className="text-xs mt-1">
-                    {percentage}%
+            <h4 className="text-lg font-bold mb-4 text-orange-700">📚 Example: 30% of {collectedData.mammals} mammals</h4>
+            
+            <div className="grid md:grid-cols-2 gap-6">
+              <AnimalVisual count={collectedData.mammals} emoji="🐘" total={totalAnimals} name="Mammals" />
+              <div className="space-y-4">
+                <VisualCalculator operation="multiply" values={["30%", collectedData.mammals]} result={Math.round(collectedData.mammals * 0.3).toString()} color="orange" />
+                <div className="text-center">
+                  <Badge variant="secondary" className="text-lg px-4 py-2">
+                    30% of {collectedData.mammals} = {Math.round(collectedData.mammals * 0.3)} mammals
                   </Badge>
                 </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Drop Zones */}
-          <div className="bg-white p-6 rounded-xl border border-orange-200">
-            <h4 className="text-lg font-bold mb-4 text-orange-700">📋 Percentage Ranges</h4>
-            <div className="grid md:grid-cols-3 gap-4">
-              {dropZones.map((zone) => (
-                <div
-                  key={zone.id}
-                  onDragOver={handleDragOver}
-                  onDrop={(e) => handleDrop(e, zone.id)}
-                  className={`bg-gradient-to-br ${zone.color} p-6 rounded-lg border-2 border-dashed min-h-32 flex flex-col items-center justify-center transition-all duration-300 ${
-                    draggedItem ? 'border-opacity-100 bg-opacity-50' : 'border-opacity-30'
-                  } ${
-                    completedTasks[zone.id] ? 'border-green-500 bg-green-100' : ''
-                  }`}
-                >
-                  <div className="text-2xl mb-2">{zone.emoji}</div>
-                  <div className="font-bold text-lg mb-1">{zone.label}</div>
-                  
-                  {/* Show dropped animals */}
-                  {droppedItems[zone.id] && droppedItems[zone.id].length > 0 && (
-                    <div className="mt-3 grid grid-cols-2 gap-2 w-full">
-                      {droppedItems[zone.id].map((animalType) => (
-                        <div key={animalType} className="p-2 bg-white rounded-lg border shadow-sm">
-                          <div className="text-xl mb-1">
-                            {animalConfig[animalType as keyof typeof animalConfig]?.emoji}
-                          </div>
-                          <div className="text-xs font-semibold">
-                            {animalConfig[animalType as keyof typeof animalConfig]?.name}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  
-                  {(!droppedItems[zone.id] || droppedItems[zone.id].length === 0) && (
-                    <div className="text-sm text-muted-foreground text-center">
-                      Drop animals here
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Progress */}
-          <div className="bg-white p-4 rounded-xl border border-orange-200">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-sm font-semibold">Progress:</span>
-              <Progress value={(Object.values(droppedItems).flat().length / Object.keys(collectedData).length) * 100} className="flex-1" />
-              <span className="text-sm text-muted-foreground">
-                {Object.values(droppedItems).flat().length}/{Object.keys(collectedData).length} animals sorted
-              </span>
-            </div>
-            {Object.values(droppedItems).flat().length === Object.keys(collectedData).length && (
-              <div className="text-center mt-2">
-                <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-300">
-                  🎉 All animals sorted!
-                </Badge>
               </div>
-            )}
+            </div>
+          </div>
+
+          {/* Interactive Practice */}
+          <div className="bg-white p-6 rounded-xl border border-orange-200">
+            <h4 className="text-lg font-bold mb-4 text-orange-700">✏️ Your Turn</h4>
+            <div className="grid md:grid-cols-2 gap-4">
+              {problems.map(({
+              animal,
+              percentage,
+              emoji
+            }) => {
+              const animalCount = collectedData[animal as keyof AnimalData];
+              const correctAnswer = Math.round(animalCount * (percentage / 100));
+              const questionId = `phase6-${animal}-${percentage}`;
+              const answerState = answerStates[questionId] || 'unanswered';
+              const isShaking = shakingQuestions[questionId] || false;
+              return <div key={questionId} className={`bg-gray-50 p-4 rounded-lg space-y-3 transition-colors duration-300 ${answerState === 'correct' ? 'bg-green-100 border-2 border-green-300' : answerState === 'incorrect' ? 'bg-red-50 border-2 border-red-200' : ''} ${isShaking ? 'animate-shake' : ''}`}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-2xl">{emoji}</span>
+                      <div>
+                        <div className="font-semibold">Find {percentage}% of {animalCount} {animal}</div>
+                        <div className="text-sm text-muted-foreground">{percentage}% × {animalCount} = ?</div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <Input type="number" placeholder="answer" value={userAnswers[questionId] || ''} onChange={e => setUserAnswers(prev => ({
+                    ...prev,
+                    [questionId]: e.target.value
+                  }))} className={`flex-1 ${answerState === 'correct' ? 'border-green-500 bg-green-50' : answerState === 'incorrect' ? 'border-red-500 bg-red-50' : ''}`} disabled={answerState === 'correct'} />
+                      <Button onClick={() => checkAnswer(questionId, userAnswers[questionId], correctAnswer)} disabled={!userAnswers[questionId] || answerState === 'correct'} size="sm" variant={answerState === 'correct' ? 'default' : 'outline'} className={answerState === 'correct' ? 'bg-green-600 hover:bg-green-700' : ''}>
+                        {answerState === 'correct' ? '✅' : '✓'}
+                      </Button>
+                    </div>
+                  </div>;
+            })}
+            </div>
           </div>
         </div>
-      </Card>
-    );
+      </Card>;
+  };
+
+  // Food Visual Component
+  const FoodVisual = ({
+    count,
+    emoji,
+    total,
+    name,
+    showPercentages = false
+  }: {
+    count: number;
+    emoji: string;
+    total: number;
+    name: string;
+    showPercentages?: boolean;
+  }) => {
+    const percentage = total > 0 ? Math.round(count / total * 100) : 0;
+    const dataEntries = Object.entries(foodData);
+    return <div className="bg-white p-4 rounded-lg border space-y-3">
+        <div className="flex items-center gap-3">
+          <span className="text-3xl">{emoji}</span>
+          <div>
+            <div className="text-lg font-bold">{name}</div>
+          </div>
+        </div>
+        
+        <div className="flex justify-center">
+          <div className="relative w-48 h-48">
+            <svg className="w-full h-full" viewBox="0 0 200 200">
+              {(() => {
+              let startAngle = 0;
+              const radius = 80;
+              const centerX = 100;
+              const centerY = 100;
+              return dataEntries.map(([type, foodCount]) => {
+                const foodPercentage = foodCount / total * 100;
+                const angle = foodPercentage / 100 * 360;
+                const endAngle = startAngle + angle;
+                const startAngleRad = startAngle * Math.PI / 180;
+                const endAngleRad = endAngle * Math.PI / 180;
+                const x1 = centerX + radius * Math.cos(startAngleRad);
+                const y1 = centerY + radius * Math.sin(startAngleRad);
+                const x2 = centerX + radius * Math.cos(endAngleRad);
+                const y2 = centerY + radius * Math.sin(endAngleRad);
+                const largeArcFlag = angle > 180 ? 1 : 0;
+                const pathData = [`M ${centerX} ${centerY}`, `L ${x1} ${y1}`, `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`, 'Z'].join(' ');
+                const labelAngle = (startAngle + endAngle) / 2;
+                const labelAngleRad = labelAngle * Math.PI / 180;
+                const labelRadius = radius * 0.7;
+                const labelX = centerX + labelRadius * Math.cos(labelAngleRad);
+                const labelY = centerY + labelRadius * Math.sin(labelAngleRad);
+                const config = foodConfig[type as keyof typeof foodConfig];
+                const slice = <g key={type}>
+                      <path d={pathData} fill={config.color} stroke="white" strokeWidth="4" className="transition-all duration-300" />
+                      {foodPercentage > 5 && <text x={labelX} y={labelY} textAnchor="middle" dy="0.3em" className="text-sm font-bold fill-white" style={{
+                    textShadow: '1px 1px 1px rgba(0,0,0,0.5)'
+                  }}>
+                          {showPercentages ? `${Math.round(foodPercentage)}%` : foodCount}
+                        </text>}
+                    </g>;
+                startAngle = endAngle;
+                return slice;
+              });
+            })()}
+            </svg>
+          </div>
+        </div>
+        
+        <div className="flex flex-wrap gap-2 justify-center mt-3">
+          {Object.entries(foodConfig).map(([type, config]) => <div key={type} className="flex items-center gap-1">
+              <div className="w-3 h-3 rounded-sm" style={{
+            backgroundColor: config.color
+          }} />
+              <span className="text-xs text-muted-foreground">
+                {config.emoji} {config.name}
+              </span>
+            </div>)}
+        </div>
+      </div>;
+  };
+
+  // Phase 7: Find the whole when knowing the percentage
+  const renderPhase7 = () => {
+    const problems = [{
+      food: 'fruits',
+      known: Math.round(foodData.fruits * 0.3),
+      percentage: 30
+    }, {
+      food: 'vegetables',
+      known: Math.round(foodData.vegetables * 0.25),
+      percentage: 25
+    }, {
+      food: 'grains',
+      known: Math.round(foodData.grains * 0.4),
+      percentage: 40
+    }];
+    return <Card className="p-6 border-2 border-pink-200 bg-pink-50">
+        <div className="flex items-center gap-3 mb-6">
+          <Calculator className="h-8 w-8 text-pink-600" />
+          <h3 className="text-2xl font-bold text-pink-800">Find the Whole Number 🔍</h3>
+        </div>
+        
+        <div className="space-y-6">
+          {/* Example */}
+          <div className="bg-white p-6 rounded-xl border border-pink-200">
+            <h4 className="text-lg font-bold mb-4 text-pink-700">📚 Example: If 15 is 30% of a number, what's the whole?</h4>
+            
+            <div className="grid md:grid-cols-2 gap-6">
+              <FoodVisual count={foodData.fruits} emoji="🍎" total={totalFood} name="Fruits" />
+              <div className="space-y-4">
+                <VisualCalculator operation="divide" values={["15", "30%"]} result="50" color="pink" />
+                <div className="text-center">
+                  <Badge variant="secondary" className="text-lg px-4 py-2">
+                    15 ÷ 0.30 = 50
+                  </Badge>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Interactive Practice */}
+          <div className="bg-white p-6 rounded-xl border border-pink-200">
+            <h4 className="text-lg font-bold mb-4 text-pink-700">✏️ Your Turn</h4>
+            <div className="grid md:grid-cols-2 gap-4">
+              {problems.map(({
+              food,
+              known,
+              percentage
+            }) => {
+              const foodCount = foodData[food as keyof FoodData];
+              const correctAnswer = Math.round(known / (percentage / 100));
+              const questionId = `phase7-${food}-${percentage}`;
+              const answerState = answerStates[questionId] || 'unanswered';
+              const isShaking = shakingQuestions[questionId] || false;
+              const config = foodConfig[food as keyof typeof foodConfig];
+              return <div key={questionId} className={`bg-gray-50 p-4 rounded-lg space-y-3 transition-colors duration-300 ${answerState === 'correct' ? 'bg-green-100 border-2 border-green-300' : answerState === 'incorrect' ? 'bg-red-50 border-2 border-red-200' : ''} ${isShaking ? 'animate-shake' : ''}`}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-2xl">{config.emoji}</span>
+                      <div>
+                        <div className="font-semibold">If {known} is {percentage}% of a number, what's the whole?</div>
+                        <div className="text-sm text-muted-foreground">{known} ÷ {percentage}% = ?</div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <Input type="number" placeholder="whole number" value={userAnswers[questionId] || ''} onChange={e => setUserAnswers(prev => ({
+                    ...prev,
+                    [questionId]: e.target.value
+                  }))} className={`flex-1 ${answerState === 'correct' ? 'border-green-500 bg-green-50' : answerState === 'incorrect' ? 'border-red-500 bg-red-50' : ''}`} disabled={answerState === 'correct'} />
+                      <Button onClick={() => checkAnswer(questionId, userAnswers[questionId], correctAnswer)} disabled={!userAnswers[questionId] || answerState === 'correct'} size="sm" variant={answerState === 'correct' ? 'default' : 'outline'} className={answerState === 'correct' ? 'bg-green-600 hover:bg-green-700' : ''}>
+                        {answerState === 'correct' ? '✅' : '✓'}
+                      </Button>
+                    </div>
+                  </div>;
+            })}
+            </div>
+          </div>
+        </div>
+      </Card>;
+  };
+
+  // Phase 8: Find the percentage rate
+  const renderPhase8 = () => {
+    const problems = [{
+      food: 'vegetables',
+      part: foodData.vegetables
+    }, {
+      food: 'grains',
+      part: foodData.grains
+    }, {
+      food: 'proteins',
+      part: foodData.proteins
+    }, {
+      food: 'dairy',
+      part: foodData.dairy
+    }];
+    return <Card className="p-6 border-2 border-teal-200 bg-teal-50">
+        <div className="flex items-center gap-3 mb-6">
+          <Calculator className="h-8 w-8 text-teal-600" />
+          <h3 className="text-2xl font-bold text-teal-800">Find the Percentage Rate 📈</h3>
+        </div>
+        
+        <div className="space-y-6">
+          {/* Example */}
+          <div className="bg-white p-6 rounded-xl border border-teal-200">
+            <h4 className="text-lg font-bold mb-4 text-teal-700">📚 Example: What percentage of {totalFood} foods are fruits?</h4>
+            
+            <div className="grid md:grid-cols-2 gap-6">
+              <FoodVisual count={foodData.fruits} emoji="🍎" total={totalFood} name="Fruits" showPercentages={true} />
+              <div className="space-y-4">
+                <VisualCalculator operation="percentage" values={[foodData.fruits, totalFood]} result={`${Math.round(foodData.fruits / totalFood * 100)}%`} color="teal" />
+                <div className="text-center">
+                  <Badge variant="secondary" className="text-lg px-4 py-2">
+                    ({foodData.fruits} ÷ {totalFood}) × 100 = {Math.round(foodData.fruits / totalFood * 100)}%
+                  </Badge>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Interactive Practice */}
+          <div className="bg-white p-6 rounded-xl border border-teal-200">
+            <h4 className="text-lg font-bold mb-4 text-teal-700">✏️ Your Turn</h4>
+            <div className="grid md:grid-cols-2 gap-4">
+              {problems.map(({
+              food,
+              part
+            }) => {
+              const correctAnswer = Math.round(part / totalFood * 100);
+              const questionId = `phase8-${food}`;
+              const answerState = answerStates[questionId] || 'unanswered';
+              const isShaking = shakingQuestions[questionId] || false;
+              const config = foodConfig[food as keyof typeof foodConfig];
+              return <div key={questionId} className={`bg-gray-50 p-4 rounded-lg space-y-3 transition-colors duration-300 ${answerState === 'correct' ? 'bg-green-100 border-2 border-green-300' : answerState === 'incorrect' ? 'bg-red-50 border-2 border-red-200' : ''} ${isShaking ? 'animate-shake' : ''}`}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-2xl">{config.emoji}</span>
+                      <div>
+                        <div className="font-semibold">What % of {totalFood} foods are {food}?</div>
+                        <div className="text-sm text-muted-foreground">({part} ÷ {totalFood}) × 100 = ?</div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <Input type="number" placeholder="%" value={userAnswers[questionId] || ''} onChange={e => setUserAnswers(prev => ({
+                    ...prev,
+                    [questionId]: e.target.value
+                  }))} className={`flex-1 ${answerState === 'correct' ? 'border-green-500 bg-green-50' : answerState === 'incorrect' ? 'border-red-500 bg-red-50' : ''}`} disabled={answerState === 'correct'} />
+                      <Button onClick={() => checkAnswer(questionId, userAnswers[questionId], correctAnswer)} disabled={!userAnswers[questionId] || answerState === 'correct'} size="sm" variant={answerState === 'correct' ? 'default' : 'outline'} className={answerState === 'correct' ? 'bg-green-600 hover:bg-green-700' : ''}>
+                        {answerState === 'correct' ? '✅' : '✓'}
+                      </Button>
+                    </div>
+                  </div>;
+            })}
+            </div>
+          </div>
+        </div>
+      </Card>;
+  };
+
+  // Phase 9: Calculate percentage increase and decrease
+  const renderPhase9 = () => {
+    const problems = [{
+      food: 'fruits',
+      oldValue: foodData.fruits,
+      newValue: Math.round(foodData.fruits * 1.2),
+      type: 'increase'
+    }, {
+      food: 'vegetables',
+      oldValue: foodData.vegetables,
+      newValue: Math.round(foodData.vegetables * 0.8),
+      type: 'decrease'
+    }, {
+      food: 'grains',
+      oldValue: foodData.grains,
+      newValue: Math.round(foodData.grains * 1.5),
+      type: 'increase'
+    }];
+    return <Card className="p-6 border-2 border-indigo-200 bg-indigo-50">
+        <div className="flex items-center gap-3 mb-6">
+          <Calculator className="h-8 w-8 text-indigo-600" />
+          <h3 className="text-2xl font-bold text-indigo-800">Percentage Change 📊</h3>
+        </div>
+        
+        <div className="space-y-6">
+          {/* Example */}
+          <div className="bg-white p-6 rounded-xl border border-indigo-200">
+            <h4 className="text-lg font-bold mb-4 text-indigo-700">📚 Example: Fruits increased from 10 to 15</h4>
+            
+            <div className="grid md:grid-cols-2 gap-6">
+              <FoodVisual count={foodData.fruits} emoji="🍎" total={totalFood} name="Fruits" />
+              <div className="space-y-4">
+                <VisualCalculator operation="percentage" values={["(15-10)", "10"]} result="50%" color="indigo" />
+                <div className="text-center">
+                  <Badge variant="secondary" className="text-lg px-4 py-2">
+                    ((15-10) ÷ 10) × 100 = 50% increase
+                  </Badge>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Interactive Practice */}
+          <div className="bg-white p-6 rounded-xl border border-indigo-200">
+            <h4 className="text-lg font-bold mb-4 text-indigo-700">✏️ Your Turn</h4>
+            <div className="grid md:grid-cols-2 gap-4">
+              {problems.map(({
+              food,
+              oldValue,
+              newValue,
+              type
+            }) => {
+              const change = newValue - oldValue;
+              const correctAnswer = Math.round(change / oldValue * 100);
+              const questionId = `phase9-${food}-${type}`;
+              const answerState = answerStates[questionId] || 'unanswered';
+              const isShaking = shakingQuestions[questionId] || false;
+              const config = foodConfig[food as keyof typeof foodConfig];
+              return <div key={questionId} className={`bg-gray-50 p-4 rounded-lg space-y-3 transition-colors duration-300 ${answerState === 'correct' ? 'bg-green-100 border-2 border-green-300' : answerState === 'incorrect' ? 'bg-red-50 border-2 border-red-200' : ''} ${isShaking ? 'animate-shake' : ''}`}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-2xl">{config.emoji}</span>
+                      <div>
+                        <div className="font-semibold">{config.name} changed from {oldValue} to {newValue}</div>
+                        <div className="text-sm text-muted-foreground">
+                          (({newValue}-{oldValue}) ÷ {oldValue}) × 100 = ?% {type}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <Input type="number" placeholder="% change" value={userAnswers[questionId] || ''} onChange={e => setUserAnswers(prev => ({
+                    ...prev,
+                    [questionId]: e.target.value
+                  }))} className={`flex-1 ${answerState === 'correct' ? 'border-green-500 bg-green-50' : answerState === 'incorrect' ? 'border-red-500 bg-red-50' : ''}`} disabled={answerState === 'correct'} />
+                      <Button onClick={() => checkAnswer(questionId, userAnswers[questionId], Math.abs(correctAnswer))} disabled={!userAnswers[questionId] || answerState === 'correct'} size="sm" variant={answerState === 'correct' ? 'default' : 'outline'} className={answerState === 'correct' ? 'bg-green-600 hover:bg-green-700' : ''}>
+                        {answerState === 'correct' ? '✅' : '✓'}
+                      </Button>
+                    </div>
+                  </div>;
+            })}
+            </div>
+          </div>
+        </div>
+      </Card>;
+  };
+
+  // Phase 10: Compare percentages
+  const renderPhase10 = () => {
+    const foodPercentages = Object.entries(foodData).map(([food, count]) => ({
+      food,
+      count,
+      percentage: Math.round(count / totalFood * 100),
+      ...foodConfig[food as keyof typeof foodConfig]
+    })).sort((a, b) => b.percentage - a.percentage);
+    const comparisons = [{
+      question: "Which food type has the highest percentage?",
+      answer: foodPercentages[0].food
+    }, {
+      question: "Which food type has the lowest percentage?",
+      answer: foodPercentages[foodPercentages.length - 1].food
+    }, {
+      question: "What's the difference between the highest and lowest percentages?",
+      answer: String(foodPercentages[0].percentage - foodPercentages[foodPercentages.length - 1].percentage)
+    }];
+    return <Card className="p-6 border-2 border-violet-200 bg-violet-50">
+        <div className="flex items-center gap-3 mb-6">
+          <Calculator className="h-8 w-8 text-violet-600" />
+          <h3 className="text-2xl font-bold text-violet-800">Compare Percentages 🏆</h3>
+        </div>
+        
+        <div className="space-y-6">
+          {/* Visual Comparison */}
+          <div className="bg-white p-6 rounded-xl border border-violet-200">
+            <h4 className="text-lg font-bold mb-4 text-violet-700">📊 Food Percentage Ranking</h4>
+            
+            <div className="grid md:grid-cols-2 gap-6">
+              <FoodVisual count={totalFood} emoji="🍽️" total={totalFood} name="All Foods" showPercentages={true} />
+              <div className="space-y-3">
+                {foodPercentages.map((item, index) => <div key={item.food} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">{item.emoji}</span>
+                      <span className="font-semibold">{item.name}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline">{item.percentage}%</Badge>
+                      <Badge variant="secondary">#{index + 1}</Badge>
+                    </div>
+                  </div>)}
+              </div>
+            </div>
+          </div>
+
+          {/* Interactive Questions */}
+          <div className="bg-white p-6 rounded-xl border border-violet-200">
+            <h4 className="text-lg font-bold mb-4 text-violet-700">✏️ Comparison Questions</h4>
+            <div className="space-y-4">
+              {comparisons.map((comp, index) => {
+              const questionId = `phase10-comp-${index}`;
+              const answerState = answerStates[questionId] || 'unanswered';
+              const isShaking = shakingQuestions[questionId] || false;
+              return <div key={questionId} className={`bg-gray-50 p-4 rounded-lg space-y-3 transition-colors duration-300 ${answerState === 'correct' ? 'bg-green-100 border-2 border-green-300' : answerState === 'incorrect' ? 'bg-red-50 border-2 border-red-200' : ''} ${isShaking ? 'animate-shake' : ''}`}>
+                    <div className="font-semibold">{comp.question}</div>
+                    
+                    <div className="flex gap-2">
+                      <Input type="text" placeholder="answer" value={userAnswers[questionId] || ''} onChange={e => setUserAnswers(prev => ({
+                    ...prev,
+                    [questionId]: e.target.value
+                  }))} className={`flex-1 ${answerState === 'correct' ? 'border-green-500 bg-green-50' : answerState === 'incorrect' ? 'border-red-500 bg-red-50' : ''}`} disabled={answerState === 'correct'} />
+                      <Button onClick={() => {
+                    const userAnswer = userAnswers[questionId]?.toLowerCase().trim();
+                    const correctAnswer = comp.answer.toLowerCase().trim();
+                    const isCorrect = userAnswer === correctAnswer || index < 2 && userAnswer === foodConfig[comp.answer as keyof typeof foodConfig]?.name.toLowerCase();
+                    if (isCorrect) {
+                      setAnswerStates(prev => ({
+                        ...prev,
+                        [questionId]: 'correct'
+                      }));
+                      setShowConfetti(true);
+                      setTimeout(() => setShowConfetti(false), 3000);
+                    } else {
+                      setAnswerStates(prev => ({
+                        ...prev,
+                        [questionId]: 'incorrect'
+                      }));
+                      setShakingQuestions(prev => ({
+                        ...prev,
+                        [questionId]: true
+                      }));
+                      setTimeout(() => setShakingQuestions(prev => ({
+                        ...prev,
+                        [questionId]: false
+                      })), 500);
+                    }
+                  }} disabled={!userAnswers[questionId] || answerState === 'correct'} size="sm" variant={answerState === 'correct' ? 'default' : 'outline'} className={answerState === 'correct' ? 'bg-green-600 hover:bg-green-700' : ''}>
+                        {answerState === 'correct' ? '✅' : '✓'}
+                      </Button>
+                    </div>
+                  </div>;
+            })}
+            </div>
+          </div>
+        </div>
+      </Card>;
   };
   if (totalAnimals === 0) {
     return <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8 flex items-center justify-center">
@@ -760,31 +1542,51 @@ const Learning = () => {
   return <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8">
       <div className="max-w-4xl mx-auto space-y-8">
         {/* Header */}
-        <Button onClick={() => navigate('/')} variant="outline" className="mb-4">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back Home
-        </Button>
-        <h1 className="text-4xl font-bold text-gray-800 mb-2">🧮 Learn Percentages & Fractions</h1>
-        <Badge variant="outline" className="text-lg px-4 py-2">
-          Using your {totalAnimals} animals!
-        </Badge>
+        <div className="text-center">
+          <Button onClick={() => navigate('/')} variant="outline" className="mb-4">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back Home
+          </Button>
+          <h1 className="text-4xl font-bold text-gray-800 mb-2">🧮 Learn Percentages & Fractions</h1>
+          <Badge variant="outline" className="text-lg px-4 py-2">
+            Using your {totalAnimals} animals!
+          </Badge>
+        </div>
 
 
         {/* Current Phase Content */}
-        {currentPhase === 3 && renderPhase3()}
-        {currentPhase === 4 && renderPhase4()}
-        {currentPhase === 5 && renderPhase5()}
-        {currentPhase === 6 && renderPhase6()}
+        {isCollectingFood ? renderFoodCollectionGame() : <>
+            {currentPhase === 3 && renderPhase3()}
+            {currentPhase === 4 && renderPhase4()}
+            {currentPhase === 5 && renderPhase5()}
+            {currentPhase === 7 && renderPhase7()}
+            {currentPhase === 8 && renderPhase8()}
+            {currentPhase === 9 && renderPhase9()}
+            {currentPhase === 10 && renderPhase10()}
+          </>}
 
         {/* Navigation */}
-        <div className="flex justify-between mt-8">
-          <Button variant="outline" onClick={() => setCurrentPhase(Math.max(3, currentPhase - 1))} disabled={currentPhase === 3}>
-            Previous Phase
-          </Button>
-          <Button onClick={() => setCurrentPhase(Math.min(6, currentPhase + 1))} disabled={currentPhase === 6}>
-            Next Phase
-          </Button>
-        </div>
+        {!isCollectingFood && <div className="flex justify-between mt-8">
+            <Button variant="outline" onClick={() => setCurrentPhase(Math.max(3, currentPhase - 1))} disabled={currentPhase === 3}>
+              Previous Phase
+            </Button>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline">{currentPhase}/10</Badge>
+            </div>
+            <Button onClick={() => {
+          if (currentPhase === 5) {
+            setTempFoodData(foodData); // Initialize temp data
+            setIsCollectingFood(true);
+          } else if (currentPhase === 6) {
+            // Skip phase 6, go to 7
+            setCurrentPhase(7);
+          } else {
+            setCurrentPhase(Math.min(10, currentPhase + 1));
+          }
+        }} disabled={currentPhase === 10}>
+              {currentPhase === 5 ? 'Collect Food Data' : 'Next Phase'}
+            </Button>
+          </div>}
       </div>
       <CalculatorModal />
       <Confetti trigger={showConfetti} />
