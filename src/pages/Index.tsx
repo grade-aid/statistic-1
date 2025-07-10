@@ -107,12 +107,12 @@ const Index = () => {
     
     // Use strategic animal counts for clean percentages - all different numbers, totals > 20
     const animalDistributions = [
-      { total: 25, counts: [2, 3, 5, 7, 8] }, // 8%, 12%, 20%, 28%, 32%
-      { total: 25, counts: [1, 4, 5, 6, 9] }, // 4%, 16%, 20%, 24%, 36%
-      { total: 30, counts: [2, 4, 6, 8, 10] }, // 6.67%, 13.33%, 20%, 26.67%, 33.33%
-      { total: 40, counts: [3, 5, 7, 9, 16] }, // 7.5%, 12.5%, 17.5%, 22.5%, 40%
-      { total: 50, counts: [4, 6, 8, 12, 20] }, // 8%, 12%, 16%, 24%, 40%
-      { total: 50, counts: [5, 7, 9, 11, 18] }, // 10%, 14%, 18%, 22%, 36%
+      { total: 25, counts: [1, 3, 4, 7, 10] }, // 4%, 12%, 16%, 28%, 40%
+      { total: 25, counts: [2, 4, 5, 6, 8] }, // 8%, 16%, 20%, 24%, 32%
+      { total: 50, counts: [3, 7, 9, 11, 20] }, // 6%, 14%, 18%, 22%, 40%
+      { total: 50, counts: [4, 6, 10, 12, 18] }, // 8%, 12%, 20%, 24%, 36%
+      { total: 100, counts: [5, 15, 20, 25, 35] }, // 5%, 15%, 20%, 25%, 35%
+      { total: 20, counts: [1, 2, 3, 5, 9] }, // 5%, 10%, 15%, 25%, 45%
     ];
     
     const selectedDistribution = animalDistributions[Math.floor(Math.random() * animalDistributions.length)];
@@ -392,42 +392,42 @@ const Index = () => {
     });
   };
   if (phase === 'start') {
-    return <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    return <div className="min-h-screen bg-background flex items-center justify-center p-2">
         <Card className="game-card text-center max-w-md">
-          <div className="text-8xl mb-6">🎮</div>
-          <h1 className="text-4xl font-space-grotesk font-bold mb-4">
+          <div className="text-6xl mb-4">🎮</div>
+          <h1 className="text-3xl font-space-grotesk font-bold mb-3">
             Animal Adventure
           </h1>
-          <p className="text-lg font-dm-sans text-muted-foreground mb-8">
+          <p className="text-base font-dm-sans text-muted-foreground mb-4">
             Collect animals, see your data!
           </p>
-          <Button onClick={startGame} className="game-button w-full text-2xl py-6">
-            <Play className="mr-3 h-6 w-6" />
+          <Button onClick={startGame} className="game-button w-full text-xl py-4">
+            <Play className="mr-2 h-5 w-5" />
             Start
           </Button>
         </Card>
       </div>;
   }
   if (phase === 'game') {
-    return <div className="min-h-screen bg-background p-4">
+    return <div className="min-h-screen bg-background p-2">
         <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-6">
-            <h2 className="text-3xl font-space-grotesk font-bold mb-2">Collect Animals</h2>
-            <div className="flex items-center justify-center gap-4 mb-2">
+          <div className="text-center mb-3">
+            <h2 className="text-2xl font-space-grotesk font-bold mb-1">Collect Animals</h2>
+            <div className="flex items-center justify-center gap-3 mb-1">
               <div className="flex items-center gap-1">
                 {Array.from({
                 length: 9
-              }, (_, i) => <span key={i} className="text-2xl">
+              }, (_, i) => <span key={i} className="text-lg">
                     {i < lives ? '❤️' : '🖤'}
                   </span>)}
               </div>
-              <p className="text-xl font-dm-sans">
+              <p className="text-lg font-dm-sans">
                 {totalCollected} / {totalTarget} animals
               </p>
             </div>
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-3">
+          <div className="grid gap-3 lg:grid-cols-3">
             <div className="lg:col-span-2">
               <Card className="game-card">
                 <div className="relative bg-muted rounded-xl p-4 mx-auto" style={{
@@ -479,16 +479,16 @@ const Index = () => {
             </div>
 
             <Card className="game-card">
-              <h3 className="text-xl font-space-grotesk font-bold mb-4">Collection</h3>
-              <div className="space-y-3">
+              <h3 className="text-lg font-space-grotesk font-bold mb-2">Collection</h3>
+              <div className="space-y-2">
                 {Object.entries(animalConfig).map(([type, config]) => <div key={type} className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div className={`w-6 h-6 rounded-full bg-${config.color} flex items-center justify-center text-xs border border-brand-black`}>
+                      <div className={`w-5 h-5 rounded-full bg-${config.color} flex items-center justify-center text-xs border border-brand-black`}>
                         {config.emoji}
                       </div>
-                      <span className="font-dm-sans text-sm capitalize">{type}</span>
+                      <span className="font-dm-sans text-xs capitalize">{type}</span>
                     </div>
-                    <span className="font-dm-sans font-bold">
+                    <span className="font-dm-sans font-bold text-sm">
                       {collected[type as keyof GameState]}
                     </span>
                   </div>)}
@@ -501,35 +501,35 @@ const Index = () => {
   if (phase === 'results') {
     const dataEntries = Object.entries(collected);
     const maxValue = Math.max(...Object.values(collected));
-    return <div className="min-h-screen bg-background p-4">
+    return <div className="min-h-screen bg-background p-2">
         <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-8">
-            <div className="text-6xl mb-4">🎉</div>
-            <h2 className="text-4xl font-space-grotesk font-bold mb-4">
+          <div className="text-center mb-4">
+            <div className="text-4xl mb-2">🎉</div>
+            <h2 className="text-3xl font-space-grotesk font-bold mb-2">
               Mission Complete!
             </h2>
-            <p className="text-xl font-dm-sans">
+            <p className="text-lg font-dm-sans">
               You collected {totalCollected} animals
             </p>
           </div>
 
-          <Card className="game-card mb-8">
-            <h3 className="text-2xl font-space-grotesk font-bold mb-6 text-center">Your Data</h3>
-            <div className="space-y-4">
+          <Card className="game-card mb-4">
+            <h3 className="text-xl font-space-grotesk font-bold mb-3 text-center">Your Data</h3>
+            <div className="space-y-2">
               {dataEntries.map(([type, count]) => {
               const config = animalConfig[type as keyof typeof animalConfig];
               const percentage = maxValue > 0 ? count / maxValue * 100 : 0;
-              return <div key={type} className="space-y-2">
+              return <div key={type} className="space-y-1">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl">{config.emoji}</span>
-                        <span className="font-dm-sans font-semibold capitalize">{type}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">{config.emoji}</span>
+                        <span className="font-dm-sans font-semibold capitalize text-sm">{type}</span>
                       </div>
-                      <span className="font-dm-sans font-bold text-lg">{count}</span>
+                      <span className="font-dm-sans font-bold text-sm">{count}</span>
                     </div>
-                    <div className="w-full bg-muted rounded-full h-6 border-2 border-brand-black">
+                    <div className="w-full bg-muted rounded-full h-4 border-2 border-brand-black">
                       <div 
-                        className="h-full rounded-full transition-all duration-1000 ease-out flex items-center justify-end pr-2"
+                        className="h-full rounded-full transition-all duration-1000 ease-out flex items-center justify-end pr-1"
                         style={{ 
                           width: count > 0 ? `${percentage}%` : '0%',
                           backgroundColor: count > 0 ? (
@@ -560,8 +560,8 @@ const Index = () => {
                   animalConfig: animalConfig
                 }
               });
-            }} className="game-button text-xl px-8 py-4">
-              <ArrowRight className="mr-2 h-5 w-5" />
+            }} className="game-button text-lg px-6 py-3">
+              <ArrowRight className="mr-2 h-4 w-4" />
               Continue to Learning
             </Button>
           </div>
