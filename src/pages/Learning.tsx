@@ -281,7 +281,7 @@ const Learning = () => {
                       {animalPercentage > 5 && <text x={labelX} y={labelY} textAnchor="middle" dy="0.3em" className="text-sm font-bold fill-white" style={{
                     textShadow: '1px 1px 1px rgba(0,0,0,0.5)'
                   }}>
-                          {animalCount}
+                          {Math.round(animalPercentage)}%
                         </text>}
                     </g>;
                 startAngle = endAngle;
