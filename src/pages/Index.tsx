@@ -105,14 +105,14 @@ const Index = () => {
     const newAnimals: Animal[] = [];
     const animalTypes = Object.keys(animalConfig) as Array<keyof GameState>;
     
-    // Use strategic animal counts for clean percentages - all different numbers
+    // Use strategic animal counts for clean percentages - all different numbers, totals > 20
     const animalDistributions = [
-      { total: 20, counts: [1, 3, 4, 5, 7] }, // 5%, 15%, 20%, 25%, 35%
-      { total: 20, counts: [2, 3, 4, 5, 6] }, // 10%, 15%, 20%, 25%, 30%
       { total: 25, counts: [2, 3, 5, 7, 8] }, // 8%, 12%, 20%, 28%, 32%
       { total: 25, counts: [1, 4, 5, 6, 9] }, // 4%, 16%, 20%, 24%, 36%
+      { total: 30, counts: [2, 4, 6, 8, 10] }, // 6.67%, 13.33%, 20%, 26.67%, 33.33%
+      { total: 40, counts: [3, 5, 7, 9, 16] }, // 7.5%, 12.5%, 17.5%, 22.5%, 40%
       { total: 50, counts: [4, 6, 8, 12, 20] }, // 8%, 12%, 16%, 24%, 40%
-      { total: 50, counts: [5, 7, 8, 10, 20] }, // 10%, 14%, 16%, 20%, 40%
+      { total: 50, counts: [5, 7, 9, 11, 18] }, // 10%, 14%, 18%, 22%, 36%
     ];
     
     const selectedDistribution = animalDistributions[Math.floor(Math.random() * animalDistributions.length)];
@@ -317,7 +317,7 @@ const Index = () => {
           direction: newDirection
         };
       }));
-    }, 250); // Faster movement for harder difficulty
+    }, 180); // Even faster movement for maximum difficulty
 
     return () => clearInterval(interval);
   }, [phase, hunters.length, isWall, playerPosition]);
