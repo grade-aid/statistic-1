@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, CheckCircle, Calculator, Lightbulb, Divide, X, Equal, HelpCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
 import Confetti from "@/components/Confetti";
 interface AnimalData {
   mammals: number;
@@ -23,8 +24,21 @@ interface FoodData {
   proteins: number;
   dairy: number;
 }
+
+interface Position {
+  x: number;
+  y: number;
+}
+
+interface Hunter {
+  id: string;
+  position: Position;
+  emoji: string;
+  direction: 'up' | 'down' | 'left' | 'right';
+}
 const Learning = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   // Get data from localStorage (same as other pages)
   const getStoredData = (): AnimalData => {
@@ -575,6 +589,422 @@ const Learning = () => {
         </div>
       </Card>;
 
+  // Food Collection Game - Similar to animal collection but with food items
+  const renderFoodCollectionGame = () => {
+    const FOOD_GRID_SIZE = 15;
+    const FOOD_CELL_SIZE = 28;
+    
+    const [foodPlayerPosition, setFoodPlayerPosition] = useState<Position>({ x: 1, y: 1 });
+    const [foodItems, setFoodItems] = useState<Array<{id: string; type: keyof FoodData; position: Position; emoji: string}>>([]);
+    const [foodHunters, setFoodHunters] = useState<Hunter[]>([]);
+    const [foodLives, setFoodLives] = useState(9);
+    const [foodWalls, setFoodWalls] = useState<Position[]>([]);
+    const [isGameInitialized, setIsGameInitialized] = useState(false);
+
+    const generateFoodWalls = useCallback(() => {
+      const newWalls: Position[] = [];
+      for (let x = 0; x < FOOD_GRID_SIZE; x++) {
+        for (let y = 0; y < FOOD_GRID_SIZE; y++) {
+          if (x === 0 || x === FOOD_GRID_SIZE - 1 || y === 0 || y === FOOD_GRID_SIZE - 1) {
+            newWalls.push({ x, y });
+          } else if (x % 3 === 0 && y % 3 === 0 && Math.random() > 0.5) {
+            newWalls.push({ x, y });
+          }
+        }
+      }
+      return newWalls;
+    }, []);
+
+    const isFoodWall = useCallback((pos: Position) => {
+      return foodWalls.some(wall => wall.x === pos.x && wall.y === pos.y);
+    }, [foodWalls]);
+
+    const generateFoodItems = useCallback((wallPositions: Position[]) => {
+      const newFoodItems: Array<{id: string; type: keyof FoodData; position: Position; emoji: string}> = [];
+      const foodTypes = Object.keys(foodConfig) as Array<keyof FoodData>;
+      const totalItems = Math.floor(Math.random() * 21) + 20; // 20-40 items
+      
+      const isWallPosition = (pos: Position) => {
+        return wallPositions.some(wall => wall.x === pos.x && wall.y === pos.y);
+      };
+
+      for (let i = 0; i < totalItems; i++) {
+        const type = foodTypes[Math.floor(Math.random() * foodTypes.length)];
+        const config = foodConfig[type];
+        let position: Position;
+        let attempts = 0;
+        
+        do {
+          position = {
+            x: Math.floor(Math.random() * (FOOD_GRID_SIZE - 2)) + 1,
+            y: Math.floor(Math.random() * (FOOD_GRID_SIZE - 2)) + 1
+          };
+          attempts++;
+        } while ((
+          (position.x === 1 && position.y === 1) || 
+          isWallPosition(position) || 
+          newFoodItems.some(item => item.position.x === position.x && item.position.y === position.y)
+        ) && attempts < 50);
+
+        newFoodItems.push({
+          id: `${type}-${i}`,
+          type,
+          position,
+          emoji: config.emoji
+        });
+      }
+      setFoodItems(newFoodItems);
+    }, []);
+
+    const generateFoodHunters = useCallback((wallPositions: Position[]) => {
+      const newHunters: Hunter[] = [];
+      const hunterEmojis = ['🐺', '🦖'];
+      
+      const isWallPosition = (pos: Position) => {
+        return wallPositions.some(wall => wall.x === pos.x && wall.y === pos.y);
+      };
+
+      for (let i = 0; i < 2; i++) {
+        let position: Position;
+        let attempts = 0;
+        
+        do {
+          position = {
+            x: Math.floor(Math.random() * (FOOD_GRID_SIZE - 2)) + 1,
+            y: Math.floor(Math.random() * (FOOD_GRID_SIZE - 2)) + 1
+          };
+          attempts++;
+        } while ((
+          (position.x === 1 && position.y === 1) || 
+          isWallPosition(position) || 
+          newHunters.some(hunter => hunter.position.x === position.x && hunter.position.y === position.y)
+        ) && attempts < 50);
+
+        newHunters.push({
+          id: `food-hunter-${i}`,
+          position,
+          emoji: hunterEmojis[i],
+          direction: ['up', 'down', 'left', 'right'][Math.floor(Math.random() * 4)] as any
+        });
+      }
+      setFoodHunters(newHunters);
+    }, []);
+
+    // Initialize game when component mounts
+    useEffect(() => {
+      if (!isGameInitialized) {
+        const newWalls = generateFoodWalls();
+        setFoodWalls(newWalls);
+        generateFoodItems(newWalls);
+        generateFoodHunters(newWalls);
+        setIsGameInitialized(true);
+      }
+    }, [isGameInitialized, generateFoodWalls, generateFoodItems, generateFoodHunters]);
+
+    const moveFoodPlayer = useCallback((direction: string) => {
+      setFoodPlayerPosition(prev => {
+        let newX = prev.x;
+        let newY = prev.y;
+        
+        switch (direction) {
+          case 'up':
+          case 'w':
+            newY = Math.max(0, prev.y - 1);
+            break;
+          case 'down':
+          case 's':
+            newY = Math.min(FOOD_GRID_SIZE - 1, prev.y + 1);
+            break;
+          case 'left':
+          case 'a':
+            newX = Math.max(0, prev.x - 1);
+            break;
+          case 'right':
+          case 'd':
+            newX = Math.min(FOOD_GRID_SIZE - 1, prev.x + 1);
+            break;
+        }
+        
+        const newPos = { x: newX, y: newY };
+        if (isFoodWall(newPos)) {
+          return prev;
+        }
+        return newPos;
+      });
+    }, [isFoodWall]);
+
+    // Food Hunter movement
+    useEffect(() => {
+      if (!isGameInitialized || foodHunters.length === 0) return;
+      
+      const interval = setInterval(() => {
+        setFoodHunters(prevHunters => prevHunters.map(hunter => {
+          const directions = ['up', 'down', 'left', 'right'] as const;
+          let newPosition = { ...hunter.position };
+          let newDirection = hunter.direction;
+
+          if (Math.random() < 0.6) {
+            const dx = foodPlayerPosition.x - hunter.position.x;
+            const dy = foodPlayerPosition.y - hunter.position.y;
+
+            if (Math.abs(dx) > Math.abs(dy)) {
+              newDirection = dx > 0 ? 'right' : 'left';
+            } else if (dy !== 0) {
+              newDirection = dy > 0 ? 'down' : 'up';
+            }
+          } else {
+            newDirection = directions[Math.floor(Math.random() * directions.length)];
+          }
+
+          switch (newDirection) {
+            case 'up':
+              newPosition.y = Math.max(0, hunter.position.y - 1);
+              break;
+            case 'down':
+              newPosition.y = Math.min(FOOD_GRID_SIZE - 1, hunter.position.y + 1);
+              break;
+            case 'left':
+              newPosition.x = Math.max(0, hunter.position.x - 1);
+              break;
+            case 'right':
+              newPosition.x = Math.min(FOOD_GRID_SIZE - 1, hunter.position.x + 1);
+              break;
+          }
+
+          if (isFoodWall(newPosition)) {
+            const altDirections = newDirection === 'up' || newDirection === 'down' ? ['left', 'right'] : ['up', 'down'];
+            for (const altDir of altDirections) {
+              let altPos = { ...hunter.position };
+              switch (altDir) {
+                case 'up':
+                  altPos.y = Math.max(0, hunter.position.y - 1);
+                  break;
+                case 'down':
+                  altPos.y = Math.min(FOOD_GRID_SIZE - 1, hunter.position.y + 1);
+                  break;
+                case 'left':
+                  altPos.x = Math.max(0, hunter.position.x - 1);
+                  break;
+                case 'right':
+                  altPos.x = Math.min(FOOD_GRID_SIZE - 1, hunter.position.x + 1);
+                  break;
+              }
+              if (!isFoodWall(altPos)) {
+                newPosition = altPos;
+                newDirection = altDir as any;
+                break;
+              }
+            }
+
+            if (isFoodWall(newPosition)) {
+              newPosition = hunter.position;
+            }
+          }
+
+          return { ...hunter, position: newPosition, direction: newDirection };
+        }));
+      }, 400);
+
+      return () => clearInterval(interval);
+    }, [isGameInitialized, foodHunters.length, isFoodWall, foodPlayerPosition]);
+
+    // Check for hunter collision
+    useEffect(() => {
+      const hunterAtPosition = foodHunters.find(hunter => 
+        hunter.position.x === foodPlayerPosition.x && hunter.position.y === foodPlayerPosition.y
+      );
+      
+      if (hunterAtPosition && isGameInitialized) {
+        setFoodLives(prev => {
+          const newLives = prev - 1;
+          if (newLives <= 0) {
+            // Reset game
+            setFoodPlayerPosition({ x: 1, y: 1 });
+            setIsGameInitialized(false);
+            setFoodLives(9);
+            setTempFoodData({ fruits: 0, vegetables: 0, grains: 0, proteins: 0, dairy: 0 });
+            toast({
+              title: "💀 Game Over!",
+              description: "Try again to collect food!",
+              duration: 3000
+            });
+          } else {
+            setFoodPlayerPosition({ x: 1, y: 1 });
+            toast({
+              title: `💔 Hit by ${hunterAtPosition.emoji}!`,
+              description: `${newLives} lives remaining`,
+              duration: 2000
+            });
+          }
+          return newLives;
+        });
+      }
+    }, [foodPlayerPosition, foodHunters, isGameInitialized, toast]);
+
+    // Handle keyboard input for food game
+    useEffect(() => {
+      const handleKeyPress = (e: KeyboardEvent) => {
+        if (!isCollectingFood) return;
+        
+        const key = e.key.toLowerCase();
+        if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'w', 'a', 's', 'd'].includes(key)) {
+          e.preventDefault();
+          const direction = key.replace('arrow', '');
+          moveFoodPlayer(direction);
+        }
+      };
+      
+      window.addEventListener('keydown', handleKeyPress);
+      return () => window.removeEventListener('keydown', handleKeyPress);
+    }, [moveFoodPlayer, isCollectingFood]);
+
+    // Check for food collection
+    useEffect(() => {
+      const foodAtPosition = foodItems.find(item => 
+        item.position.x === foodPlayerPosition.x && item.position.y === foodPlayerPosition.y
+      );
+      
+      if (foodAtPosition) {
+        setFoodItems(prev => prev.filter(item => item.id !== foodAtPosition.id));
+        setTempFoodData(prev => ({
+          ...prev,
+          [foodAtPosition.type]: prev[foodAtPosition.type] + 1
+        }));
+      }
+    }, [foodPlayerPosition, foodItems]);
+
+    const totalFoodCollected = Object.values(tempFoodData).reduce((sum, count) => sum + count, 0);
+
+    // Check if game is complete
+    useEffect(() => {
+      if (totalFoodCollected >= 15 && foodItems.length === 0) {
+        setTimeout(() => {
+          saveFoodData(tempFoodData);
+          setIsCollectingFood(false);
+          setCurrentPhase(7);
+        }, 1000);
+      }
+    }, [totalFoodCollected, foodItems.length, tempFoodData]);
+
+    return (
+      <div className="min-h-screen bg-background p-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-6">
+            <h2 className="text-3xl font-bold mb-2">🍎 Collect Food Items</h2>
+            <div className="flex items-center justify-center gap-4 mb-2">
+              <div className="flex items-center gap-1">
+                {Array.from({ length: 9 }, (_, i) => (
+                  <span key={i} className="text-2xl">
+                    {i < foodLives ? '❤️' : '🖤'}
+                  </span>
+                ))}
+              </div>
+              <p className="text-xl">
+                {totalFoodCollected} food items collected
+              </p>
+            </div>
+          </div>
+
+          <div className="grid gap-6 lg:grid-cols-3">
+            <div className="lg:col-span-2">
+              <Card className="p-4">
+                <div 
+                  className="relative bg-muted rounded-xl p-4 mx-auto" 
+                  style={{
+                    width: FOOD_GRID_SIZE * FOOD_CELL_SIZE + 32,
+                    height: FOOD_GRID_SIZE * FOOD_CELL_SIZE + 32
+                  }}
+                >
+                  {/* Player */}
+                  <div 
+                    className="absolute bg-purple-500 rounded-full border-2 border-black transition-all duration-150 flex items-center justify-center text-lg z-10"
+                    style={{
+                      left: foodPlayerPosition.x * FOOD_CELL_SIZE + 16,
+                      top: foodPlayerPosition.y * FOOD_CELL_SIZE + 16,
+                      width: FOOD_CELL_SIZE - 2,
+                      height: FOOD_CELL_SIZE - 2
+                    }}
+                  >
+                    🐱
+                  </div>
+                  
+                  {/* Walls */}
+                  {foodWalls.map((wall, index) => (
+                    <div 
+                      key={`food-wall-${index}`} 
+                      className="absolute bg-blue-600 border border-black"
+                      style={{
+                        left: wall.x * FOOD_CELL_SIZE + 16,
+                        top: wall.y * FOOD_CELL_SIZE + 16,
+                        width: FOOD_CELL_SIZE - 2,
+                        height: FOOD_CELL_SIZE - 2
+                      }}
+                    />
+                  ))}
+                  
+                  {/* Food Items */}
+                  {foodItems.map(item => (
+                    <div 
+                      key={item.id} 
+                      className="absolute rounded-full border border-black flex items-center justify-center bg-yellow-400"
+                      style={{
+                        left: item.position.x * FOOD_CELL_SIZE + 16,
+                        top: item.position.y * FOOD_CELL_SIZE + 16,
+                        width: FOOD_CELL_SIZE - 2,
+                        height: FOOD_CELL_SIZE - 2,
+                        fontSize: '16px'
+                      }}
+                    >
+                      {item.emoji}
+                    </div>
+                  ))}
+                  
+                  {/* Hunters */}
+                  {foodHunters.map(hunter => (
+                    <div 
+                      key={hunter.id} 
+                      className="absolute rounded-full border-2 border-red-500 bg-red-600 flex items-center justify-center text-lg transition-all duration-300"
+                      style={{
+                        left: hunter.position.x * FOOD_CELL_SIZE + 16,
+                        top: hunter.position.y * FOOD_CELL_SIZE + 16,
+                        width: FOOD_CELL_SIZE - 2,
+                        height: FOOD_CELL_SIZE - 2
+                      }}
+                    >
+                      {hunter.emoji}
+                    </div>
+                  ))}
+                </div>
+                <p className="text-center text-sm text-muted-foreground mt-4">
+                  Use arrow keys or WASD to move • Collect 15+ items to continue
+                </p>
+              </Card>
+            </div>
+
+            <Card className="p-4">
+              <h3 className="text-xl font-bold mb-4">Food Collection</h3>
+              <div className="space-y-3">
+                {Object.entries(foodConfig).map(([type, config]) => (
+                  <div key={type} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-yellow-400 flex items-center justify-center text-xs border border-black">
+                        {config.emoji}
+                      </div>
+                      <span className="text-sm capitalize">{config.name}</span>
+                    </div>
+                    <span className="font-bold">
+                      {tempFoodData[type as keyof FoodData]}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // Phase 6: Find percentage of a number (using animal data)
   const renderPhase6 = () => {
     const problems = [
@@ -664,64 +1094,6 @@ const Learning = () => {
     );
   };
 
-  // Food Collection Interface
-  const renderFoodCollection = () => {
-    
-    const handleFoodClick = (foodType: keyof FoodData) => {
-      setTempFoodData(prev => ({
-        ...prev,
-        [foodType]: prev[foodType] + 1
-      }));
-    };
-
-    const completeFoodCollection = () => {
-      saveFoodData(tempFoodData);
-      setIsCollectingFood(false);
-      setCurrentPhase(7);
-      // Reset temp food data for future collections
-      setTempFoodData(tempFoodData);
-    };
-
-    return (
-      <Card className="p-6 border-2 border-green-200 bg-green-50">
-        <div className="text-center mb-6">
-          <h3 className="text-2xl font-bold text-green-800 mb-2">🍎 Collect Food Data</h3>
-          <p className="text-green-700">Click on food items to collect them for the next exercises!</p>
-        </div>
-        
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-          {Object.entries(foodConfig).map(([type, config]) => (
-            <div key={type} className="text-center">
-              <Button
-                variant="outline"
-                className="w-full h-24 text-4xl hover:scale-110 transition-transform"
-                onClick={() => handleFoodClick(type as keyof FoodData)}
-              >
-                {config.emoji}
-              </Button>
-              <div className="mt-2">
-                <Badge variant="secondary">{tempFoodData[type as keyof FoodData]}</Badge>
-                <div className="text-sm text-muted-foreground">{config.name}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="text-center">
-          <Button 
-            onClick={completeFoodCollection}
-            disabled={Object.values(tempFoodData).reduce((sum, count) => sum + count, 0) < 10}
-            className="bg-green-600 hover:bg-green-700"
-          >
-            Continue with {Object.values(tempFoodData).reduce((sum, count) => sum + count, 0)} food items
-          </Button>
-          <p className="text-sm text-muted-foreground mt-2">
-            Collect at least 10 food items to continue
-          </p>
-        </div>
-      </Card>
-    );
-  };
 
   // Food Visual Component
   const FoodVisual = ({ count, emoji, total, name, showPercentages = false }: {
@@ -1207,12 +1579,11 @@ const Learning = () => {
 
 
         {/* Current Phase Content */}
-        {isCollectingFood ? renderFoodCollection() : (
+        {isCollectingFood ? renderFoodCollectionGame() : (
           <>
             {currentPhase === 3 && renderPhase3()}
             {currentPhase === 4 && renderPhase4()}
             {currentPhase === 5 && renderPhase5()}
-            {currentPhase === 6 && renderPhase6()}
             {currentPhase === 7 && renderPhase7()}
             {currentPhase === 8 && renderPhase8()}
             {currentPhase === 9 && renderPhase9()}
@@ -1235,16 +1606,19 @@ const Learning = () => {
             </div>
             <Button 
               onClick={() => {
-                if (currentPhase === 6) {
+                if (currentPhase === 5) {
                   setTempFoodData(foodData); // Initialize temp data
                   setIsCollectingFood(true);
+                } else if (currentPhase === 6) {
+                  // Skip phase 6, go to 7
+                  setCurrentPhase(7);
                 } else {
                   setCurrentPhase(Math.min(10, currentPhase + 1));
                 }
               }}
               disabled={currentPhase === 10}
             >
-              {currentPhase === 6 ? 'Collect Food Data' : 'Next Phase'}
+              {currentPhase === 5 ? 'Collect Food Data' : 'Next Phase'}
             </Button>
           </div>
         )}
