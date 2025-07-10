@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -156,6 +156,15 @@ const Learning = () => {
   const [completedTasks, setCompletedTasks] = useState<{[key: string]: boolean}>({});
   const [phaseCompleted, setPhaseCompleted] = useState<{[key: number]: boolean}>({});
 
+  // Auto-check phase completion when answer states change
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      checkPhaseCompletion(currentPhase);
+    }, 100); // Small delay to ensure state updates are complete
+    
+    return () => clearTimeout(timer);
+  }, [answerStates, droppedItems, currentPhase]);
+
   // Calculate correct answers - ensure numbers are properly typed
   const mammalsPercentage = totalAnimals > 0 ? Math.round(collectedData.mammals / totalAnimals * 100) : 0;
   const onePercent = totalAnimals > 0 ? totalAnimals / 100 : 0;
@@ -193,10 +202,7 @@ const Learning = () => {
         setTimeout(() => setShowConfetti(false), 2000);
       }
       
-      // Check if phase 6 is completed after this drop
-      setTimeout(() => {
-        checkPhaseCompletion(6);
-      }, 500);
+      // Phase completion will be checked by useEffect
       
       setDraggedItem(null);
     }
@@ -424,7 +430,7 @@ const Learning = () => {
     }
     
     if (isCompleted && !phaseCompleted[phase]) {
-      console.log(`🎉 Phase ${phase} completed! Auto-advancing in 3 seconds...`);
+      console.log(`🎉 Phase ${phase} completed! Auto-advancing in 1 second...`);
       
       // Mark phase as completed
       setPhaseCompleted(prev => ({
@@ -486,10 +492,7 @@ const Learning = () => {
       // Clear confetti after animation
       setTimeout(() => setShowConfetti(false), 3000);
       
-      // Check if phase is completed after this answer
-      setTimeout(() => {
-        checkPhaseCompletion(currentPhase);
-      }, 500);
+      // Phase completion will be checked by useEffect
     } else {
       // Update answer state to incorrect
       setAnswerStates(prev => ({
