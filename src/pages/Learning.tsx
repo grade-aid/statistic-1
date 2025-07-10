@@ -242,33 +242,30 @@ const Learning = () => {
     values: (string | number)[];
     result: string;
     color?: string;
-  }) => <div className={`bg-gradient-to-r from-${color}-100 to-${color}-50 p-4 rounded-xl border-2 border-${color}-200`}>
-      <div className="text-center mb-3">
-        <div className="text-sm font-medium text-muted-foreground mb-1">🐘 Mammals Calculation</div>
+  }) => <div className={`bg-gradient-to-r from-${color}-100 to-${color}-50 p-2 rounded-lg border border-${color}-200`}>
+      <div className="text-center mb-2">
+        <div className="text-xs font-medium text-muted-foreground">🐘 Mammals Calculation</div>
       </div>
-      <div className="flex items-center justify-center gap-4 text-xl font-bold">
-        <Badge variant="outline" className="text-lg px-4 py-2">{values[0]}</Badge>
-        <div className={`w-10 h-10 rounded-full bg-${color}-500 flex items-center justify-center text-black`}>
-          {operation === 'divide' && <Divide size={18} />}
-          {operation === 'multiply' && <X size={18} />}
-          {operation === 'percentage' && <Divide size={18} />}
+      <div className="flex items-center justify-center gap-2 text-sm font-bold">
+        <Badge variant="outline" className="text-sm px-2 py-1">{values[0]}</Badge>
+        <div className={`w-6 h-6 rounded-full bg-${color}-500 flex items-center justify-center text-black`}>
+          {operation === 'divide' && <Divide size={12} />}
+          {operation === 'multiply' && <X size={12} />}
+          {operation === 'percentage' && <Divide size={12} />}
         </div>
-        <Badge variant="outline" className="text-lg px-4 py-2">{values[1]}</Badge>
+        <Badge variant="outline" className="text-sm px-2 py-1">{values[1]}</Badge>
         {operation === 'percentage' && <>
-            <div className={`w-10 h-10 rounded-full bg-${color}-500 flex items-center justify-center text-black`}>
-              <X size={18} />
+            <div className={`w-6 h-6 rounded-full bg-${color}-500 flex items-center justify-center text-black`}>
+              <X size={12} />
             </div>
-            <Badge variant="outline" className="text-lg px-4 py-2">100</Badge>
+            <Badge variant="outline" className="text-sm px-2 py-1">100</Badge>
           </>}
-        <div className={`w-10 h-10 rounded-full bg-${color}-600 flex items-center justify-center text-black`}>
-          <Equal size={18} />
+        <div className={`w-6 h-6 rounded-full bg-${color}-600 flex items-center justify-center text-black`}>
+          <Equal size={12} />
         </div>
-        <Badge variant="secondary" className="text-lg px-4 py-2 bg-orange-600 text-white">
+        <Badge variant="secondary" className="text-sm px-2 py-1 bg-orange-600 text-white">
           {result}
         </Badge>
-      </div>
-      <div className="text-center mt-3">
-        
       </div>
     </div>;
   const AnimalVisual = ({
@@ -290,18 +287,17 @@ const Learning = () => {
     const dataEntries = Object.entries(collectedData);
 
     // Use the consolidated animalConfig from parent scope
-    return <div className="bg-white p-4 rounded-lg border space-y-3">
-        <div className="flex items-center gap-3">
-          <span className="text-3xl">{emoji}</span>
+    return <div className="bg-white p-2 rounded-lg border space-y-2">
+        <div className="flex items-center gap-2">
+          <span className="text-xl">{emoji}</span>
           <div>
-            <div className="text-lg font-bold">{name}</div>
-            
+            <div className="text-sm font-bold">{name}</div>
           </div>
         </div>
         
         {/* Mini Pie Chart from Visualization */}
         <div className="flex justify-center">
-          <div className="relative w-48 h-48">
+          <div className="relative w-32 h-32">
             {/* Calculator Button */}
             <Dialog>
               <DialogTrigger asChild>
@@ -357,13 +353,13 @@ const Learning = () => {
         </div>
         
         {/* Color Legend */}
-        <div className="flex flex-wrap gap-2 justify-center mt-3">
-          {Object.entries(animalConfig).map(([type, config]) => <div key={type} className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded-sm" style={{
+        <div className="flex flex-wrap gap-1 justify-center mt-2">
+          {Object.entries(animalConfig).map(([type, config]) => <div key={type} className="flex items-center gap-0.5">
+              <div className="w-2 h-2 rounded-sm" style={{
             backgroundColor: config.color
           }} />
               <span className="text-xs text-muted-foreground">
-                {config.emoji} {config.name}
+                {config.emoji}
               </span>
             </div>)}
         </div>
@@ -614,46 +610,43 @@ const Learning = () => {
       }, 1000);
     }
   };
-  const renderPhase3 = () => <Card className="p-6 border-2 border-green-200 bg-green-50">
-      <div className="flex items-center gap-3 mb-6">
-        <Calculator className="h-8 w-8 text-green-600" />
-        <h3 className="text-2xl font-bold text-green-800">Amount → Percentage 🐘</h3>
+  const renderPhase3 = () => <Card className="p-3 border border-green-200 bg-green-50">
+      <div className="flex items-center gap-2 mb-3">
+        <Calculator className="h-5 w-5 text-green-600" />
+        <h3 className="text-base font-bold text-green-800">Amount → Percentage 🐘</h3>
       </div>
       
-      <div className="space-y-6">
+      <div className="space-y-3">
         {/* Visual Example */}
-        <div className="bg-white p-6 rounded-xl border border-green-200">
-          <h4 className="text-lg font-bold mb-4 text-green-700">📚 Example: Mammals</h4>
+        <div className="bg-white p-3 rounded-lg border border-green-200">
+          <h4 className="text-sm font-bold mb-2 text-green-700">📚 Example: Mammals</h4>
           
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-2 gap-3">
             <AnimalVisual count={collectedData.mammals} emoji="🐘" total={totalAnimals} name="Mammals" showPercentages={false} />
-            <div className="space-y-4">
+            <div className="space-y-2">
               <VisualCalculator operation="percentage" values={[collectedData.mammals, totalAnimals]} result={`${mammalsPercentage}%`} color="green" />
-              <div className="text-center">
-                
-              </div>
             </div>
           </div>
         </div>
 
         {/* Interactive Practice */}
-        <div className="bg-white p-6 rounded-xl border border-green-200">
-          <h4 className="text-lg font-bold mb-4 text-green-700">✏️ Your Turn</h4>
-          <div className="grid md:grid-cols-2 gap-4">
+        <div className="bg-white p-3 rounded-lg border border-green-200">
+          <h4 className="text-sm font-bold mb-2 text-green-700">✏️ Your Turn</h4>
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
             {Object.entries(collectedData).filter(([type]) => type !== 'mammals').map(([type, count]) => {
             const config = animalConfig[type as keyof typeof animalConfig];
             const correctPercentage = totalAnimals > 0 ? Math.round(count / totalAnimals * 100) : 0;
             const questionId = `phase3-${type}`;
             const answerState = answerStates[questionId] || 'unanswered';
             const isShaking = shakingQuestions[questionId] || false;
-            return <div key={type} className={`bg-gray-50 p-4 rounded-lg space-y-3 transition-colors duration-300 ${answerState === 'correct' ? 'bg-green-100 border-2 border-green-300' : answerState === 'incorrect' ? 'bg-red-50 border-2 border-red-200' : ''} ${isShaking ? 'animate-shake' : ''}`}>
+            return <div key={type} className={`bg-gray-50 p-2 rounded-lg space-y-2 transition-colors duration-300 ${answerState === 'correct' ? 'bg-green-100 border-2 border-green-300' : answerState === 'incorrect' ? 'bg-red-50 border-2 border-red-200' : ''} ${isShaking ? 'animate-shake' : ''}`}>
                   <AnimalVisual count={count} emoji={config.emoji} total={totalAnimals} name={config.name} showPercentages={false} />
-                  <div className="flex gap-2">
+                  <div className="flex gap-1">
                     <Input type="number" placeholder="%" value={userAnswers[questionId] || ''} onChange={e => setUserAnswers(prev => ({
                   ...prev,
                   [questionId]: e.target.value
-                }))} className={`flex-1 ${answerState === 'correct' ? 'border-green-500 bg-green-50' : answerState === 'incorrect' ? 'border-red-500 bg-red-50' : ''}`} disabled={answerState === 'correct'} />
-                    <Button onClick={() => checkAnswer(questionId, userAnswers[questionId], correctPercentage)} disabled={!userAnswers[questionId] || answerState === 'correct'} size="sm" variant={answerState === 'correct' ? 'default' : 'outline'} className={answerState === 'correct' ? 'bg-green-600 hover:bg-green-700' : ''}>
+                }))} className={`flex-1 text-sm h-7 ${answerState === 'correct' ? 'border-green-500 bg-green-50' : answerState === 'incorrect' ? 'border-red-500 bg-red-50' : ''}`} disabled={answerState === 'correct'} />
+                    <Button onClick={() => checkAnswer(questionId, userAnswers[questionId], correctPercentage)} disabled={!userAnswers[questionId] || answerState === 'correct'} size="sm" variant={answerState === 'correct' ? 'default' : 'outline'} className={`h-7 w-7 p-0 text-xs ${answerState === 'correct' ? 'bg-green-600 hover:bg-green-700' : ''}`}>
                       {answerState === 'correct' ? '✅' : '✓'}
                     </Button>
                   </div>
@@ -667,30 +660,29 @@ const Learning = () => {
     // Get mammals percentage for the example
     const mammalsPercentage = totalAnimals > 0 ? Math.round(collectedData.mammals / totalAnimals * 100) : 0;
     const mammalsDecimal = mammalsPercentage / 100;
-    return <Card className="p-6 border-2 border-blue-200 bg-blue-50">
-        <div className="flex items-center gap-3 mb-6">
-          <Lightbulb className="h-8 w-8 text-blue-600" />
-          <h3 className="text-2xl font-bold text-blue-800">Percentage → Decimal 🔢</h3>
+    return <Card className="p-3 border border-blue-200 bg-blue-50">
+        <div className="flex items-center gap-2 mb-3">
+          <Lightbulb className="h-5 w-5 text-blue-600" />
+          <h3 className="text-base font-bold text-blue-800">Percentage → Decimal 🔢</h3>
         </div>
         
-        <div className="space-y-6">
+        <div className="space-y-3">
           {/* Visual Example */}
-          <div className="bg-white p-6 rounded-xl border border-blue-200">
-            <h4 className="text-lg font-bold mb-4 text-blue-700">📚 Example: Mammals</h4>
+          <div className="bg-white p-3 rounded-lg border border-blue-200">
+            <h4 className="text-sm font-bold mb-2 text-blue-700">📚 Example: Mammals</h4>
             
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-2 gap-3">
               <AnimalVisual count={collectedData.mammals} emoji="🐘" total={totalAnimals} name="Mammals" showPercentages={true} />
-              <div className="space-y-4">
+              <div className="space-y-2">
                 <VisualCalculator operation="divide" values={[mammalsPercentage, "100"]} result={mammalsDecimal.toFixed(2)} color="blue" />
-                
               </div>
             </div>
           </div>
 
           {/* Interactive Practice */}
-          <div className="bg-white p-6 rounded-xl border border-blue-200">
-            <h4 className="text-lg font-bold mb-4 text-blue-700">✏️ Your Turn</h4>
-            <div className="grid md:grid-cols-2 gap-4">
+          <div className="bg-white p-3 rounded-lg border border-blue-200">
+            <h4 className="text-sm font-bold mb-2 text-blue-700">✏️ Your Turn</h4>
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
               {Object.entries(collectedData).filter(([type]) => type !== 'mammals').map(([type, count]) => {
               const config = animalConfig[type as keyof typeof animalConfig];
               const percentage = totalAnimals > 0 ? Math.round(count / totalAnimals * 100) : 0;
@@ -698,30 +690,30 @@ const Learning = () => {
               const questionId = `phase4-${type}`;
               const answerState = answerStates[questionId] || 'unanswered';
               const isShaking = shakingQuestions[questionId] || false;
-              return <div key={type} className={`bg-gray-50 p-4 rounded-lg space-y-3 transition-colors duration-300 ${answerState === 'correct' ? 'bg-green-100 border-2 border-green-300' : answerState === 'incorrect' ? 'bg-red-50 border-2 border-red-200' : ''} ${isShaking ? 'animate-shake' : ''}`}>
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-2xl">{config.emoji}</span>
+              return <div key={type} className={`bg-gray-50 p-2 rounded-lg space-y-2 transition-colors duration-300 ${answerState === 'correct' ? 'bg-green-100 border-2 border-green-300' : answerState === 'incorrect' ? 'bg-red-50 border-2 border-red-200' : ''} ${isShaking ? 'animate-shake' : ''}`}>
+                      <div className="flex items-center gap-1 mb-1">
+                        <span className="text-lg">{config.emoji}</span>
                         <div>
-                          <div className="flex items-center gap-2">
-                            <span className="font-semibold">{config.name}</span>
+                          <div className="flex items-center gap-1">
+                            <span className="text-xs font-semibold">{config.name}</span>
                             <Dialog>
                               <DialogTrigger asChild>
-                                <Button variant="outline" size="sm" className="w-6 h-6 p-0 rounded-full bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => setIsCalculatorOpen(true)}>
-                                  <HelpCircle size={14} />
+                                <Button variant="outline" size="sm" className="w-4 h-4 p-0 rounded-full bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => setIsCalculatorOpen(true)}>
+                                  <HelpCircle size={10} />
                                 </Button>
                               </DialogTrigger>
                             </Dialog>
                           </div>
-                          <div className="text-sm text-muted-foreground">{percentage}% → ? decimal</div>
+                          <div className="text-xs text-muted-foreground">{percentage}% → ? decimal</div>
                         </div>
                       </div>
                       
-                      <div className="flex gap-2">
+                      <div className="flex gap-1">
                         <Input type="number" step="0.01" placeholder="0,00" value={userAnswers[questionId] || ''} onChange={e => setUserAnswers(prev => ({
                     ...prev,
                     [questionId]: e.target.value
-                  }))} className={`flex-1 ${answerState === 'correct' ? 'border-green-500 bg-green-50' : answerState === 'incorrect' ? 'border-red-500 bg-red-50' : ''}`} disabled={answerState === 'correct'} />
-                        <Button onClick={() => checkAnswer(questionId, userAnswers[questionId], correctDecimal)} disabled={!userAnswers[questionId] || answerState === 'correct'} size="sm" variant={answerState === 'correct' ? 'default' : 'outline'} className={answerState === 'correct' ? 'bg-green-600 hover:bg-green-700' : ''}>
+                  }))} className={`flex-1 text-sm h-7 ${answerState === 'correct' ? 'border-green-500 bg-green-50' : answerState === 'incorrect' ? 'border-red-500 bg-red-50' : ''}`} disabled={answerState === 'correct'} />
+                        <Button onClick={() => checkAnswer(questionId, userAnswers[questionId], correctDecimal)} disabled={!userAnswers[questionId] || answerState === 'correct'} size="sm" variant={answerState === 'correct' ? 'default' : 'outline'} className={`h-7 w-7 p-0 text-xs ${answerState === 'correct' ? 'bg-green-600 hover:bg-green-700' : ''}`}>
                           {answerState === 'correct' ? '✅' : '✓'}
                         </Button>
                       </div>
@@ -732,31 +724,31 @@ const Learning = () => {
         </div>
       </Card>;
   };
-  const renderPhase5 = () => <Card className="p-6 border-2 border-purple-200 bg-purple-50">
-      <div className="flex items-center gap-3 mb-6">
-        <CheckCircle className="h-8 w-8 text-purple-600" />
-        <h3 className="text-2xl font-bold text-purple-800">Master 1% 📊</h3>
+  const renderPhase5 = () => <Card className="p-3 border border-purple-200 bg-purple-50">
+      <div className="flex items-center gap-2 mb-3">
+        <CheckCircle className="h-5 w-5 text-purple-600" />
+        <h3 className="text-base font-bold text-purple-800">Master 1% 📊</h3>
       </div>
       
-      <div className="space-y-6">
+      <div className="space-y-3">
         {/* 1% Visual */}
-        <div className="bg-white p-6 rounded-xl border border-purple-200">
-          <h4 className="text-lg font-bold mb-4 text-purple-700">🔍 Find 1%</h4>
+        <div className="bg-white p-3 rounded-lg border border-purple-200">
+          <h4 className="text-sm font-bold mb-2 text-purple-700">🔍 Find 1%</h4>
           
           <VisualCalculator operation="divide" values={[totalAnimals, "100"]} result={`${onePercent.toFixed(1)} animals`} color="purple" />
           
-          <div className="mt-4 text-center">
-            <Badge variant="secondary" className="text-lg px-4 py-2">
+          <div className="mt-2 text-center">
+            <Badge variant="secondary" className="text-sm px-2 py-1">
               1% = {onePercent.toFixed(1)} animals
             </Badge>
           </div>
         </div>
 
         {/* Interactive Building */}
-        <div className="bg-white p-6 rounded-xl border border-purple-200">
-          <h4 className="text-lg font-bold mb-4 text-purple-700">🔧 Build Any %</h4>
+        <div className="bg-white p-3 rounded-lg border border-purple-200">
+          <h4 className="text-sm font-bold mb-2 text-purple-700">🔧 Build Any %</h4>
           
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-2">
             {[{
             label: "1%",
             multiplier: 1
@@ -777,10 +769,10 @@ const Learning = () => {
             const correctAmount = (multiplier * onePercent).toFixed(1);
             const answerState = answerStates[answerKey] || 'unanswered';
             const isShaking = shakingQuestions[answerKey] || false;
-            return <div key={label} className={`bg-gray-50 p-4 rounded-lg space-y-3 transition-colors duration-300 ${answerState === 'correct' ? 'bg-green-100 border-2 border-green-300' : answerState === 'incorrect' ? 'bg-red-50 border-2 border-red-200' : ''} ${isShaking ? 'animate-shake' : ''}`}>
+            return <div key={label} className={`bg-gray-50 p-2 rounded-lg space-y-2 transition-colors duration-300 ${answerState === 'correct' ? 'bg-green-100 border-2 border-green-300' : answerState === 'incorrect' ? 'bg-red-50 border-2 border-red-200' : ''} ${isShaking ? 'animate-shake' : ''}`}>
                     <div className="text-center">
-                      <div className="flex items-center justify-center gap-2 mb-2">
-                        <Badge variant="outline" className="text-lg px-4 py-2">
+                      <div className="flex items-center justify-center gap-1 mb-1">
+                        <Badge variant="outline" className="text-sm px-2 py-1">
                           {label}
                         </Badge>
                         <Dialog>
@@ -788,24 +780,24 @@ const Learning = () => {
                             <Button 
                               variant="outline" 
                               size="sm" 
-                              className="w-6 h-6 p-0 rounded-full bg-primary text-primary-foreground hover:bg-primary/90" 
+                              className="w-4 h-4 p-0 rounded-full bg-primary text-primary-foreground hover:bg-primary/90" 
                               onClick={() => setIsCalculatorOpen(true)}
                             >
-                              <Calculator size={14} />
+                              <Calculator size={10} />
                             </Button>
                           </DialogTrigger>
                         </Dialog>
                       </div>
-                      <div className="text-sm text-muted-foreground">
+                      <div className="text-xs text-muted-foreground">
                         {multiplier} × {onePercent.toFixed(1)} = ?
                       </div>
                     </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-1">
                     <Input type="number" step="0.1" placeholder="answer" value={userAnswers[answerKey] || ''} onChange={e => setUserAnswers(prev => ({
                   ...prev,
                   [answerKey]: e.target.value
-                }))} className={`flex-1 ${answerState === 'correct' ? 'border-green-500 bg-green-50' : answerState === 'incorrect' ? 'border-red-500 bg-red-50' : ''}`} disabled={answerState === 'correct'} />
-                    <Button onClick={() => checkAnswer(answerKey, userAnswers[answerKey], parseFloat(correctAmount))} disabled={!userAnswers[answerKey] || answerState === 'correct'} size="sm" variant={answerState === 'correct' ? 'default' : 'outline'} className={answerState === 'correct' ? 'bg-green-600 hover:bg-green-700' : ''}>
+                }))} className={`flex-1 text-sm h-7 ${answerState === 'correct' ? 'border-green-500 bg-green-50' : answerState === 'incorrect' ? 'border-red-500 bg-red-50' : ''}`} disabled={answerState === 'correct'} />
+                    <Button onClick={() => checkAnswer(answerKey, userAnswers[answerKey], parseFloat(correctAmount))} disabled={!userAnswers[answerKey] || answerState === 'correct'} size="sm" variant={answerState === 'correct' ? 'default' : 'outline'} className={`h-7 w-7 p-0 text-xs ${answerState === 'correct' ? 'bg-green-600 hover:bg-green-700' : ''}`}>
                       {answerState === 'correct' ? '✅' : '✓'}
                     </Button>
                   </div>
@@ -832,41 +824,41 @@ const Learning = () => {
     ];
 
     return (
-      <Card className="p-6 border-2 border-orange-200 bg-orange-50">
-        <div className="flex items-center gap-3 mb-6">
-          <Badge className="h-8 w-8 text-orange-600 bg-orange-100 border-orange-300">🎯</Badge>
-          <h3 className="text-2xl font-bold text-orange-800">Analyze Data 📊</h3>
+      <Card className="p-3 border border-orange-200 bg-orange-50">
+        <div className="flex items-center gap-2 mb-3">
+          <Badge className="h-5 w-5 text-orange-600 bg-orange-100 border-orange-300 text-xs">🎯</Badge>
+          <h3 className="text-base font-bold text-orange-800">Analyze Data 📊</h3>
         </div>
         
-        <div className="space-y-6">
+        <div className="space-y-3">
           {/* Instructions */}
-          <div className="bg-white p-6 rounded-xl border border-orange-200">
-            <h4 className="text-lg font-bold mb-4 text-orange-700">🎮 Drag & Drop Challenge</h4>
-            <div className="text-center mb-4">
-              <Badge variant="outline" className="text-sm px-3 py-1">
+          <div className="bg-white p-3 rounded-lg border border-orange-200">
+            <h4 className="text-sm font-bold mb-2 text-orange-700">🎮 Drag & Drop Challenge</h4>
+            <div className="text-center">
+              <Badge variant="outline" className="text-xs px-2 py-1">
                 Sort animals by their percentage ranges
               </Badge>
             </div>
           </div>
 
           {/* Draggable Animals */}
-          <div className="bg-white p-6 rounded-xl border border-orange-200">
-            <h4 className="text-lg font-bold mb-4 text-orange-700">🐾 Animals to Sort</h4>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className="bg-white p-3 rounded-lg border border-orange-200">
+            <h4 className="text-sm font-bold mb-2 text-orange-700">🐾 Animals to Sort</h4>
+            <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
               {animalPercentages.map(({ type, count, percentage, config }) => (
                 <div
                   key={type}
                   draggable
                   onDragStart={(e) => handleDragStart(e, type)}
-                  className={`bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-lg border-2 border-gray-200 cursor-move hover:shadow-lg transition-all duration-200 text-center ${
+                  className={`bg-gradient-to-br from-gray-50 to-gray-100 p-2 rounded-lg border border-gray-200 cursor-move hover:shadow-lg transition-all duration-200 text-center ${
                     draggedItem === type ? 'opacity-50 scale-95' : ''
                   } ${
                     Object.values(droppedItems).some(animals => animals.includes(type)) ? 'opacity-30' : ''
                   }`}
                 >
-                  <div className="text-3xl mb-2">{config.emoji}</div>
-                  <div className="font-semibold text-sm">{config.name}</div>
-                  <div className="text-xs text-muted-foreground">{count} animals</div>
+                  <div className="text-xl mb-1">{config.emoji}</div>
+                  <div className="font-semibold text-xs">{config.name}</div>
+                  <div className="text-xs text-muted-foreground">{count}</div>
                   <Badge variant="secondary" className="text-xs mt-1">
                     {percentage}%
                   </Badge>
@@ -876,29 +868,29 @@ const Learning = () => {
           </div>
 
           {/* Drop Zones */}
-          <div className="bg-white p-6 rounded-xl border border-orange-200">
-            <h4 className="text-lg font-bold mb-4 text-orange-700">📋 Percentage Ranges</h4>
-            <div className="grid md:grid-cols-3 gap-4">
+          <div className="bg-white p-3 rounded-lg border border-orange-200">
+            <h4 className="text-sm font-bold mb-2 text-orange-700">📋 Percentage Ranges</h4>
+            <div className="grid grid-cols-3 gap-2">
               {dropZones.map((zone) => (
                 <div
                   key={zone.id}
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDrop(e, zone.id)}
-                  className={`bg-gradient-to-br ${zone.color} p-6 rounded-lg border-2 border-dashed min-h-32 flex flex-col items-center justify-center transition-all duration-300 ${
+                  className={`bg-gradient-to-br ${zone.color} p-3 rounded-lg border border-dashed min-h-24 flex flex-col items-center justify-center transition-all duration-300 ${
                     draggedItem ? 'border-opacity-100 bg-opacity-50' : 'border-opacity-30'
                   } ${
                     completedTasks[zone.id] ? 'border-green-500 bg-green-100' : ''
                   }`}
                 >
-                  <div className="text-2xl mb-2">{zone.emoji}</div>
-                  <div className="font-bold text-lg mb-1">{zone.label}</div>
+                  <div className="text-lg mb-1">{zone.emoji}</div>
+                  <div className="font-bold text-sm mb-1">{zone.label}</div>
                   
                   {/* Show dropped animals */}
                   {droppedItems[zone.id] && droppedItems[zone.id].length > 0 && (
-                    <div className="mt-3 grid grid-cols-2 gap-2 w-full">
+                    <div className="mt-2 grid grid-cols-2 gap-1 w-full">
                       {droppedItems[zone.id].map((animalType) => (
-                        <div key={animalType} className="p-2 bg-white rounded-lg border shadow-sm">
-                          <div className="text-xl mb-1">
+                        <div key={animalType} className="p-1 bg-white rounded border shadow-sm">
+                          <div className="text-sm mb-0.5">
                             {animalConfig[animalType as keyof typeof animalConfig]?.emoji}
                           </div>
                           <div className="text-xs font-semibold">
@@ -910,7 +902,7 @@ const Learning = () => {
                   )}
                   
                   {(!droppedItems[zone.id] || droppedItems[zone.id].length === 0) && (
-                    <div className="text-sm text-muted-foreground text-center">
+                    <div className="text-xs text-muted-foreground text-center">
                       Drop animals here
                     </div>
                   )}
@@ -920,17 +912,17 @@ const Learning = () => {
           </div>
 
           {/* Progress */}
-          <div className="bg-white p-4 rounded-xl border border-orange-200">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-sm font-semibold">Progress:</span>
-              <Progress value={(Object.values(droppedItems).flat().length / Object.keys(collectedData).length) * 100} className="flex-1" />
-              <span className="text-sm text-muted-foreground">
-                {Object.values(droppedItems).flat().length}/{Object.keys(collectedData).length} animals sorted
+          <div className="bg-white p-2 rounded-lg border border-orange-200">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-xs font-semibold">Progress:</span>
+              <Progress value={(Object.values(droppedItems).flat().length / Object.keys(collectedData).length) * 100} className="flex-1 h-1" />
+              <span className="text-xs text-muted-foreground">
+                {Object.values(droppedItems).flat().length}/{Object.keys(collectedData).length} sorted
               </span>
             </div>
             {Object.values(droppedItems).flat().length === Object.keys(collectedData).length && (
-              <div className="text-center mt-2">
-                <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-300">
+              <div className="text-center mt-1">
+                <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-300 text-xs">
                   🎉 All animals sorted!
                 </Badge>
               </div>
@@ -953,29 +945,69 @@ const Learning = () => {
         </Card>
       </div>;
   }
-  return <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8">
-      <div className="max-w-4xl mx-auto space-y-8">
+  return <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-2 overflow-hidden">
+      <div className="max-w-6xl mx-auto space-y-2 h-screen flex flex-col">
         {/* Header */}
-        
+        <div className="flex items-center justify-between mb-2">
+          <div>
+            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Learning Center
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Master percentage calculations with your collected animals
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-1 text-xs px-2 py-1">
+                  <Calculator size={14} />
+                  Calculator
+                </Button>
+              </DialogTrigger>
+            </Dialog>
+            <Button
+              variant="outline"
+              onClick={() => navigate("/")}
+              className="gap-1 text-xs px-2 py-1"
+              size="sm"
+            >
+              Back to Collection
+            </Button>
+          </div>
+        </div>
 
+        {/* Progress */}
+        <div className="mb-2">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xs font-medium">Progress</span>
+            <span className="text-xs text-muted-foreground">
+              Phase {currentPhase} of 6
+            </span>
+          </div>
+          <Progress value={((currentPhase - 1) / 6) * 100} className="h-1" />
+        </div>
 
         {/* Current Phase Content */}
-        {currentPhase === 3 && renderPhase3()}
-        {currentPhase === 4 && renderPhase4()}
-        {currentPhase === 5 && renderPhase5()}
-        {currentPhase === 6 && renderPhase6()}
+        <div className="flex-1 overflow-y-auto">
+          {currentPhase === 3 && renderPhase3()}
+          {currentPhase === 4 && renderPhase4()}
+          {currentPhase === 5 && renderPhase5()}
+          {currentPhase === 6 && renderPhase6()}
+        </div>
 
         {/* Navigation */}
-        <div className="flex justify-between items-center mt-8">
-          <Button variant="outline" onClick={() => setCurrentPhase(Math.max(3, currentPhase - 1))} disabled={currentPhase === 3}>
+        <div className="flex justify-between items-center pt-2 border-t">
+          <Button variant="outline" size="sm" onClick={() => setCurrentPhase(Math.max(3, currentPhase - 1))} disabled={currentPhase === 3}>
             Previous Phase
           </Button>
           
           {/* Auto-fill button for testing */}
           <Button 
             variant="destructive" 
+            size="sm"
             onClick={autoFillAnswers}
-            className="bg-red-500 hover:bg-red-600"
+            className="bg-red-500 hover:bg-red-600 text-xs"
           >
             🔧 Auto-Fill Answers (Testing)
           </Button>
