@@ -141,7 +141,11 @@ const Learning = () => {
   
   // Drag and drop state for Phase 6
   const [draggedItem, setDraggedItem] = useState<string | null>(null);
-  const [droppedItems, setDroppedItems] = useState<{[key: string]: string}>({});
+  const [droppedItems, setDroppedItems] = useState<{[key: string]: string[]}>({
+    low: [],
+    medium: [],
+    high: []
+  });
   const [completedTasks, setCompletedTasks] = useState<{[key: string]: boolean}>({});
 
   // Calculate correct answers - ensure numbers are properly typed
@@ -162,18 +166,21 @@ const Learning = () => {
   const handleDrop = (e: React.DragEvent, targetId: string) => {
     e.preventDefault();
     if (draggedItem) {
-      setDroppedItems(prev => ({
-        ...prev,
-        [targetId]: draggedItem
-      }));
+      // Remove animal from other zones first
+      setDroppedItems(prev => {
+        const newItems = { ...prev };
+        // Remove from all zones
+        Object.keys(newItems).forEach(zone => {
+          newItems[zone] = newItems[zone].filter(animal => animal !== draggedItem);
+        });
+        // Add to target zone
+        newItems[targetId] = [...newItems[targetId], draggedItem];
+        return newItems;
+      });
       
       // Check if it's correct
       const isCorrect = checkDragDropAnswer(draggedItem, targetId);
       if (isCorrect) {
-        setCompletedTasks(prev => ({
-          ...prev,
-          [targetId]: true
-        }));
         setShowConfetti(true);
         setTimeout(() => setShowConfetti(false), 2000);
       }
@@ -658,7 +665,7 @@ const Learning = () => {
                   className={`bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-lg border-2 border-gray-200 cursor-move hover:shadow-lg transition-all duration-200 text-center ${
                     draggedItem === type ? 'opacity-50 scale-95' : ''
                   } ${
-                    Object.values(droppedItems).includes(type) ? 'opacity-30' : ''
+                    Object.values(droppedItems).some(animals => animals.includes(type)) ? 'opacity-30' : ''
                   }`}
                 >
                   <div className="text-3xl mb-2">{config.emoji}</div>
@@ -690,24 +697,25 @@ const Learning = () => {
                   <div className="text-2xl mb-2">{zone.emoji}</div>
                   <div className="font-bold text-lg mb-1">{zone.label}</div>
                   
-                  {/* Show dropped animal */}
-                  {droppedItems[zone.id] && (
-                    <div className="mt-3 p-2 bg-white rounded-lg border shadow-sm">
-                      <div className="text-2xl mb-1">
-                        {animalConfig[droppedItems[zone.id] as keyof typeof animalConfig]?.emoji}
-                      </div>
-                      <div className="text-xs font-semibold">
-                        {animalConfig[droppedItems[zone.id] as keyof typeof animalConfig]?.name}
-                      </div>
-                      {completedTasks[zone.id] && (
-                        <div className="text-green-600 text-xs mt-1">✅ Correct!</div>
-                      )}
+                  {/* Show dropped animals */}
+                  {droppedItems[zone.id] && droppedItems[zone.id].length > 0 && (
+                    <div className="mt-3 grid grid-cols-2 gap-2 w-full">
+                      {droppedItems[zone.id].map((animalType) => (
+                        <div key={animalType} className="p-2 bg-white rounded-lg border shadow-sm">
+                          <div className="text-xl mb-1">
+                            {animalConfig[animalType as keyof typeof animalConfig]?.emoji}
+                          </div>
+                          <div className="text-xs font-semibold">
+                            {animalConfig[animalType as keyof typeof animalConfig]?.name}
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   )}
                   
-                  {!droppedItems[zone.id] && (
+                  {(!droppedItems[zone.id] || droppedItems[zone.id].length === 0) && (
                     <div className="text-sm text-muted-foreground text-center">
-                      Drop animal here
+                      Drop animals here
                     </div>
                   )}
                 </div>
@@ -716,17 +724,22 @@ const Learning = () => {
           </div>
 
           {/* Progress */}
-          {Object.keys(completedTasks).length > 0 && (
-            <div className="bg-white p-4 rounded-xl border border-orange-200">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-sm font-semibold">Progress:</span>
-                <Progress value={(Object.keys(completedTasks).length / 3) * 100} className="flex-1" />
-                <span className="text-sm text-muted-foreground">
-                  {Object.keys(completedTasks).length}/3
-                </span>
-              </div>
+          <div className="bg-white p-4 rounded-xl border border-orange-200">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-sm font-semibold">Progress:</span>
+              <Progress value={(Object.values(droppedItems).flat().length / Object.keys(collectedData).length) * 100} className="flex-1" />
+              <span className="text-sm text-muted-foreground">
+                {Object.values(droppedItems).flat().length}/{Object.keys(collectedData).length} animals sorted
+              </span>
             </div>
-          )}
+            {Object.values(droppedItems).flat().length === Object.keys(collectedData).length && (
+              <div className="text-center mt-2">
+                <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-300">
+                  🎉 All animals sorted!
+                </Badge>
+              </div>
+            )}
+          </div>
         </div>
       </Card>
     );
