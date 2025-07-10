@@ -395,13 +395,16 @@ const Learning = () => {
               <div className="space-y-4">
                 <VisualCalculator 
                   operation="divide" 
-                  values={[`${mammalsPercentage}%`, "100"]} 
+                  values={[mammalsPercentage, "100"]} 
                   result={mammalsDecimal.toFixed(2)} 
                   color="blue" 
                 />
                 <div className="text-center">
                   <p className="text-sm text-muted-foreground">
                     Rule: To convert % to decimal, divide by 100
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Calculator: {mammalsPercentage} ÷ 100 = {mammalsDecimal.toFixed(2)}
                   </p>
                 </div>
               </div>
