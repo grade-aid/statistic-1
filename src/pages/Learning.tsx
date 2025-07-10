@@ -155,7 +155,7 @@ const Learning = () => {
     color?: string;
   }) => <div className={`bg-gradient-to-r from-${color}-100 to-${color}-50 p-4 rounded-xl border-2 border-${color}-200`}>
       <div className="text-center mb-3">
-        {operation === 'divide' && <p className="text-sm text-muted-foreground">Turn percentage to decimal</p>}
+        
       </div>
       <div className="flex items-center justify-center gap-4 text-xl font-bold">
         <Badge variant="outline" className="text-lg px-4 py-2">{values[0]}</Badge>
@@ -179,7 +179,7 @@ const Learning = () => {
         </Badge>
       </div>
       <div className="text-center mt-3">
-        {operation === 'divide' && <p className="text-xs text-muted-foreground">Example: 20% becomes 20, then 20 ÷ 100 = 0.20</p>}
+        
       </div>
     </div>;
   const AnimalVisual = ({
@@ -237,7 +237,7 @@ const Learning = () => {
         
         {/* Mini Pie Chart from Visualization */}
         <div className="flex justify-center">
-          <div className="relative w-48 h-48">
+          <div className="relative w-32 h-32">
             {/* Calculator Button */}
             <Dialog>
               <DialogTrigger asChild>
@@ -281,7 +281,7 @@ const Learning = () => {
                       {animalPercentage > 5 && <text x={labelX} y={labelY} textAnchor="middle" dy="0.3em" className="text-sm font-bold fill-white" style={{
                     textShadow: '1px 1px 1px rgba(0,0,0,0.5)'
                   }}>
-                          {Math.round(animalPercentage)}%
+                          {animalCount}
                         </text>}
                     </g>;
                 startAngle = endAngle;
@@ -377,9 +377,7 @@ const Learning = () => {
     // Get mammals percentage for the example
     const mammalsPercentage = totalAnimals > 0 ? Math.round(collectedData.mammals / totalAnimals * 100) : 0;
     const mammalsDecimal = mammalsPercentage / 100;
-    
-    return (
-      <Card className="p-6 border-2 border-blue-200 bg-blue-50">
+    return <Card className="p-6 border-2 border-blue-200 bg-blue-50">
         <div className="flex items-center gap-3 mb-6">
           <Lightbulb className="h-8 w-8 text-blue-600" />
           <h3 className="text-2xl font-bold text-blue-800">Percentage → Decimal 🔢</h3>
@@ -393,20 +391,8 @@ const Learning = () => {
             <div className="grid md:grid-cols-2 gap-6">
               <AnimalVisual count={collectedData.mammals} emoji="🐘" total={totalAnimals} name="Mammals" />
               <div className="space-y-4">
-                <VisualCalculator 
-                  operation="divide" 
-                  values={[mammalsPercentage, "100"]} 
-                  result={mammalsDecimal.toFixed(2)} 
-                  color="blue" 
-                />
-                <div className="text-center">
-                  <p className="text-sm text-muted-foreground">
-                    Rule: To convert % to decimal, divide by 100
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Calculator: {mammalsPercentage} ÷ 100 = {mammalsDecimal.toFixed(2)}
-                  </p>
-                </div>
+                <VisualCalculator operation="divide" values={[`${mammalsPercentage}%`, "100"]} result={mammalsDecimal.toFixed(2)} color="blue" />
+                
               </div>
             </div>
           </div>
@@ -415,16 +401,12 @@ const Learning = () => {
           <div className="bg-white p-6 rounded-xl border border-blue-200">
             <h4 className="text-lg font-bold mb-4 text-blue-700">✏️ Your Turn</h4>
             <div className="grid md:grid-cols-2 gap-4">
-              {Object.entries(collectedData)
-                .filter(([type]) => type !== 'mammals')
-                .map(([type, count]) => {
-                  const config = animalConfig[type as keyof typeof animalConfig];
-                  const percentage = totalAnimals > 0 ? Math.round(count / totalAnimals * 100) : 0;
-                  const correctDecimal = percentage / 100;
-                  const questionId = `phase4-${type}`;
-                  
-                  return (
-                    <div key={type} className="bg-gray-50 p-4 rounded-lg space-y-3">
+              {Object.entries(collectedData).filter(([type]) => type !== 'mammals').map(([type, count]) => {
+              const config = animalConfig[type as keyof typeof animalConfig];
+              const percentage = totalAnimals > 0 ? Math.round(count / totalAnimals * 100) : 0;
+              const correctDecimal = percentage / 100;
+              const questionId = `phase4-${type}`;
+              return <div key={type} className="bg-gray-50 p-4 rounded-lg space-y-3">
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-2xl">{config.emoji}</span>
                         <div>
@@ -443,33 +425,20 @@ const Learning = () => {
                       </Dialog>
                       
                       <div className="flex gap-2">
-                        <Input 
-                          type="number" 
-                          step="0.01" 
-                          placeholder="0.00" 
-                          value={userAnswers[questionId] || ''} 
-                          onChange={e => setUserAnswers(prev => ({
-                            ...prev,
-                            [questionId]: e.target.value
-                          }))} 
-                          className="flex-1" 
-                        />
-                        <Button 
-                          onClick={() => checkAnswer(questionId, userAnswers[questionId], correctDecimal)} 
-                          disabled={!userAnswers[questionId]} 
-                          size="sm"
-                        >
+                        <Input type="number" step="0.01" placeholder="0.00" value={userAnswers[questionId] || ''} onChange={e => setUserAnswers(prev => ({
+                    ...prev,
+                    [questionId]: e.target.value
+                  }))} className="flex-1" />
+                        <Button onClick={() => checkAnswer(questionId, userAnswers[questionId], correctDecimal)} disabled={!userAnswers[questionId]} size="sm">
                           ✓
                         </Button>
                       </div>
-                    </div>
-                  );
-                })}
+                    </div>;
+            })}
             </div>
           </div>
         </div>
-      </Card>
-    );
+      </Card>;
   };
   const renderPhase5 = () => <Card className="p-6 border-2 border-purple-200 bg-purple-50">
       <div className="flex items-center gap-3 mb-6">
@@ -567,16 +536,9 @@ const Learning = () => {
 
         {/* Phase Navigation */}
         <div className="flex justify-center gap-4 mb-8">
-          {[3, 4, 5].map(phase => (
-            <Button
-              key={phase}
-              variant={currentPhase === phase ? "default" : "outline"}
-              onClick={() => setCurrentPhase(phase)}
-              className="min-w-[120px]"
-            >
+          {[3, 4, 5].map(phase => <Button key={phase} variant={currentPhase === phase ? "default" : "outline"} onClick={() => setCurrentPhase(phase)} className="min-w-[120px]">
               Phase {phase}
-            </Button>
-          ))}
+            </Button>)}
         </div>
 
         {/* Current Phase Content */}
