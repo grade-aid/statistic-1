@@ -563,19 +563,6 @@ const Learning = () => {
           </Badge>
         </div>
 
-        {/* Phase Navigation */}
-        <div className="flex justify-center gap-4 mb-8">
-          {[3, 4, 5].map(phase => (
-            <Button
-              key={phase}
-              variant={currentPhase === phase ? "default" : "outline"}
-              onClick={() => setCurrentPhase(phase)}
-              className="w-24"
-            >
-              Phase {phase}
-            </Button>
-          ))}
-        </div>
 
         {/* Current Phase Content */}
         {currentPhase === 3 && renderPhase3()}
