@@ -105,13 +105,14 @@ const Index = () => {
     const newAnimals: Animal[] = [];
     const animalTypes = Object.keys(animalConfig) as Array<keyof GameState>;
     
-    // Use strategic animal counts for clean percentages (multiples of 5%)
+    // Use strategic animal counts for clean percentages - all different numbers
     const animalDistributions = [
-      { total: 20, counts: [4, 3, 5, 4, 4] }, // 20%, 15%, 25%, 20%, 20%
-      { total: 25, counts: [5, 5, 5, 5, 5] }, // 20% each
-      { total: 50, counts: [10, 5, 15, 10, 10] }, // 20%, 10%, 30%, 20%, 20%
-      { total: 20, counts: [3, 4, 3, 5, 5] }, // 15%, 20%, 15%, 25%, 25%
-      { total: 25, counts: [6, 4, 5, 5, 5] }, // 24%, 16%, 20%, 20%, 20%
+      { total: 20, counts: [1, 3, 4, 5, 7] }, // 5%, 15%, 20%, 25%, 35%
+      { total: 20, counts: [2, 3, 4, 5, 6] }, // 10%, 15%, 20%, 25%, 30%
+      { total: 25, counts: [2, 3, 5, 7, 8] }, // 8%, 12%, 20%, 28%, 32%
+      { total: 25, counts: [1, 4, 5, 6, 9] }, // 4%, 16%, 20%, 24%, 36%
+      { total: 50, counts: [4, 6, 8, 12, 20] }, // 8%, 12%, 16%, 24%, 40%
+      { total: 50, counts: [5, 7, 8, 10, 20] }, // 10%, 14%, 16%, 20%, 40%
     ];
     
     const selectedDistribution = animalDistributions[Math.floor(Math.random() * animalDistributions.length)];
