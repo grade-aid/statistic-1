@@ -406,7 +406,7 @@ const Learning = () => {
               const percentage = totalAnimals > 0 ? Math.round(count / totalAnimals * 100) : 0;
               const correctDecimal = percentage / 100;
               const questionId = `phase4-${type}`;
-              return <div key={type} className="bg-gray-50 p-4 rounded-lg space-y-3">
+               return <div key={type} className="bg-gray-50 p-4 rounded-lg space-y-3 relative">
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-2xl">{config.emoji}</span>
                         <div>
@@ -417,9 +417,8 @@ const Learning = () => {
                       
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button variant="outline" size="sm" className="w-full mb-2">
-                            <Calculator className="mr-2 h-4 w-4" />
-                            Calculator Help
+                          <Button variant="outline" size="sm" className="absolute -top-2 -right-2 w-6 h-6 p-0 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 z-10" onClick={() => setIsCalculatorOpen(true)}>
+                            <HelpCircle size={14} />
                           </Button>
                         </DialogTrigger>
                       </Dialog>
