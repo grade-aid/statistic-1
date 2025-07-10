@@ -100,11 +100,22 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'shake': {
+					'0%, 100%': { transform: 'translateX(0)' },
+					'10%, 30%, 50%, 70%, 90%': { transform: 'translateX(-3px)' },
+					'20%, 40%, 60%, 80%': { transform: 'translateX(3px)' }
+				},
+				'confetti-fall': {
+					'0%': { transform: 'translateY(-100vh) rotate(0deg)', opacity: '1' },
+					'100%': { transform: 'translateY(100vh) rotate(360deg)', opacity: '0' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'shake': 'shake 0.5s ease-in-out',
+				'confetti': 'confetti-fall 3s ease-out forwards'
 			}
 		}
 	},
