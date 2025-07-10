@@ -632,14 +632,14 @@ const Learning = () => {
         {/* Interactive Practice */}
         <div className="bg-white p-3 rounded-lg border border-green-200">
           <h4 className="text-sm font-bold mb-2 text-green-700">✏️ Your Turn</h4>
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-1">
             {Object.entries(collectedData).filter(([type]) => type !== 'mammals').map(([type, count]) => {
             const config = animalConfig[type as keyof typeof animalConfig];
             const correctPercentage = totalAnimals > 0 ? Math.round(count / totalAnimals * 100) : 0;
             const questionId = `phase3-${type}`;
             const answerState = answerStates[questionId] || 'unanswered';
             const isShaking = shakingQuestions[questionId] || false;
-            return <div key={type} className={`bg-gray-50 p-2 rounded-lg space-y-2 transition-colors duration-300 ${answerState === 'correct' ? 'bg-green-100 border-2 border-green-300' : answerState === 'incorrect' ? 'bg-red-50 border-2 border-red-200' : ''} ${isShaking ? 'animate-shake' : ''}`}>
+            return <div key={type} className={`bg-gray-50 p-1 rounded-lg space-y-1 transition-colors duration-300 ${answerState === 'correct' ? 'bg-green-100 border-2 border-green-300' : answerState === 'incorrect' ? 'bg-red-50 border-2 border-red-200' : ''} ${isShaking ? 'animate-shake' : ''}`}>
                   <AnimalVisual count={count} emoji={config.emoji} total={totalAnimals} name={config.name} showPercentages={false} />
                   <div className="flex gap-1">
                     <Input type="number" placeholder="%" value={userAnswers[questionId] || ''} onChange={e => setUserAnswers(prev => ({
