@@ -760,16 +760,14 @@ const Learning = () => {
   return <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8">
       <div className="max-w-4xl mx-auto space-y-8">
         {/* Header */}
-        <div className="text-center">
-          <Button onClick={() => navigate('/')} variant="outline" className="mb-4">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back Home
-          </Button>
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">🧮 Learn Percentages & Fractions</h1>
-          <Badge variant="outline" className="text-lg px-4 py-2">
-            Using your {totalAnimals} animals!
-          </Badge>
-        </div>
+        <Button onClick={() => navigate('/')} variant="outline" className="mb-4">
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back Home
+        </Button>
+        <h1 className="text-4xl font-bold text-gray-800 mb-2">🧮 Learn Percentages & Fractions</h1>
+        <Badge variant="outline" className="text-lg px-4 py-2">
+          Using your {totalAnimals} animals!
+        </Badge>
 
 
         {/* Current Phase Content */}
