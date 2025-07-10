@@ -88,7 +88,7 @@ const Learning = () => {
               {calculatorDisplay}
             </div>
             <div className="grid grid-cols-4 gap-2">
-              {buttons.flat().map((btn, idx) => <Button key={idx} variant={["C", "±", "%", "÷", "×", "-", "+", "="].includes(btn) ? "secondary" : "outline"} className={`h-12 text-lg font-semibold transition-all duration-150 ease-out focus:ring-0 ${btn === "0" ? "col-span-2" : ""} ${["C", "±", "%", "÷", "×", "-", "+", "="].includes(btn) ? "bg-orange-500 hover:bg-orange-600 active:bg-orange-700 active:scale-95 text-white" : "bg-gray-600 hover:bg-gray-500 active:bg-gray-700 active:scale-95 text-white"}`} onClick={() => {
+              {buttons.flat().map((btn, idx) => <Button key={idx} variant={["C", "±", "%", "÷", "×", "-", "+", "="].includes(btn) ? "secondary" : "outline"} className={`h-12 text-lg font-semibold transition-all duration-150 ease-out focus-visible:ring-0 focus:ring-0 select-none ${btn === "0" ? "col-span-2" : ""} ${["C", "±", "%", "÷", "×", "-", "+", "="].includes(btn) ? "!bg-orange-500 hover:!bg-orange-600 active:!bg-orange-700 active:!scale-95 !text-white" : "!bg-gray-600 hover:!bg-gray-500 active:!bg-gray-700 active:!scale-95 !text-white"}`} onClick={() => {
               let value = btn;
               if (btn === "×") value = "*";
               if (btn === "÷") value = "/";
@@ -311,7 +311,9 @@ const Learning = () => {
       </div>;
   };
   const checkAnswer = (questionId: string, userAnswer: string, correctAnswer: number) => {
-    const isCorrect = Math.abs(parseFloat(userAnswer) - correctAnswer) < 0.1;
+    // Use higher tolerance for percentage questions (whole numbers)
+    const tolerance = correctAnswer > 10 ? 1.0 : 0.1;
+    const isCorrect = Math.abs(parseFloat(userAnswer) - correctAnswer) < tolerance;
     
     if (isCorrect) {
       // Update answer state to correct
