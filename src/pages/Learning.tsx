@@ -764,7 +764,7 @@ const Learning = () => {
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back Home
         </Button>
-        <h1 className="text-4xl font-bold text-gray-800 mb-2">🧮 Learn Percentages & Fractions</h1>
+        
         <Badge variant="outline" className="text-lg px-4 py-2">
           Using your {totalAnimals} animals!
         </Badge>
