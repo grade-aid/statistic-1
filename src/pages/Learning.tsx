@@ -15,6 +15,14 @@ interface AnimalData {
   fish: number;
   insects: number;
 }
+
+interface FoodData {
+  fruits: number;
+  vegetables: number;
+  grains: number;
+  proteins: number;
+  dairy: number;
+}
 const Learning = () => {
   const navigate = useNavigate();
 
@@ -55,6 +63,34 @@ const Learning = () => {
     };
   };
   const collectedData = getStoredData();
+
+  // Food data functions
+  const getFoodData = (): FoodData => {
+    const stored = localStorage.getItem("foodData");
+    if (stored) {
+      try {
+        return JSON.parse(stored);
+      } catch {
+        return { fruits: 0, vegetables: 0, grains: 0, proteins: 0, dairy: 0 };
+      }
+    }
+    return { fruits: 0, vegetables: 0, grains: 0, proteins: 0, dairy: 0 };
+  };
+
+  const saveFoodData = (data: FoodData) => {
+    localStorage.setItem("foodData", JSON.stringify(data));
+  };
+
+  const foodData = getFoodData();
+  const totalFood = Object.values(foodData).reduce((sum: number, count: number) => sum + count, 0);
+
+  const foodConfig = {
+    fruits: { emoji: '🍎', name: 'Fruits', color: '#ef4444' },
+    vegetables: { emoji: '🥕', name: 'Vegetables', color: '#22c55e' },
+    grains: { emoji: '🌾', name: 'Grains', color: '#eab308' },
+    proteins: { emoji: '🥩', name: 'Proteins', color: '#8b5cf6' },
+    dairy: { emoji: '🧀', name: 'Dairy', color: '#06b6d4' }
+  };
 
   // Calculator functions
   const handleCalculatorInput = (value: string) => {
@@ -125,6 +161,7 @@ const Learning = () => {
     }
   };
   const [currentPhase, setCurrentPhase] = useState(3);
+  const [isCollectingFood, setIsCollectingFood] = useState(false);
   const [userAnswers, setUserAnswers] = useState<{
     [key: string]: string;
   }>({});
@@ -534,8 +571,611 @@ const Learning = () => {
           })}
           </div>
         </div>
+        </div>
+      </Card>;
+
+  // Phase 6: Find percentage of a number (using animal data)
+  const renderPhase6 = () => {
+    const problems = [
+      { animal: 'mammals', percentage: 25, emoji: '🐘' },
+      { animal: 'birds', percentage: 40, emoji: '🦅' },
+      { animal: 'reptiles', percentage: 30, emoji: '🐍' },
+      { animal: 'fish', percentage: 20, emoji: '🐟' }
+    ];
+
+    return (
+      <Card className="p-6 border-2 border-orange-200 bg-orange-50">
+        <div className="flex items-center gap-3 mb-6">
+          <Calculator className="h-8 w-8 text-orange-600" />
+          <h3 className="text-2xl font-bold text-orange-800">Find Percentage of a Number 📊</h3>
+        </div>
+        
+        <div className="space-y-6">
+          {/* Example */}
+          <div className="bg-white p-6 rounded-xl border border-orange-200">
+            <h4 className="text-lg font-bold mb-4 text-orange-700">📚 Example: 30% of {collectedData.mammals} mammals</h4>
+            
+            <div className="grid md:grid-cols-2 gap-6">
+              <AnimalVisual count={collectedData.mammals} emoji="🐘" total={totalAnimals} name="Mammals" />
+              <div className="space-y-4">
+                <VisualCalculator 
+                  operation="multiply" 
+                  values={["30%", collectedData.mammals]} 
+                  result={Math.round(collectedData.mammals * 0.3).toString()} 
+                  color="orange" 
+                />
+                <div className="text-center">
+                  <Badge variant="secondary" className="text-lg px-4 py-2">
+                    30% of {collectedData.mammals} = {Math.round(collectedData.mammals * 0.3)} mammals
+                  </Badge>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Interactive Practice */}
+          <div className="bg-white p-6 rounded-xl border border-orange-200">
+            <h4 className="text-lg font-bold mb-4 text-orange-700">✏️ Your Turn</h4>
+            <div className="grid md:grid-cols-2 gap-4">
+              {problems.map(({ animal, percentage, emoji }) => {
+                const animalCount = collectedData[animal as keyof AnimalData];
+                const correctAnswer = Math.round(animalCount * (percentage / 100));
+                const questionId = `phase6-${animal}-${percentage}`;
+                const answerState = answerStates[questionId] || 'unanswered';
+                const isShaking = shakingQuestions[questionId] || false;
+                
+                return (
+                  <div key={questionId} className={`bg-gray-50 p-4 rounded-lg space-y-3 transition-colors duration-300 ${answerState === 'correct' ? 'bg-green-100 border-2 border-green-300' : answerState === 'incorrect' ? 'bg-red-50 border-2 border-red-200' : ''} ${isShaking ? 'animate-shake' : ''}`}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-2xl">{emoji}</span>
+                      <div>
+                        <div className="font-semibold">Find {percentage}% of {animalCount} {animal}</div>
+                        <div className="text-sm text-muted-foreground">{percentage}% × {animalCount} = ?</div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <Input 
+                        type="number" 
+                        placeholder="answer" 
+                        value={userAnswers[questionId] || ''} 
+                        onChange={e => setUserAnswers(prev => ({ ...prev, [questionId]: e.target.value }))}
+                        className={`flex-1 ${answerState === 'correct' ? 'border-green-500 bg-green-50' : answerState === 'incorrect' ? 'border-red-500 bg-red-50' : ''}`}
+                        disabled={answerState === 'correct'}
+                      />
+                      <Button 
+                        onClick={() => checkAnswer(questionId, userAnswers[questionId], correctAnswer)}
+                        disabled={!userAnswers[questionId] || answerState === 'correct'}
+                        size="sm"
+                        variant={answerState === 'correct' ? 'default' : 'outline'}
+                        className={answerState === 'correct' ? 'bg-green-600 hover:bg-green-700' : ''}
+                      >
+                        {answerState === 'correct' ? '✅' : '✓'}
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </Card>
+    );
+  };
+
+  // Food Collection Interface
+  const renderFoodCollection = () => {
+    const [tempFoodData, setTempFoodData] = useState<FoodData>(foodData);
+    
+    const handleFoodClick = (foodType: keyof FoodData) => {
+      setTempFoodData(prev => ({
+        ...prev,
+        [foodType]: prev[foodType] + 1
+      }));
+    };
+
+    const completeFoodCollection = () => {
+      saveFoodData(tempFoodData);
+      setIsCollectingFood(false);
+      setCurrentPhase(7);
+    };
+
+    return (
+      <Card className="p-6 border-2 border-green-200 bg-green-50">
+        <div className="text-center mb-6">
+          <h3 className="text-2xl font-bold text-green-800 mb-2">🍎 Collect Food Data</h3>
+          <p className="text-green-700">Click on food items to collect them for the next exercises!</p>
+        </div>
+        
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+          {Object.entries(foodConfig).map(([type, config]) => (
+            <div key={type} className="text-center">
+              <Button
+                variant="outline"
+                className="w-full h-24 text-4xl hover:scale-110 transition-transform"
+                onClick={() => handleFoodClick(type as keyof FoodData)}
+              >
+                {config.emoji}
+              </Button>
+              <div className="mt-2">
+                <Badge variant="secondary">{tempFoodData[type as keyof FoodData]}</Badge>
+                <div className="text-sm text-muted-foreground">{config.name}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="text-center">
+          <Button 
+            onClick={completeFoodCollection}
+            disabled={Object.values(tempFoodData).reduce((sum, count) => sum + count, 0) < 10}
+            className="bg-green-600 hover:bg-green-700"
+          >
+            Continue with {Object.values(tempFoodData).reduce((sum, count) => sum + count, 0)} food items
+          </Button>
+          <p className="text-sm text-muted-foreground mt-2">
+            Collect at least 10 food items to continue
+          </p>
+        </div>
+      </Card>
+    );
+  };
+
+  // Food Visual Component
+  const FoodVisual = ({ count, emoji, total, name, showPercentages = false }: {
+    count: number;
+    emoji: string;
+    total: number;
+    name: string;
+    showPercentages?: boolean;
+  }) => {
+    const percentage = total > 0 ? Math.round(count / total * 100) : 0;
+    const dataEntries = Object.entries(foodData);
+
+    return (
+      <div className="bg-white p-4 rounded-lg border space-y-3">
+        <div className="flex items-center gap-3">
+          <span className="text-3xl">{emoji}</span>
+          <div>
+            <div className="text-lg font-bold">{name}</div>
+          </div>
+        </div>
+        
+        <div className="flex justify-center">
+          <div className="relative w-48 h-48">
+            <svg className="w-full h-full" viewBox="0 0 200 200">
+              {(() => {
+                let startAngle = 0;
+                const radius = 80;
+                const centerX = 100;
+                const centerY = 100;
+                
+                return dataEntries.map(([type, foodCount]) => {
+                  const foodPercentage = foodCount / total * 100;
+                  const angle = foodPercentage / 100 * 360;
+                  const endAngle = startAngle + angle;
+
+                  const startAngleRad = startAngle * Math.PI / 180;
+                  const endAngleRad = endAngle * Math.PI / 180;
+
+                  const x1 = centerX + radius * Math.cos(startAngleRad);
+                  const y1 = centerY + radius * Math.sin(startAngleRad);
+                  const x2 = centerX + radius * Math.cos(endAngleRad);
+                  const y2 = centerY + radius * Math.sin(endAngleRad);
+                  
+                  const largeArcFlag = angle > 180 ? 1 : 0;
+                  const pathData = [`M ${centerX} ${centerY}`, `L ${x1} ${y1}`, `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`, 'Z'].join(' ');
+
+                  const labelAngle = (startAngle + endAngle) / 2;
+                  const labelAngleRad = labelAngle * Math.PI / 180;
+                  const labelRadius = radius * 0.7;
+                  const labelX = centerX + labelRadius * Math.cos(labelAngleRad);
+                  const labelY = centerY + labelRadius * Math.sin(labelAngleRad);
+                  
+                  const config = foodConfig[type as keyof typeof foodConfig];
+                  const slice = (
+                    <g key={type}>
+                      <path d={pathData} fill={config.color} stroke="white" strokeWidth="4" className="transition-all duration-300" />
+                      {foodPercentage > 5 && (
+                        <text x={labelX} y={labelY} textAnchor="middle" dy="0.3em" className="text-sm font-bold fill-white" style={{ textShadow: '1px 1px 1px rgba(0,0,0,0.5)' }}>
+                          {showPercentages ? `${Math.round(foodPercentage)}%` : foodCount}
+                        </text>
+                      )}
+                    </g>
+                  );
+                  startAngle = endAngle;
+                  return slice;
+                });
+              })()}
+            </svg>
+          </div>
+        </div>
+        
+        <div className="flex flex-wrap gap-2 justify-center mt-3">
+          {Object.entries(foodConfig).map(([type, config]) => (
+            <div key={type} className="flex items-center gap-1">
+              <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: config.color }} />
+              <span className="text-xs text-muted-foreground">
+                {config.emoji} {config.name}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
-    </Card>;
+    );
+  };
+
+  // Phase 7: Find the whole when knowing the percentage
+  const renderPhase7 = () => {
+    const problems = [
+      { food: 'fruits', known: Math.round(foodData.fruits * 0.3), percentage: 30 },
+      { food: 'vegetables', known: Math.round(foodData.vegetables * 0.25), percentage: 25 },
+      { food: 'grains', known: Math.round(foodData.grains * 0.4), percentage: 40 }
+    ];
+
+    return (
+      <Card className="p-6 border-2 border-pink-200 bg-pink-50">
+        <div className="flex items-center gap-3 mb-6">
+          <Calculator className="h-8 w-8 text-pink-600" />
+          <h3 className="text-2xl font-bold text-pink-800">Find the Whole Number 🔍</h3>
+        </div>
+        
+        <div className="space-y-6">
+          {/* Example */}
+          <div className="bg-white p-6 rounded-xl border border-pink-200">
+            <h4 className="text-lg font-bold mb-4 text-pink-700">📚 Example: If 15 is 30% of a number, what's the whole?</h4>
+            
+            <div className="grid md:grid-cols-2 gap-6">
+              <FoodVisual count={foodData.fruits} emoji="🍎" total={totalFood} name="Fruits" />
+              <div className="space-y-4">
+                <VisualCalculator 
+                  operation="divide" 
+                  values={["15", "30%"]} 
+                  result="50" 
+                  color="pink" 
+                />
+                <div className="text-center">
+                  <Badge variant="secondary" className="text-lg px-4 py-2">
+                    15 ÷ 0.30 = 50
+                  </Badge>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Interactive Practice */}
+          <div className="bg-white p-6 rounded-xl border border-pink-200">
+            <h4 className="text-lg font-bold mb-4 text-pink-700">✏️ Your Turn</h4>
+            <div className="grid md:grid-cols-2 gap-4">
+              {problems.map(({ food, known, percentage }) => {
+                const foodCount = foodData[food as keyof FoodData];
+                const correctAnswer = Math.round(known / (percentage / 100));
+                const questionId = `phase7-${food}-${percentage}`;
+                const answerState = answerStates[questionId] || 'unanswered';
+                const isShaking = shakingQuestions[questionId] || false;
+                const config = foodConfig[food as keyof typeof foodConfig];
+                
+                return (
+                  <div key={questionId} className={`bg-gray-50 p-4 rounded-lg space-y-3 transition-colors duration-300 ${answerState === 'correct' ? 'bg-green-100 border-2 border-green-300' : answerState === 'incorrect' ? 'bg-red-50 border-2 border-red-200' : ''} ${isShaking ? 'animate-shake' : ''}`}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-2xl">{config.emoji}</span>
+                      <div>
+                        <div className="font-semibold">If {known} is {percentage}% of a number, what's the whole?</div>
+                        <div className="text-sm text-muted-foreground">{known} ÷ {percentage}% = ?</div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <Input 
+                        type="number" 
+                        placeholder="whole number" 
+                        value={userAnswers[questionId] || ''} 
+                        onChange={e => setUserAnswers(prev => ({ ...prev, [questionId]: e.target.value }))}
+                        className={`flex-1 ${answerState === 'correct' ? 'border-green-500 bg-green-50' : answerState === 'incorrect' ? 'border-red-500 bg-red-50' : ''}`}
+                        disabled={answerState === 'correct'}
+                      />
+                      <Button 
+                        onClick={() => checkAnswer(questionId, userAnswers[questionId], correctAnswer)}
+                        disabled={!userAnswers[questionId] || answerState === 'correct'}
+                        size="sm"
+                        variant={answerState === 'correct' ? 'default' : 'outline'}
+                        className={answerState === 'correct' ? 'bg-green-600 hover:bg-green-700' : ''}
+                      >
+                        {answerState === 'correct' ? '✅' : '✓'}
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </Card>
+    );
+  };
+
+  // Phase 8: Find the percentage rate
+  const renderPhase8 = () => {
+    const problems = [
+      { food: 'vegetables', part: foodData.vegetables },
+      { food: 'grains', part: foodData.grains },
+      { food: 'proteins', part: foodData.proteins },
+      { food: 'dairy', part: foodData.dairy }
+    ];
+
+    return (
+      <Card className="p-6 border-2 border-teal-200 bg-teal-50">
+        <div className="flex items-center gap-3 mb-6">
+          <Calculator className="h-8 w-8 text-teal-600" />
+          <h3 className="text-2xl font-bold text-teal-800">Find the Percentage Rate 📈</h3>
+        </div>
+        
+        <div className="space-y-6">
+          {/* Example */}
+          <div className="bg-white p-6 rounded-xl border border-teal-200">
+            <h4 className="text-lg font-bold mb-4 text-teal-700">📚 Example: What percentage of {totalFood} foods are fruits?</h4>
+            
+            <div className="grid md:grid-cols-2 gap-6">
+              <FoodVisual count={foodData.fruits} emoji="🍎" total={totalFood} name="Fruits" showPercentages={true} />
+              <div className="space-y-4">
+                <VisualCalculator 
+                  operation="percentage" 
+                  values={[foodData.fruits, totalFood]} 
+                  result={`${Math.round(foodData.fruits / totalFood * 100)}%`} 
+                  color="teal" 
+                />
+                <div className="text-center">
+                  <Badge variant="secondary" className="text-lg px-4 py-2">
+                    ({foodData.fruits} ÷ {totalFood}) × 100 = {Math.round(foodData.fruits / totalFood * 100)}%
+                  </Badge>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Interactive Practice */}
+          <div className="bg-white p-6 rounded-xl border border-teal-200">
+            <h4 className="text-lg font-bold mb-4 text-teal-700">✏️ Your Turn</h4>
+            <div className="grid md:grid-cols-2 gap-4">
+              {problems.map(({ food, part }) => {
+                const correctAnswer = Math.round((part / totalFood) * 100);
+                const questionId = `phase8-${food}`;
+                const answerState = answerStates[questionId] || 'unanswered';
+                const isShaking = shakingQuestions[questionId] || false;
+                const config = foodConfig[food as keyof typeof foodConfig];
+                
+                return (
+                  <div key={questionId} className={`bg-gray-50 p-4 rounded-lg space-y-3 transition-colors duration-300 ${answerState === 'correct' ? 'bg-green-100 border-2 border-green-300' : answerState === 'incorrect' ? 'bg-red-50 border-2 border-red-200' : ''} ${isShaking ? 'animate-shake' : ''}`}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-2xl">{config.emoji}</span>
+                      <div>
+                        <div className="font-semibold">What % of {totalFood} foods are {food}?</div>
+                        <div className="text-sm text-muted-foreground">({part} ÷ {totalFood}) × 100 = ?</div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <Input 
+                        type="number" 
+                        placeholder="%" 
+                        value={userAnswers[questionId] || ''} 
+                        onChange={e => setUserAnswers(prev => ({ ...prev, [questionId]: e.target.value }))}
+                        className={`flex-1 ${answerState === 'correct' ? 'border-green-500 bg-green-50' : answerState === 'incorrect' ? 'border-red-500 bg-red-50' : ''}`}
+                        disabled={answerState === 'correct'}
+                      />
+                      <Button 
+                        onClick={() => checkAnswer(questionId, userAnswers[questionId], correctAnswer)}
+                        disabled={!userAnswers[questionId] || answerState === 'correct'}
+                        size="sm"
+                        variant={answerState === 'correct' ? 'default' : 'outline'}
+                        className={answerState === 'correct' ? 'bg-green-600 hover:bg-green-700' : ''}
+                      >
+                        {answerState === 'correct' ? '✅' : '✓'}
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </Card>
+    );
+  };
+
+  // Phase 9: Calculate percentage increase and decrease
+  const renderPhase9 = () => {
+    const problems = [
+      { food: 'fruits', oldValue: foodData.fruits, newValue: Math.round(foodData.fruits * 1.2), type: 'increase' },
+      { food: 'vegetables', oldValue: foodData.vegetables, newValue: Math.round(foodData.vegetables * 0.8), type: 'decrease' },
+      { food: 'grains', oldValue: foodData.grains, newValue: Math.round(foodData.grains * 1.5), type: 'increase' }
+    ];
+
+    return (
+      <Card className="p-6 border-2 border-indigo-200 bg-indigo-50">
+        <div className="flex items-center gap-3 mb-6">
+          <Calculator className="h-8 w-8 text-indigo-600" />
+          <h3 className="text-2xl font-bold text-indigo-800">Percentage Change 📊</h3>
+        </div>
+        
+        <div className="space-y-6">
+          {/* Example */}
+          <div className="bg-white p-6 rounded-xl border border-indigo-200">
+            <h4 className="text-lg font-bold mb-4 text-indigo-700">📚 Example: Fruits increased from 10 to 15</h4>
+            
+            <div className="grid md:grid-cols-2 gap-6">
+              <FoodVisual count={foodData.fruits} emoji="🍎" total={totalFood} name="Fruits" />
+              <div className="space-y-4">
+                <VisualCalculator 
+                  operation="percentage" 
+                  values={["(15-10)", "10"]} 
+                  result="50%" 
+                  color="indigo" 
+                />
+                <div className="text-center">
+                  <Badge variant="secondary" className="text-lg px-4 py-2">
+                    ((15-10) ÷ 10) × 100 = 50% increase
+                  </Badge>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Interactive Practice */}
+          <div className="bg-white p-6 rounded-xl border border-indigo-200">
+            <h4 className="text-lg font-bold mb-4 text-indigo-700">✏️ Your Turn</h4>
+            <div className="grid md:grid-cols-2 gap-4">
+              {problems.map(({ food, oldValue, newValue, type }) => {
+                const change = newValue - oldValue;
+                const correctAnswer = Math.round((change / oldValue) * 100);
+                const questionId = `phase9-${food}-${type}`;
+                const answerState = answerStates[questionId] || 'unanswered';
+                const isShaking = shakingQuestions[questionId] || false;
+                const config = foodConfig[food as keyof typeof foodConfig];
+                
+                return (
+                  <div key={questionId} className={`bg-gray-50 p-4 rounded-lg space-y-3 transition-colors duration-300 ${answerState === 'correct' ? 'bg-green-100 border-2 border-green-300' : answerState === 'incorrect' ? 'bg-red-50 border-2 border-red-200' : ''} ${isShaking ? 'animate-shake' : ''}`}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-2xl">{config.emoji}</span>
+                      <div>
+                        <div className="font-semibold">{config.name} changed from {oldValue} to {newValue}</div>
+                        <div className="text-sm text-muted-foreground">
+                          (({newValue}-{oldValue}) ÷ {oldValue}) × 100 = ?% {type}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <Input 
+                        type="number" 
+                        placeholder="% change" 
+                        value={userAnswers[questionId] || ''} 
+                        onChange={e => setUserAnswers(prev => ({ ...prev, [questionId]: e.target.value }))}
+                        className={`flex-1 ${answerState === 'correct' ? 'border-green-500 bg-green-50' : answerState === 'incorrect' ? 'border-red-500 bg-red-50' : ''}`}
+                        disabled={answerState === 'correct'}
+                      />
+                      <Button 
+                        onClick={() => checkAnswer(questionId, userAnswers[questionId], Math.abs(correctAnswer))}
+                        disabled={!userAnswers[questionId] || answerState === 'correct'}
+                        size="sm"
+                        variant={answerState === 'correct' ? 'default' : 'outline'}
+                        className={answerState === 'correct' ? 'bg-green-600 hover:bg-green-700' : ''}
+                      >
+                        {answerState === 'correct' ? '✅' : '✓'}
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </Card>
+    );
+  };
+
+  // Phase 10: Compare percentages
+  const renderPhase10 = () => {
+    const foodPercentages = Object.entries(foodData).map(([food, count]) => ({
+      food,
+      count,
+      percentage: Math.round((count / totalFood) * 100),
+      ...foodConfig[food as keyof typeof foodConfig]
+    })).sort((a, b) => b.percentage - a.percentage);
+
+    const comparisons = [
+      { question: "Which food type has the highest percentage?", answer: foodPercentages[0].food },
+      { question: "Which food type has the lowest percentage?", answer: foodPercentages[foodPercentages.length - 1].food },
+      { question: "What's the difference between the highest and lowest percentages?", answer: String(foodPercentages[0].percentage - foodPercentages[foodPercentages.length - 1].percentage) }
+    ];
+
+    return (
+      <Card className="p-6 border-2 border-violet-200 bg-violet-50">
+        <div className="flex items-center gap-3 mb-6">
+          <Calculator className="h-8 w-8 text-violet-600" />
+          <h3 className="text-2xl font-bold text-violet-800">Compare Percentages 🏆</h3>
+        </div>
+        
+        <div className="space-y-6">
+          {/* Visual Comparison */}
+          <div className="bg-white p-6 rounded-xl border border-violet-200">
+            <h4 className="text-lg font-bold mb-4 text-violet-700">📊 Food Percentage Ranking</h4>
+            
+            <div className="grid md:grid-cols-2 gap-6">
+              <FoodVisual count={totalFood} emoji="🍽️" total={totalFood} name="All Foods" showPercentages={true} />
+              <div className="space-y-3">
+                {foodPercentages.map((item, index) => (
+                  <div key={item.food} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">{item.emoji}</span>
+                      <span className="font-semibold">{item.name}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline">{item.percentage}%</Badge>
+                      <Badge variant="secondary">#{index + 1}</Badge>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Interactive Questions */}
+          <div className="bg-white p-6 rounded-xl border border-violet-200">
+            <h4 className="text-lg font-bold mb-4 text-violet-700">✏️ Comparison Questions</h4>
+            <div className="space-y-4">
+              {comparisons.map((comp, index) => {
+                const questionId = `phase10-comp-${index}`;
+                const answerState = answerStates[questionId] || 'unanswered';
+                const isShaking = shakingQuestions[questionId] || false;
+                
+                return (
+                  <div key={questionId} className={`bg-gray-50 p-4 rounded-lg space-y-3 transition-colors duration-300 ${answerState === 'correct' ? 'bg-green-100 border-2 border-green-300' : answerState === 'incorrect' ? 'bg-red-50 border-2 border-red-200' : ''} ${isShaking ? 'animate-shake' : ''}`}>
+                    <div className="font-semibold">{comp.question}</div>
+                    
+                    <div className="flex gap-2">
+                      <Input 
+                        type="text" 
+                        placeholder="answer" 
+                        value={userAnswers[questionId] || ''} 
+                        onChange={e => setUserAnswers(prev => ({ ...prev, [questionId]: e.target.value }))}
+                        className={`flex-1 ${answerState === 'correct' ? 'border-green-500 bg-green-50' : answerState === 'incorrect' ? 'border-red-500 bg-red-50' : ''}`}
+                        disabled={answerState === 'correct'}
+                      />
+                      <Button 
+                        onClick={() => {
+                          const userAnswer = userAnswers[questionId]?.toLowerCase().trim();
+                          const correctAnswer = comp.answer.toLowerCase().trim();
+                          const isCorrect = userAnswer === correctAnswer || 
+                            (index < 2 && userAnswer === foodConfig[comp.answer as keyof typeof foodConfig]?.name.toLowerCase());
+                          
+                          if (isCorrect) {
+                            setAnswerStates(prev => ({ ...prev, [questionId]: 'correct' }));
+                            setShowConfetti(true);
+                            setTimeout(() => setShowConfetti(false), 3000);
+                          } else {
+                            setAnswerStates(prev => ({ ...prev, [questionId]: 'incorrect' }));
+                            setShakingQuestions(prev => ({ ...prev, [questionId]: true }));
+                            setTimeout(() => setShakingQuestions(prev => ({ ...prev, [questionId]: false })), 500);
+                          }
+                        }}
+                        disabled={!userAnswers[questionId] || answerState === 'correct'}
+                        size="sm"
+                        variant={answerState === 'correct' ? 'default' : 'outline'}
+                        className={answerState === 'correct' ? 'bg-green-600 hover:bg-green-700' : ''}
+                      >
+                        {answerState === 'correct' ? '✅' : '✓'}
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </Card>
+    );
+  };
   if (totalAnimals === 0) {
     return <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8 flex items-center justify-center">
         <Card className="p-8 text-center">
@@ -565,19 +1205,46 @@ const Learning = () => {
 
 
         {/* Current Phase Content */}
-        {currentPhase === 3 && renderPhase3()}
-        {currentPhase === 4 && renderPhase4()}
-        {currentPhase === 5 && renderPhase5()}
+        {isCollectingFood ? renderFoodCollection() : (
+          <>
+            {currentPhase === 3 && renderPhase3()}
+            {currentPhase === 4 && renderPhase4()}
+            {currentPhase === 5 && renderPhase5()}
+            {currentPhase === 6 && renderPhase6()}
+            {currentPhase === 7 && renderPhase7()}
+            {currentPhase === 8 && renderPhase8()}
+            {currentPhase === 9 && renderPhase9()}
+            {currentPhase === 10 && renderPhase10()}
+          </>
+        )}
 
         {/* Navigation */}
-        <div className="flex justify-between mt-8">
-          <Button variant="outline" onClick={() => setCurrentPhase(Math.max(3, currentPhase - 1))} disabled={currentPhase === 3}>
-            Previous Phase
-          </Button>
-          <Button onClick={() => setCurrentPhase(Math.min(5, currentPhase + 1))} disabled={currentPhase === 5}>
-            Next Phase
-          </Button>
-        </div>
+        {!isCollectingFood && (
+          <div className="flex justify-between mt-8">
+            <Button 
+              variant="outline" 
+              onClick={() => setCurrentPhase(Math.max(3, currentPhase - 1))} 
+              disabled={currentPhase === 3}
+            >
+              Previous Phase
+            </Button>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline">{currentPhase}/10</Badge>
+            </div>
+            <Button 
+              onClick={() => {
+                if (currentPhase === 6) {
+                  setIsCollectingFood(true);
+                } else {
+                  setCurrentPhase(Math.min(10, currentPhase + 1));
+                }
+              }} 
+              disabled={currentPhase === 10}
+            >
+              {currentPhase === 6 ? 'Collect Food Data' : 'Next Phase'}
+            </Button>
+          </div>
+        )}
       </div>
       <CalculatorModal />
       <Confetti trigger={showConfetti} />
