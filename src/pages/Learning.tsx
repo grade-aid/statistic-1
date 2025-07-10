@@ -438,7 +438,7 @@ const Learning = () => {
             <div className="grid md:grid-cols-2 gap-6">
               <AnimalVisual count={collectedData.mammals} emoji="🐘" total={totalAnimals} name="Mammals" showPercentages={true} />
               <div className="space-y-4">
-                <VisualCalculator operation="divide" values={[`${mammalsPercentage}%`, "100"]} result={mammalsDecimal.toFixed(2)} color="blue" />
+                <VisualCalculator operation="divide" values={[mammalsPercentage, "100"]} result={mammalsDecimal.toFixed(2)} color="blue" />
                 
               </div>
             </div>
