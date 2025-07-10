@@ -761,9 +761,6 @@ const Learning = () => {
       <div className="max-w-4xl mx-auto space-y-8">
         {/* Header */}
         
-        <Badge variant="outline" className="text-lg px-4 py-2">
-          Using your {totalAnimals} animals!
-        </Badge>
 
 
         {/* Current Phase Content */}
