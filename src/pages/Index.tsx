@@ -479,7 +479,30 @@ const Index = () => {
             </div>
 
             <Card className="game-card">
-              <h3 className="text-lg font-space-grotesk font-bold mb-2">Collection</h3>
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-lg font-space-grotesk font-bold">Collection</h3>
+                <Button 
+                  onClick={() => {
+                    // Auto-collect all remaining animals
+                    const newCollected = { ...collected };
+                    animals.forEach(animal => {
+                      newCollected[animal.type] += 1;
+                    });
+                    setCollected(newCollected);
+                    setAnimals([]);
+                    toast({
+                      title: "🎯 Auto-collected!",
+                      description: `Collected ${animals.length} animals`,
+                      duration: 2000
+                    });
+                  }}
+                  variant="outline" 
+                  size="sm"
+                  className="text-xs"
+                >
+                  Auto-Collect
+                </Button>
+              </div>
               <div className="space-y-2">
                 {Object.entries(animalConfig).map(([type, config]) => <div key={type} className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
