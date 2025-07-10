@@ -387,6 +387,9 @@ const Learning = () => {
   };
   // Check if a phase is completed
   const checkPhaseCompletion = (phase: number) => {
+    console.log(`🔍 Checking phase ${phase} completion...`);
+    console.log(`Already completed:`, phaseCompleted[phase]);
+    
     if (phaseCompleted[phase]) return false; // Already completed
     
     let isCompleted = false;
@@ -394,22 +397,33 @@ const Learning = () => {
     if (phase === 3) {
       // Phase 3: All animal percentage calculations (excluding mammals which is example)
       const phase3Questions = Object.keys(collectedData).filter(type => type !== 'mammals');
+      console.log(`Phase 3 questions:`, phase3Questions);
+      console.log(`Answer states:`, answerStates);
       isCompleted = phase3Questions.every(type => answerStates[`phase3-${type}`] === 'correct');
+      console.log(`Phase 3 completed:`, isCompleted);
     } 
     else if (phase === 4) {
       // Phase 4: All animal decimal conversions (excluding mammals which is example)
       const phase4Questions = Object.keys(collectedData).filter(type => type !== 'mammals');
+      console.log(`Phase 4 questions:`, phase4Questions);
+      console.log(`Answer states:`, answerStates);
       isCompleted = phase4Questions.every(type => answerStates[`phase4-${type}`] === 'correct');
+      console.log(`Phase 4 completed:`, isCompleted);
     }
     else if (phase === 5) {
       // Phase 5: All percentage multiplication tasks
       const phase5Questions = [1, 3, 7, 12];
+      console.log(`Phase 5 questions:`, phase5Questions);
+      console.log(`Answer states:`, answerStates);
       isCompleted = phase5Questions.every(multiplier => answerStates[`phase5-${multiplier}`] === 'correct');
+      console.log(`Phase 5 completed:`, isCompleted);
     }
     else if (phase === 6) {
       // Phase 6: All animals sorted correctly
       const totalAnimalsCount = Object.keys(collectedData).length;
       const sortedAnimalsCount = Object.values(droppedItems).flat().length;
+      console.log(`Phase 6 - Total animals:`, totalAnimalsCount, `Sorted:`, sortedAnimalsCount);
+      console.log(`Dropped items:`, droppedItems);
       
       // Check if all animals are sorted and correctly placed
       isCompleted = sortedAnimalsCount === totalAnimalsCount && 
@@ -418,11 +432,16 @@ const Learning = () => {
           const zone = Object.keys(droppedItems).find(zoneName => 
             droppedItems[zoneName].includes(animalType)
           );
-          return zone && checkDragDropAnswer(animalType, zone);
+          const isCorrect = zone && checkDragDropAnswer(animalType, zone);
+          console.log(`Animal ${animalType} in zone ${zone}: ${isCorrect}`);
+          return isCorrect;
         });
+      console.log(`Phase 6 completed:`, isCompleted);
     }
     
     if (isCompleted && !phaseCompleted[phase]) {
+      console.log(`🎉 Phase ${phase} completed! Auto-advancing in 3 seconds...`);
+      
       // Mark phase as completed
       setPhaseCompleted(prev => ({
         ...prev,
@@ -434,6 +453,7 @@ const Learning = () => {
       
       // Auto-advance to next phase after celebration
       setTimeout(() => {
+        console.log(`⏰ Moving from phase ${phase} to phase ${phase + 1}`);
         setShowConfetti(false);
         if (phase < 6) {
           setCurrentPhase(phase + 1);
