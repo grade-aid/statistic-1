@@ -237,7 +237,7 @@ const Learning = () => {
         
         {/* Mini Pie Chart from Visualization */}
         <div className="flex justify-center">
-          <div className="relative w-32 h-32">
+          <div className="relative w-48 h-48">
             {/* Calculator Button */}
             <Dialog>
               <DialogTrigger asChild>
