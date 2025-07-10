@@ -956,9 +956,8 @@ const Learning = () => {
           <div className="flex items-center gap-2">
             <Dialog>
               <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-1 text-xs px-2 py-1">
+                <Button variant="outline" size="sm" className="p-2">
                   <Calculator size={14} />
-                  Calculator
                 </Button>
               </DialogTrigger>
             </Dialog>
