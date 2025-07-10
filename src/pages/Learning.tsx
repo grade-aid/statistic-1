@@ -370,7 +370,11 @@ const Learning = () => {
     console.log(`🔍 Checking phase ${phase} completion...`);
     console.log(`Already completed:`, phaseCompleted[phase]);
     
-    if (phaseCompleted[phase]) return false; // Already completed
+    // Don't duplicate completion logic, but allow function to check progress
+    if (phaseCompleted[phase]) {
+      console.log(`Phase ${phase} already completed, skipping completion check`);
+      return false;
+    }
     
     let isCompleted = false;
     
