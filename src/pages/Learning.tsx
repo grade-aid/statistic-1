@@ -406,22 +406,23 @@ const Learning = () => {
               const percentage = totalAnimals > 0 ? Math.round(count / totalAnimals * 100) : 0;
               const correctDecimal = percentage / 100;
               const questionId = `phase4-${type}`;
-               return <div key={type} className="bg-gray-50 p-4 rounded-lg space-y-3 relative">
+               return <div key={type} className="bg-gray-50 p-4 rounded-lg space-y-3">
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-2xl">{config.emoji}</span>
                         <div>
-                          <div className="font-semibold">{config.name}</div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold">{config.name}</span>
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button variant="outline" size="sm" className="w-6 h-6 p-0 rounded-full bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => setIsCalculatorOpen(true)}>
+                                  <HelpCircle size={14} />
+                                </Button>
+                              </DialogTrigger>
+                            </Dialog>
+                          </div>
                           <div className="text-sm text-muted-foreground">{percentage}% → ? decimal</div>
                         </div>
                       </div>
-                      
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button variant="outline" size="sm" className="absolute -top-2 -right-2 w-6 h-6 p-0 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 z-10" onClick={() => setIsCalculatorOpen(true)}>
-                            <HelpCircle size={14} />
-                          </Button>
-                        </DialogTrigger>
-                      </Dialog>
                       
                       <div className="flex gap-2">
                         <Input type="number" step="0.01" placeholder="0.00" value={userAnswers[questionId] || ''} onChange={e => setUserAnswers(prev => ({
