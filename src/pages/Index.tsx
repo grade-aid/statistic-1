@@ -104,17 +104,38 @@ const Index = () => {
   const generateAnimals = useCallback((wallPositions: Position[]) => {
     const newAnimals: Animal[] = [];
     const animalTypes = Object.keys(animalConfig) as Array<keyof GameState>;
-    
+
     // Use strategic animal counts for clean percentages - all different numbers, totals > 20
-    const animalDistributions = [
-      { total: 25, counts: [1, 3, 4, 7, 10] }, // 4%, 12%, 16%, 28%, 40%
-      { total: 25, counts: [2, 4, 5, 6, 8] }, // 8%, 16%, 20%, 24%, 32%
-      { total: 50, counts: [3, 7, 9, 11, 20] }, // 6%, 14%, 18%, 22%, 40%
-      { total: 50, counts: [4, 6, 10, 12, 18] }, // 8%, 12%, 20%, 24%, 36%
-      { total: 100, counts: [5, 15, 20, 25, 35] }, // 5%, 15%, 20%, 25%, 35%
-      { total: 20, counts: [1, 2, 3, 5, 9] }, // 5%, 10%, 15%, 25%, 45%
+    const animalDistributions = [{
+      total: 25,
+      counts: [1, 3, 4, 7, 10]
+    },
+    // 4%, 12%, 16%, 28%, 40%
+    {
+      total: 25,
+      counts: [2, 4, 5, 6, 8]
+    },
+    // 8%, 16%, 20%, 24%, 32%
+    {
+      total: 50,
+      counts: [3, 7, 9, 11, 20]
+    },
+    // 6%, 14%, 18%, 22%, 40%
+    {
+      total: 50,
+      counts: [4, 6, 10, 12, 18]
+    },
+    // 8%, 12%, 20%, 24%, 36%
+    {
+      total: 100,
+      counts: [5, 15, 20, 25, 35]
+    },
+    // 5%, 15%, 20%, 25%, 35%
+    {
+      total: 20,
+      counts: [1, 2, 3, 5, 9]
+    } // 5%, 10%, 15%, 25%, 45%
     ];
-    
     const selectedDistribution = animalDistributions[Math.floor(Math.random() * animalDistributions.length)];
     const totalAnimals = selectedDistribution.total;
     setTotalTarget(totalAnimals);
@@ -126,17 +147,16 @@ const Index = () => {
     animalTypes.forEach((type, typeIndex) => {
       const count = selectedDistribution.counts[typeIndex];
       const config = animalConfig[type];
-      
       for (let i = 0; i < count; i++) {
-      let position: Position;
-      let attempts = 0;
-      do {
-        position = {
-          x: Math.floor(Math.random() * (GRID_SIZE - 2)) + 1,
-          y: Math.floor(Math.random() * (GRID_SIZE - 2)) + 1
-        };
-        attempts++;
-      } while ((position.x === 1 && position.y === 1 || isWallPosition(position) || newAnimals.some(animal => animal.position.x === position.x && animal.position.y === position.y)) && attempts < 50);
+        let position: Position;
+        let attempts = 0;
+        do {
+          position = {
+            x: Math.floor(Math.random() * (GRID_SIZE - 2)) + 1,
+            y: Math.floor(Math.random() * (GRID_SIZE - 2)) + 1
+          };
+          attempts++;
+        } while ((position.x === 1 && position.y === 1 || isWallPosition(position) || newAnimals.some(animal => animal.position.x === position.x && animal.position.y === position.y)) && attempts < 50);
         newAnimals.push({
           id: `${type}-${animalIndex}`,
           type,
@@ -481,27 +501,7 @@ const Index = () => {
             <Card className="game-card">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-lg font-space-grotesk font-bold">Collection</h3>
-                <Button 
-                  onClick={() => {
-                    // Auto-collect all remaining animals
-                    const newCollected = { ...collected };
-                    animals.forEach(animal => {
-                      newCollected[animal.type] += 1;
-                    });
-                    setCollected(newCollected);
-                    setAnimals([]);
-                    toast({
-                      title: "🎯 Auto-collected!",
-                      description: `Collected ${animals.length} animals`,
-                      duration: 2000
-                    });
-                  }}
-                  variant="outline" 
-                  size="sm"
-                  className="text-xs"
-                >
-                  Auto-Collect
-                </Button>
+                
               </div>
               <div className="space-y-2">
                 {Object.entries(animalConfig).map(([type, config]) => <div key={type} className="flex items-center justify-between">
@@ -551,19 +551,10 @@ const Index = () => {
                       <span className="font-dm-sans font-bold text-sm">{count}</span>
                     </div>
                     <div className="w-full bg-muted rounded-full h-4 border-2 border-brand-black">
-                      <div 
-                        className="h-full rounded-full transition-all duration-1000 ease-out flex items-center justify-end pr-1"
-                        style={{ 
-                          width: count > 0 ? `${percentage}%` : '0%',
-                          backgroundColor: count > 0 ? (
-                            type === 'mammals' ? '#ef4444' :
-                            type === 'birds' ? '#3b82f6' :
-                            type === 'reptiles' ? '#22c55e' :
-                            type === 'fish' ? '#06b6d4' :
-                            type === 'insects' ? '#eab308' : '#6b7280'
-                          ) : '#6b7280'
-                        }}
-                      >
+                      <div className="h-full rounded-full transition-all duration-1000 ease-out flex items-center justify-end pr-1" style={{
+                    width: count > 0 ? `${percentage}%` : '0%',
+                    backgroundColor: count > 0 ? type === 'mammals' ? '#ef4444' : type === 'birds' ? '#3b82f6' : type === 'reptiles' ? '#22c55e' : type === 'fish' ? '#06b6d4' : type === 'insects' ? '#eab308' : '#6b7280' : '#6b7280'
+                  }}>
                         {count > 0 && <span className="text-xs font-bold text-white">{count}</span>}
                       </div>
                     </div>
@@ -574,16 +565,16 @@ const Index = () => {
 
           <div className="text-center">
             <Button onClick={() => {
-              // Save data to localStorage so other pages can access it
-              localStorage.setItem('animalData', JSON.stringify(collected));
-              navigate('/visualization', { 
-                state: { 
-                  collected: collected, 
-                  totalCollected: totalCollected,
-                  animalConfig: animalConfig
-                }
-              });
-            }} className="game-button text-lg px-6 py-3">
+            // Save data to localStorage so other pages can access it
+            localStorage.setItem('animalData', JSON.stringify(collected));
+            navigate('/visualization', {
+              state: {
+                collected: collected,
+                totalCollected: totalCollected,
+                animalConfig: animalConfig
+              }
+            });
+          }} className="game-button text-lg px-6 py-3">
               <ArrowRight className="mr-2 h-4 w-4" />
               Continue to Learning
             </Button>
