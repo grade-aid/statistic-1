@@ -982,15 +982,6 @@ const Learning = () => {
             Previous Phase
           </Button>
           
-          {/* Auto-fill button for testing */}
-          <Button 
-            variant="destructive" 
-            size="sm"
-            onClick={autoFillAnswers}
-            className="bg-red-500 hover:bg-red-600 text-xs"
-          >
-            🔧 Auto-Fill Answers (Testing)
-          </Button>
         </div>
       </div>
       <CalculatorModal />
