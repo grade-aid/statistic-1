@@ -292,11 +292,12 @@ const Learning = () => {
                 const config = animalConfig[type as keyof typeof animalConfig];
                 const slice = <g key={type}>
                       <path d={pathData} fill={config.color} stroke="white" strokeWidth="4" className="transition-all duration-300" />
-                      {animalPercentage > 5 && <text x={labelX} y={labelY} textAnchor="middle" dy="0.3em" className="text-sm font-bold fill-white" style={{
-                    textShadow: '1px 1px 1px rgba(0,0,0,0.5)'
+                      {animalPercentage > 2 && <text x={labelX} y={labelY} textAnchor="middle" dy="0.3em" className="text-xs font-bold fill-white" style={{
+                    textShadow: '2px 2px 2px rgba(0,0,0,0.8)',
+                    fontSize: animalPercentage < 8 ? '10px' : '14px'
                   }}>
                           {showPercentages ? `${Math.round(animalPercentage)}%` : animalCount}
-                        </text>}
+                         </text>}
                     </g>;
                 startAngle = endAngle;
                 return slice;
