@@ -860,7 +860,9 @@ const Learning = () => {
           
         </div>
       </div>
+      {/* Calculator component for math help */}
       <Calculator isOpen={isCalculatorOpen} onOpenChange={setIsCalculatorOpen} />
+      {/* Confetti celebration effect */}
       <Confetti trigger={showConfetti} />
     </div>;
 };
