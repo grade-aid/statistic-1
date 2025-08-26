@@ -452,105 +452,6 @@ const Learning = () => {
     return false;
   };
 
-  
-  // Auto-fill function for testing
-  const autoFillAnswers = () => {
-    console.log("🤖 Auto-filling answers for testing...");
-    
-    // Calculate correct answers
-    const mammalsPercentage = totalAnimals > 0 ? Math.round(collectedData.mammals / totalAnimals * 100) : 0;
-    const birdsPercentage = totalAnimals > 0 ? Math.round(collectedData.birds / totalAnimals * 100) : 0;
-    const reptilesPercentage = totalAnimals > 0 ? Math.round(collectedData.reptiles / totalAnimals * 100) : 0;
-    const fishPercentage = totalAnimals > 0 ? Math.round(collectedData.fish / totalAnimals * 100) : 0;
-    const insectsPercentage = totalAnimals > 0 ? Math.round(collectedData.insects / totalAnimals * 100) : 0;
-    
-    const onePercent = totalAnimals > 0 ? totalAnimals / 100 : 0;
-    const birdsDecimal = birdsPercentage / 100;
-    const reptilesDecimal = reptilesPercentage / 100;
-    const fishDecimal = fishPercentage / 100;
-    const insectsDecimal = insectsPercentage / 100;
-
-    // Fill Phase 3 answers (percentages)
-    const phase3Answers = {
-      "phase3-birds": birdsPercentage.toString(),
-      "phase3-reptiles": reptilesPercentage.toString(),
-      "phase3-fish": fishPercentage.toString(),
-      "phase3-insects": insectsPercentage.toString()
-    };
-
-    // Fill Phase 4 answers (decimals)
-    const phase4Answers = {
-      "phase4-birds": birdsDecimal.toString(),
-      "phase4-reptiles": reptilesDecimal.toString(),
-      "phase4-fish": fishDecimal.toString(),
-      "phase4-insects": insectsDecimal.toString()
-    };
-
-    // Fill Phase 5 answers (multiplication results)
-    const phase5Answers = {
-      "phase5-1": Math.round(mammalsPercentage * 1).toString(),
-      "phase5-3": Math.round(mammalsPercentage * 3).toString(),
-      "phase5-7": Math.round(mammalsPercentage * 7).toString(),
-      "phase5-12": Math.round(mammalsPercentage * 12).toString()
-    };
-
-    // Combine all answers
-    const allAnswers = { ...phase3Answers, ...phase4Answers, ...phase5Answers };
-    
-    // Set user answers
-    setUserAnswers(allAnswers);
-    
-    // Check all answers
-    const newAnswerStates: { [key: string]: 'correct' | 'incorrect' | 'unanswered' } = {};
-    
-    Object.entries(allAnswers).forEach(([questionId, answer]) => {
-      if (questionId.startsWith("phase3-")) {
-        const type = questionId.replace("phase3-", "");
-        const correctAnswer = type === "birds" ? birdsPercentage :
-                            type === "reptiles" ? reptilesPercentage :
-                            type === "fish" ? fishPercentage :
-                            type === "insects" ? insectsPercentage : 0;
-        newAnswerStates[questionId] = parseInt(answer) === correctAnswer ? 'correct' : 'incorrect';
-      } else if (questionId.startsWith("phase4-")) {
-        const type = questionId.replace("phase4-", "");
-        const correctAnswer = type === "birds" ? birdsDecimal :
-                            type === "reptiles" ? reptilesDecimal :
-                            type === "fish" ? fishDecimal :
-                            type === "insects" ? insectsDecimal : 0;
-        newAnswerStates[questionId] = parseFloat(answer) === correctAnswer ? 'correct' : 'incorrect';
-      } else if (questionId.startsWith("phase5-")) {
-        const multiplier = parseInt(questionId.replace("phase5-", ""));
-        const correctAnswer = Math.round(mammalsPercentage * multiplier);
-        newAnswerStates[questionId] = parseInt(answer) === correctAnswer ? 'correct' : 'incorrect';
-      }
-    });
-    
-    setAnswerStates(newAnswerStates);
-    
-    // Auto-fill Phase 6 drag and drop
-    if (currentPhase === 6) {
-      const correctDroppedItems: {[key: string]: string[]} = {
-        low: [],
-        medium: [],
-        high: []
-      };
-      
-      Object.entries(collectedData).forEach(([type]) => {
-        const percentage = totalAnimals > 0 ? Math.round(collectedData[type as keyof typeof collectedData] / totalAnimals * 100) : 0;
-        if (percentage <= 15) {
-          correctDroppedItems.low.push(type);
-        } else if (percentage <= 35) {
-          correctDroppedItems.medium.push(type);
-        } else {
-          correctDroppedItems.high.push(type);
-        }
-      });
-      
-      setDroppedItems(correctDroppedItems);
-    }
-    
-    console.log("✅ Auto-fill complete! All answers filled correctly.");
-  };
 
   const checkAnswer = (questionId: string, userAnswer: string, correctAnswer: number) => {
     // Add detailed debugging for fish question
@@ -802,8 +703,8 @@ const Learning = () => {
                 }))} className={`flex-1 text-sm h-7 ${answerState === 'correct' ? 'border-green-500 bg-green-50' : answerState === 'incorrect' ? 'border-red-500 bg-red-50' : ''}`} disabled={answerState === 'correct'} />
                     <Button onClick={() => checkAnswer(answerKey, userAnswers[answerKey], parseFloat(correctAmount))} disabled={!userAnswers[answerKey] || answerState === 'correct'} size="sm" variant={answerState === 'correct' ? 'default' : 'outline'} className={`h-7 w-7 p-0 text-xs ${answerState === 'correct' ? 'bg-green-600 hover:bg-green-700' : ''}`}>
                       {answerState === 'correct' ? '✅' : '✓'}
-                    </Button>
-                  </div>
+            </Button>
+          </div>
                 </div>;
           })}
           </div>
@@ -966,14 +867,6 @@ const Learning = () => {
             >
               <HelpCircle size={16} />
               <span className="hidden sm:inline">Calculator</span>
-            </Button>
-            <Button 
-              variant="secondary" 
-              size="sm" 
-              onClick={autoFillAnswers}
-              className="flex items-center gap-1 text-xs md:text-sm bg-orange-500 hover:bg-orange-600 text-white"
-            >
-              ⚡ Auto-Fill (Testing)
             </Button>
           </div>
         </div>
