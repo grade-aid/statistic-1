@@ -307,16 +307,16 @@ const Learning = () => {
           </div>
         </div>
         
-        {/* Color Legend */}
+        {/* Color Legend - Birds Only */}
         <div className="flex flex-wrap gap-1 justify-center mt-2">
-          {Object.entries(animalConfig).map(([type, config]) => <div key={type} className="flex items-center gap-0.5">
-              <div className="w-2 h-2 rounded-sm" style={{
-            backgroundColor: config.color
-          }} />
-              <span className="text-xs text-muted-foreground">
-                {config.emoji}
-              </span>
-            </div>)}
+          <div className="flex items-center gap-0.5">
+            <div className="w-2 h-2 rounded-sm" style={{
+              backgroundColor: animalConfig.birds.color
+            }} />
+            <span className="text-xs text-muted-foreground">
+              {animalConfig.birds.emoji}
+            </span>
+          </div>
         </div>
         
         
