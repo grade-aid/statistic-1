@@ -1,78 +1,71 @@
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { useNavigate, useLocation } from "react-router-dom";
-import { ArrowLeft, PieChart, BarChart3 } from "lucide-react";
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { BarChart3, PieChart } from 'lucide-react';
 
 const Visualization = () => {
   const navigate = useNavigate();
   const location = useLocation();
-
-  // Get data from navigation state or use fallback data
-  const gameState = location.state as {
-    collected?: {
-      mammals: number;
-      birds: number;
-      reptiles: number;
-      fish: number;
-      insects: number;
-    };
-    totalCollected?: number;
-    animalConfig?: any;
-  } | null;
-
-  // Only use actual collected data, no fallback
+  
+  // Get game state from navigation
+  const gameState = location.state as { collected: Record<string, number> } | null;
   const collectedData = gameState?.collected || {
     mammals: 0,
     birds: 0,
-    reptiles: 0,
     fish: 0,
+    reptiles: 0,
     insects: 0
   };
-  const totalAnimals = gameState?.totalCollected || Object.values(collectedData).reduce((sum, count) => sum + count, 0);
 
-  // Save data to localStorage so other pages can access it
+  // Calculate total
+  const totalAnimals = Object.values(collectedData).reduce((sum, count) => sum + count, 0);
+
+  // Save to localStorage for persistence
   useEffect(() => {
-    localStorage.setItem('animalData', JSON.stringify(collectedData));
+    if (gameState?.collected) {
+      localStorage.setItem('animalCollectionData', JSON.stringify(collectedData));
+    }
   }, [collectedData]);
+
+  // Animal configuration with colors and emojis
   const animalConfig = {
     mammals: {
-      emoji: '🐘',
-      color: '#ef4444',
+      emoji: '🐺',
+      color: '#8B5CF6',
       name: 'Mammals'
-    },
-    // red
+    }, // purple
     birds: {
       emoji: '🦅',
-      color: '#3b82f6',
+      color: '#06B6D4',
       name: 'Birds'
-    },
-    // blue  
-    reptiles: {
-      emoji: '🐍',
-      color: '#22c55e',
-      name: 'Reptiles'
-    },
-    // green
+    }, // cyan
     fish: {
       emoji: '🐟',
-      color: '#06b6d4',
+      color: '#10B981',
       name: 'Fish'
-    },
-    // cyan
+    }, // emerald
+    reptiles: {
+      emoji: '🦎',
+      color: '#F59E0B',
+      name: 'Reptiles'
+    }, // amber
     insects: {
-      emoji: '🐛',
-      color: '#eab308',
+      emoji: '🦋',
+      color: '#EF4444',
       name: 'Insects'
-    } // yellow
+    } // red
   };
+
   const dataEntries = Object.entries(collectedData);
   const maxValue = Math.max(...dataEntries.map(([, value]) => value));
-  return <div className="min-h-screen bg-background p-4 md:p-6">
-      <div className="max-w-6xl mx-auto">
+
+  return (
+    <div className="h-screen bg-background p-2 md:p-4 overflow-hidden">
+      <div className="max-w-6xl mx-auto h-full flex flex-col">
         {/* Header */}
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-4 mb-6">
-          <h1 className="text-xl md:text-2xl lg:text-3xl font-space-grotesk font-bold text-center lg:text-left">📊 Understanding Your Collection</h1>
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-2 mb-3 flex-shrink-0">
+          <h1 className="text-lg md:text-xl lg:text-2xl font-space-grotesk font-bold text-center lg:text-left">📊 Understanding Your Collection</h1>
           <Button 
             onClick={() => navigate('/learning', {
               state: {
@@ -80,151 +73,188 @@ const Visualization = () => {
                 totalCollected: totalAnimals
               }
             })} 
-            className="game-button text-base md:text-lg lg:text-xl px-6 md:px-8 lg:px-12 py-3 md:py-4 lg:py-6" 
-            size="lg"
+            className="game-button text-sm md:text-base px-4 md:px-6 py-2 md:py-3" 
+            size="sm"
           >
             Next: Learn Math 🧮
           </Button>
         </div>
 
         {/* Summary */}
-        <Card className="game-card mb-6 md:mb-8">
-          <div className="text-center">
-            <h2 className="text-2xl md:text-3xl lg:text-4xl font-space-grotesk font-bold mb-4">
+        <Card className="game-card mb-3 flex-shrink-0">
+          <div className="text-center p-3 md:p-4">
+            <h2 className="text-xl md:text-2xl font-space-grotesk font-bold mb-2">
               🎉 Mission Complete!
             </h2>
-            <p className="text-base md:text-lg lg:text-xl font-dm-sans mb-6">
+            <p className="text-sm md:text-base font-dm-sans mb-3">
               You collected <span className="font-bold text-primary">{totalAnimals}</span> animals total!
             </p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 md:gap-4">
-              {Object.entries(animalConfig).map(([type, config]) => <div key={type} className="text-center">
-                  <div className="w-12 h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 rounded-full flex items-center justify-center text-xl md:text-2xl lg:text-3xl mx-auto mb-2 border-2 md:border-4 border-brand-black" style={{
-                backgroundColor: config.color
-              }}>
+            <div className="grid grid-cols-5 gap-2">
+              {Object.entries(animalConfig).map(([type, config]) => 
+                <div key={type} className="text-center">
+                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center text-sm md:text-base mx-auto mb-1 border-2 border-brand-black" style={{
+                    backgroundColor: config.color
+                  }}>
                     {config.emoji}
                   </div>
-                  <p className="font-dm-sans font-bold text-lg md:text-xl lg:text-2xl">{collectedData[type as keyof typeof collectedData]}</p>
-                  <p className="font-dm-sans text-xs md:text-sm text-muted-foreground">{config.name}</p>
-                </div>)}
+                  <p className="font-dm-sans font-bold text-sm md:text-base">{collectedData[type as keyof typeof collectedData]}</p>
+                  <p className="font-dm-sans text-xs text-muted-foreground">{config.name}</p>
+                </div>
+              )}
             </div>
           </div>
         </Card>
 
-        <div className="grid gap-4 md:gap-6 lg:gap-8 xl:grid-cols-2">
+        <div className="grid gap-3 xl:grid-cols-2 flex-1 min-h-0 overflow-hidden">
           {/* Bar Chart */}
-          <Card className="game-card">
-            <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
-              <BarChart3 className="h-6 w-6 md:h-8 md:w-8 text-primary" />
-              <h3 className="text-lg md:text-xl lg:text-2xl font-space-grotesk font-bold">Bar Chart View</h3>
+          <Card className="game-card overflow-hidden flex flex-col">
+            <div className="flex items-center gap-2 mb-2 p-3 flex-shrink-0">
+              <BarChart3 className="h-5 w-5 md:h-6 md:w-6 text-primary" />
+              <h3 className="text-base md:text-lg font-space-grotesk font-bold">Bar Chart View</h3>
             </div>
-            <div className="space-y-3 md:space-y-4">
+            <div className="space-y-2 p-3 pt-0 overflow-y-auto flex-1">
               {dataEntries.map(([type, count]) => {
-              const config = animalConfig[type as keyof typeof animalConfig];
-              const percentage = count / maxValue * 100;
-              return <div key={type} className="space-y-2">
+                const config = animalConfig[type as keyof typeof animalConfig];
+                const percentage = count / maxValue * 100;
+                return (
+                  <div key={type} className="space-y-1">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 md:gap-3">
-                        <span className="text-lg md:text-xl lg:text-2xl">{config.emoji}</span>
-                        <span className="font-dm-sans font-semibold text-sm md:text-base">{config.name}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm md:text-base">{config.emoji}</span>
+                        <span className="font-dm-sans font-semibold text-xs md:text-sm">{config.name}</span>
                       </div>
-                      <span className="font-dm-sans font-bold text-base md:text-lg">{count}</span>
+                      <span className="font-dm-sans font-bold text-sm md:text-base">{count}</span>
                     </div>
-                    <div className="w-full bg-muted rounded-full h-4 md:h-5 lg:h-6 border-2 border-brand-black">
-                      <div className="h-full rounded-full transition-all duration-1000 ease-out flex items-center justify-end pr-1 md:pr-2" style={{
-                    width: `${percentage}%`,
-                    backgroundColor: config.color
-                  }}>
+                    <div className="w-full bg-muted rounded-full h-3 md:h-4 border-2 border-brand-black">
+                      <div 
+                        className="h-full rounded-full transition-all duration-1000 ease-out flex items-center justify-end pr-1" 
+                        style={{
+                          width: `${percentage}%`,
+                          backgroundColor: config.color
+                        }}
+                      >
                         <span className="text-xs font-bold text-white">{count}</span>
                       </div>
                     </div>
-                  </div>;
-            })}
+                  </div>
+                );
+              })}
             </div>
           </Card>
 
           {/* Pie Chart Representation */}
-          <Card className="game-card">
-            <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
-              <PieChart className="h-6 w-6 md:h-8 md:w-8 text-primary" />
-              <h3 className="text-lg md:text-xl lg:text-2xl font-space-grotesk font-bold">Pie Chart View</h3>
+          <Card className="game-card overflow-hidden flex flex-col">
+            <div className="flex items-center gap-2 mb-2 p-3 flex-shrink-0">
+              <PieChart className="h-5 w-5 md:h-6 md:w-6 text-primary" />
+              <h3 className="text-base md:text-lg font-space-grotesk font-bold">Pie Chart View</h3>
             </div>
             
             {/* Pie Chart - Real SVG Implementation */}
-            <div className="space-y-3 md:space-y-4">
-              <div className="relative w-48 h-48 md:w-56 md:h-56 lg:w-64 lg:h-64 mx-auto">
+            <div className="p-3 pt-0 overflow-y-auto flex-1 flex flex-col">
+              <div className="relative w-32 h-32 md:w-40 md:h-40 mx-auto flex-shrink-0">
                 <svg className="w-full h-full" viewBox="0 0 200 200">
                   {(() => {
-                  let startAngle = 0;
-                  const radius = 80;
-                  const centerX = 100;
-                  const centerY = 100;
-                  return dataEntries.map(([type, count], index) => {
-                    const percentage = count / totalAnimals * 100;
-                    const angle = percentage / 100 * 360;
-                    const endAngle = startAngle + angle;
+                    let startAngle = 0;
+                    const radius = 80;
+                    const centerX = 100;
+                    const centerY = 100;
+                    
+                    return dataEntries.map(([type, count], index) => {
+                      const percentage = count / totalAnimals * 100;
+                      const angle = percentage / 100 * 360;
+                      const endAngle = startAngle + angle;
 
-                    // Convert angles to radians
-                    const startAngleRad = startAngle * Math.PI / 180;
-                    const endAngleRad = endAngle * Math.PI / 180;
+                      // Convert angles to radians
+                      const startAngleRad = startAngle * Math.PI / 180;
+                      const endAngleRad = endAngle * Math.PI / 180;
 
-                    // Calculate path coordinates
-                    const x1 = centerX + radius * Math.cos(startAngleRad);
-                    const y1 = centerY + radius * Math.sin(startAngleRad);
-                    const x2 = centerX + radius * Math.cos(endAngleRad);
-                    const y2 = centerY + radius * Math.sin(endAngleRad);
-                    const largeArcFlag = angle > 180 ? 1 : 0;
-                    const pathData = [`M ${centerX} ${centerY}`, `L ${x1} ${y1}`, `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`, 'Z'].join(' ');
+                      // Calculate path coordinates
+                      const x1 = centerX + radius * Math.cos(startAngleRad);
+                      const y1 = centerY + radius * Math.sin(startAngleRad);
+                      const x2 = centerX + radius * Math.cos(endAngleRad);
+                      const y2 = centerY + radius * Math.sin(endAngleRad);
+                      
+                      const largeArcFlag = angle > 180 ? 1 : 0;
+                      const pathData = [
+                        `M ${centerX} ${centerY}`,
+                        `L ${x1} ${y1}`,
+                        `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`,
+                        'Z'
+                      ].join(' ');
 
-                    // Label position (middle of slice)
-                    const labelAngle = (startAngle + endAngle) / 2;
-                    const labelAngleRad = labelAngle * Math.PI / 180;
-                    const labelRadius = radius * 0.7;
-                    const labelX = centerX + labelRadius * Math.cos(labelAngleRad);
-                    const labelY = centerY + labelRadius * Math.sin(labelAngleRad);
-                    const config = animalConfig[type as keyof typeof animalConfig];
-                    const slice = <g key={type}>
-                          <path d={pathData} fill={config.color} stroke="white" strokeWidth="2" className="transition-all duration-300 hover:opacity-80" />
-                          {percentage > 5 && <text x={labelX} y={labelY} textAnchor="middle" dy="0.3em" className="text-xs md:text-sm font-bold fill-white" style={{
-                        textShadow: '1px 1px 1px rgba(0,0,0,0.5)'
-                      }}>
-                               {count}
-                             </text>}
-                        </g>;
-                    startAngle = endAngle;
-                    return slice;
-                  });
-                })()}
+                      // Label position (middle of slice)
+                      const labelAngle = (startAngle + endAngle) / 2;
+                      const labelAngleRad = labelAngle * Math.PI / 180;
+                      const labelRadius = radius * 0.7;
+                      const labelX = centerX + labelRadius * Math.cos(labelAngleRad);
+                      const labelY = centerY + labelRadius * Math.sin(labelAngleRad);
+                      
+                      const config = animalConfig[type as keyof typeof animalConfig];
+                      
+                      const slice = (
+                        <g key={type}>
+                          <path 
+                            d={pathData} 
+                            fill={config.color} 
+                            stroke="white" 
+                            strokeWidth="2" 
+                            className="transition-all duration-300 hover:opacity-80" 
+                          />
+                          {percentage > 8 && (
+                            <text 
+                              x={labelX} 
+                              y={labelY} 
+                              textAnchor="middle" 
+                              dy="0.3em" 
+                              className="text-xs font-bold fill-white" 
+                              style={{
+                                textShadow: '1px 1px 1px rgba(0,0,0,0.5)'
+                              }}
+                            >
+                              {count}
+                            </text>
+                          )}
+                        </g>
+                      );
+                      
+                      startAngle = endAngle;
+                      return slice;
+                    });
+                  })()}
                 </svg>
               </div>
               
-              <div className="text-center">
-                <p className="text-sm md:text-base lg:text-lg font-dm-sans text-muted-foreground mb-3 md:mb-4">
-                  Each slice represents the proportion of animals you collected
+              <div className="text-center mt-2 flex-1">
+                <p className="text-xs md:text-sm font-dm-sans text-muted-foreground mb-2">
+                  Proportion of animals collected
                 </p>
-                <div className="grid grid-cols-1 gap-1 md:gap-2">
+                <div className="grid grid-cols-1 gap-1 text-xs">
                   {dataEntries.map(([type, count]) => {
-                  const config = animalConfig[type as keyof typeof animalConfig];
-                  const percentage = Math.round(count / totalAnimals * 100);
-                  return <div key={type} className="flex items-center justify-between px-3 md:px-4 py-2 bg-muted rounded-lg">
-                        <div className="flex items-center gap-2 md:gap-3">
-                          <div className="w-3 h-3 md:w-4 md:h-4 rounded-full border border-brand-black" style={{
-                        backgroundColor: config.color
-                      }}></div>
-                          <span className="font-dm-sans text-sm md:text-base">{config.emoji} {config.name}</span>
+                    const config = animalConfig[type as keyof typeof animalConfig];
+                    const percentage = Math.round(count / totalAnimals * 100);
+                    return (
+                      <div key={type} className="flex items-center justify-between px-2 py-1 bg-muted rounded">
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-2 h-2 rounded-full border border-brand-black" 
+                            style={{
+                              backgroundColor: config.color
+                            }}
+                          ></div>
+                          <span className="font-dm-sans text-xs">{config.emoji} {config.name}</span>
                         </div>
-                        <span className="font-dm-sans font-bold text-sm md:text-base">{count}</span>
-                      </div>;
-                })}
+                        <span className="font-dm-sans font-bold text-xs">{count}</span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>
           </Card>
         </div>
-
-        {/* Next Steps */}
-        
       </div>
-    </div>;
+    </div>
+  );
 };
 
 export default Visualization;
