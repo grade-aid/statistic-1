@@ -76,8 +76,11 @@ const Learning = () => {
       setCalculatorDisplay(newInput);
     }
   };
+
+  // Calculator buttons array defined outside to prevent re-creation
+  const calculatorButtons = [["C", "±", "", "÷"], ["7", "8", "9", "×"], ["4", "5", "6", "-"], ["1", "2", "3", "+"], ["0", ".", "="]];
+
   const CalculatorModal = () => {
-    const buttons = [["C", "±", "", "÷"], ["7", "8", "9", "×"], ["4", "5", "6", "-"], ["1", "2", "3", "+"], ["0", ".", "="]];
     return <Dialog open={isCalculatorOpen} onOpenChange={setIsCalculatorOpen}>
         <DialogContent className="w-80">
           <DialogHeader>
@@ -88,14 +91,47 @@ const Learning = () => {
               {calculatorDisplay}
             </div>
             <div className="grid grid-cols-4 gap-2">
-              {buttons.flat().map((btn, idx) => btn === "" ? <div key={idx} className="h-12" /> : <Button key={idx} variant="ghost" className={`h-12 text-lg font-semibold transition-none select-none border-0 focus-visible:outline-none focus-visible:ring-0 focus:ring-0 focus:outline-none active:outline-none ${btn === "0" ? "col-span-2" : ""} ${["C", "±", "÷", "×", "-", "+", "="].includes(btn) ? "!bg-orange-500 hover:!bg-orange-600 active:!bg-orange-600 !text-white !border-orange-500" : "!bg-gray-600 hover:!bg-gray-500 active:!bg-gray-500 !text-white !border-gray-600"}`} onMouseDown={(e) => e.preventDefault()} onClick={() => {
-              let value = btn;
-              if (btn === "×") value = "*";
-              if (btn === "÷") value = "/";
-              handleCalculatorInput(value);
-            }}>
-                  {btn}
-                </Button>)}
+              {calculatorButtons.flat().map((btn, idx) => {
+                if (btn === "") {
+                  return <div key={`empty-${idx}`} className="h-12" />;
+                }
+                
+                const isOperator = ["C", "±", "÷", "×", "-", "+", "="].includes(btn);
+                
+                return (
+                  <button
+                    key={`calc-btn-${btn}-${idx}`}
+                    className={`h-12 text-lg font-semibold select-none rounded-md ${
+                      btn === "0" ? "col-span-2" : ""
+                    } ${
+                      isOperator 
+                        ? "bg-orange-500 hover:bg-orange-600 text-white border border-orange-500" 
+                        : "bg-gray-600 hover:bg-gray-500 text-white border border-gray-600"
+                    }`}
+                    style={{ 
+                      transition: 'none',
+                      outline: 'none',
+                      boxShadow: 'none'
+                    }}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                    onFocus={(e) => e.preventDefault()}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      
+                      let value = btn;
+                      if (btn === "×") value = "*";
+                      if (btn === "÷") value = "/";
+                      handleCalculatorInput(value);
+                    }}
+                  >
+                    {btn}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </DialogContent>
