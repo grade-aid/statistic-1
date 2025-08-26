@@ -88,7 +88,7 @@ const Learning = () => {
               {calculatorDisplay}
             </div>
             <div className="grid grid-cols-4 gap-2">
-              {buttons.flat().map((btn, idx) => btn === "" ? <div key={idx} className="h-12" /> : <Button key={idx} variant={["C", "±", "÷", "×", "-", "+", "="].includes(btn) ? "secondary" : "outline"} className={`h-12 text-lg font-semibold transition-all duration-150 ease-out focus-visible:ring-0 focus:ring-0 select-none ${btn === "0" ? "col-span-2" : ""} ${["C", "±", "÷", "×", "-", "+", "="].includes(btn) ? "!bg-orange-500 hover:!bg-orange-600 active:!bg-orange-700 active:!scale-95 !text-white" : "!bg-gray-600 hover:!bg-gray-500 active:!bg-gray-700 active:!scale-95 !text-white"}`} onClick={() => {
+              {buttons.flat().map((btn, idx) => btn === "" ? <div key={idx} className="h-12" /> : <Button key={idx} variant="ghost" className={`h-12 text-lg font-semibold transition-none select-none border-0 focus-visible:outline-none focus-visible:ring-0 focus:ring-0 focus:outline-none active:outline-none ${btn === "0" ? "col-span-2" : ""} ${["C", "±", "÷", "×", "-", "+", "="].includes(btn) ? "!bg-orange-500 hover:!bg-orange-600 active:!bg-orange-600 !text-white !border-orange-500" : "!bg-gray-600 hover:!bg-gray-500 active:!bg-gray-500 !text-white !border-gray-600"}`} onMouseDown={(e) => e.preventDefault()} onClick={() => {
               let value = btn;
               if (btn === "×") value = "*";
               if (btn === "÷") value = "/";
