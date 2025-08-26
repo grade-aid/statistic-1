@@ -410,6 +410,28 @@ const Index = () => {
       setTimeout(() => setPhase('results'), 1000);
     }
   }, [isComplete]);
+  const autoComplete = () => {
+    if (phase !== 'game') return;
+    
+    // Collect all remaining animals
+    const remainingAnimals = [...animals];
+    remainingAnimals.forEach(animal => {
+      setCollected(prev => ({
+        ...prev,
+        [animal.type]: prev[animal.type] + 1
+      }));
+    });
+    
+    // Clear all animals from the board
+    setAnimals([]);
+    
+    toast({
+      title: "🎉 Auto Complete!",
+      description: "All animals collected automatically!",
+      duration: 2000
+    });
+  };
+
   const resetGame = () => {
     setPhase('start');
     setCollected({
@@ -518,6 +540,15 @@ const Index = () => {
               <Card className="game-card">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-base md:text-lg font-space-grotesk font-bold">Collection</h3>
+                  <Button
+                    onClick={autoComplete}
+                    variant="outline"
+                    size="sm"
+                    className="text-xs"
+                    disabled={animals.length === 0}
+                  >
+                    Auto Complete
+                  </Button>
                 </div>
                 <div className="space-y-2">
                   {Object.entries(animalConfig).map(([type, config]) => <div key={type} className="flex items-center justify-between">
