@@ -5,9 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useNavigate } from "react-router-dom";
-import { CheckCircle, Calculator, Lightbulb, Divide, X, Equal, HelpCircle } from "lucide-react";
+import { CheckCircle, Calculator as CalculatorIcon, Lightbulb, Divide, X, Equal, HelpCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import Confetti from "@/components/Confetti";
+import Calculator from "@/components/Calculator";
 interface AnimalData {
   mammals: number;
   birds: number;
@@ -56,87 +57,6 @@ const Learning = () => {
   };
   const collectedData = getStoredData();
 
-  // Calculator functions
-  const handleCalculatorInput = (value: string) => {
-    if (value === "C") {
-      setCalculatorDisplay("0");
-      setCalculatorInput("");
-    } else if (value === "=") {
-      try {
-        const result = eval(calculatorInput);
-        setCalculatorDisplay(result.toString());
-        setCalculatorInput(result.toString());
-      } catch {
-        setCalculatorDisplay("Error");
-        setCalculatorInput("");
-      }
-    } else {
-      const newInput = calculatorDisplay === "0" || calculatorDisplay === "Error" ? value : calculatorInput + value;
-      setCalculatorInput(newInput);
-      setCalculatorDisplay(newInput);
-    }
-  };
-
-  // Calculator buttons array defined outside to prevent re-creation
-  const calculatorButtons = [["C", "±", "", "÷"], ["7", "8", "9", "×"], ["4", "5", "6", "-"], ["1", "2", "3", "+"], ["0", ".", "="]];
-
-  const CalculatorModal = () => {
-    return <Dialog open={isCalculatorOpen} onOpenChange={setIsCalculatorOpen}>
-        <DialogContent className="w-80">
-          <DialogHeader>
-            <DialogTitle>Calculator</DialogTitle>
-          </DialogHeader>
-          <div className="bg-gray-900 text-white p-4 rounded-lg">
-            <div className="bg-black p-3 rounded mb-3 text-right text-2xl font-mono">
-              {calculatorDisplay}
-            </div>
-            <div className="grid grid-cols-4 gap-2">
-              {calculatorButtons.flat().map((btn, idx) => {
-                if (btn === "") {
-                  return <div key={`empty-${idx}`} className="h-12" />;
-                }
-                
-                const isOperator = ["C", "±", "÷", "×", "-", "+", "="].includes(btn);
-                
-                return (
-                  <button
-                    key={`calc-btn-${btn}-${idx}`}
-                    className={`h-12 text-lg font-semibold select-none rounded-md ${
-                      btn === "0" ? "col-span-2" : ""
-                    } ${
-                      isOperator 
-                        ? "bg-orange-500 hover:bg-orange-600 text-white border border-orange-500" 
-                        : "bg-gray-600 hover:bg-gray-500 text-white border border-gray-600"
-                    }`}
-                    style={{ 
-                      transition: 'none',
-                      outline: 'none',
-                      boxShadow: 'none'
-                    }}
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                    }}
-                    onFocus={(e) => e.preventDefault()}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      
-                      let value = btn;
-                      if (btn === "×") value = "*";
-                      if (btn === "÷") value = "/";
-                      handleCalculatorInput(value);
-                    }}
-                  >
-                    {btn}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>;
-  };
   const totalAnimals = Object.values(collectedData).reduce((sum: number, count: number) => sum + count, 0);
   
   // Consolidated animalConfig with all properties
@@ -178,8 +98,6 @@ const Learning = () => {
     [key: string]: boolean;
   }>({});
   const [showConfetti, setShowConfetti] = useState(false);
-  const [calculatorInput, setCalculatorInput] = useState("");
-  const [calculatorDisplay, setCalculatorDisplay] = useState("0");
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
   
   // Drag and drop state for Phase 6
@@ -552,7 +470,7 @@ const Learning = () => {
 
   const renderPhase3 = () => <Card className="p-3 border border-green-200 bg-green-50">
       <div className="flex items-center gap-2 mb-3">
-        <Calculator className="h-5 w-5 text-green-600" />
+        <CalculatorIcon className="h-5 w-5 text-green-600" />
         <h3 className="text-base font-bold text-green-800">Amount → Percentage 🐘</h3>
       </div>
       
@@ -723,7 +641,7 @@ const Learning = () => {
                               className="w-4 h-4 p-0 rounded-full bg-primary text-primary-foreground hover:bg-primary/90" 
                               onClick={() => setIsCalculatorOpen(true)}
                             >
-                              <Calculator size={10} />
+                              <CalculatorIcon size={10} />
                             </Button>
                           </DialogTrigger>
                         </Dialog>
@@ -942,7 +860,7 @@ const Learning = () => {
           
         </div>
       </div>
-      <CalculatorModal />
+      <Calculator isOpen={isCalculatorOpen} onOpenChange={setIsCalculatorOpen} />
       <Confetti trigger={showConfetti} />
     </div>;
 };
