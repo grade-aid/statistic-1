@@ -68,12 +68,11 @@ const Visualization = () => {
   };
   const dataEntries = Object.entries(collectedData);
   const maxValue = Math.max(...dataEntries.map(([, value]) => value));
-  return <div className="min-h-screen bg-background p-4">
+  return <div className="min-h-screen bg-background p-4 md:p-6">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          
-          <h1 className="text-3xl font-space-grotesk font-bold">📊 Understanding Your Collection</h1>
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-4 mb-6">
+          <h1 className="text-xl md:text-2xl lg:text-3xl font-space-grotesk font-bold text-center lg:text-left">📊 Understanding Your Collection</h1>
           <Button 
             onClick={() => navigate('/learning', {
               state: {
@@ -81,7 +80,7 @@ const Visualization = () => {
                 totalCollected: totalAnimals
               }
             })} 
-            className="game-button text-2xl px-12 py-6" 
+            className="game-button text-base md:text-lg lg:text-xl px-6 md:px-8 lg:px-12 py-3 md:py-4 lg:py-6" 
             size="lg"
           >
             Next: Learn Math 🧮
@@ -89,49 +88,49 @@ const Visualization = () => {
         </div>
 
         {/* Summary */}
-        <Card className="game-card mb-8">
+        <Card className="game-card mb-6 md:mb-8">
           <div className="text-center">
-            <h2 className="text-4xl font-space-grotesk font-bold mb-4">
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-space-grotesk font-bold mb-4">
               🎉 Mission Complete!
             </h2>
-            <p className="text-xl font-dm-sans mb-6">
+            <p className="text-base md:text-lg lg:text-xl font-dm-sans mb-6">
               You collected <span className="font-bold text-primary">{totalAnimals}</span> animals total!
             </p>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 md:gap-4">
               {Object.entries(animalConfig).map(([type, config]) => <div key={type} className="text-center">
-                  <div className="w-16 h-16 rounded-full flex items-center justify-center text-3xl mx-auto mb-2 border-4 border-brand-black" style={{
+                  <div className="w-12 h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 rounded-full flex items-center justify-center text-xl md:text-2xl lg:text-3xl mx-auto mb-2 border-2 md:border-4 border-brand-black" style={{
                 backgroundColor: config.color
               }}>
                     {config.emoji}
                   </div>
-                  <p className="font-dm-sans font-bold text-2xl">{collectedData[type as keyof typeof collectedData]}</p>
-                  <p className="font-dm-sans text-sm text-muted-foreground">{config.name}</p>
+                  <p className="font-dm-sans font-bold text-lg md:text-xl lg:text-2xl">{collectedData[type as keyof typeof collectedData]}</p>
+                  <p className="font-dm-sans text-xs md:text-sm text-muted-foreground">{config.name}</p>
                 </div>)}
             </div>
           </div>
         </Card>
 
-        <div className="grid gap-8 lg:grid-cols-2">
+        <div className="grid gap-4 md:gap-6 lg:gap-8 xl:grid-cols-2">
           {/* Bar Chart */}
           <Card className="game-card">
-            <div className="flex items-center gap-3 mb-6">
-              <BarChart3 className="h-8 w-8 text-primary" />
-              <h3 className="text-2xl font-space-grotesk font-bold">Bar Chart View</h3>
+            <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
+              <BarChart3 className="h-6 w-6 md:h-8 md:w-8 text-primary" />
+              <h3 className="text-lg md:text-xl lg:text-2xl font-space-grotesk font-bold">Bar Chart View</h3>
             </div>
-            <div className="space-y-4">
+            <div className="space-y-3 md:space-y-4">
               {dataEntries.map(([type, count]) => {
               const config = animalConfig[type as keyof typeof animalConfig];
               const percentage = count / maxValue * 100;
               return <div key={type} className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl">{config.emoji}</span>
-                        <span className="font-dm-sans font-semibold">{config.name}</span>
+                      <div className="flex items-center gap-2 md:gap-3">
+                        <span className="text-lg md:text-xl lg:text-2xl">{config.emoji}</span>
+                        <span className="font-dm-sans font-semibold text-sm md:text-base">{config.name}</span>
                       </div>
-                      <span className="font-dm-sans font-bold text-lg">{count}</span>
+                      <span className="font-dm-sans font-bold text-base md:text-lg">{count}</span>
                     </div>
-                    <div className="w-full bg-muted rounded-full h-6 border-2 border-brand-black">
-                      <div className="h-full rounded-full transition-all duration-1000 ease-out flex items-center justify-end pr-2" style={{
+                    <div className="w-full bg-muted rounded-full h-4 md:h-5 lg:h-6 border-2 border-brand-black">
+                      <div className="h-full rounded-full transition-all duration-1000 ease-out flex items-center justify-end pr-1 md:pr-2" style={{
                     width: `${percentage}%`,
                     backgroundColor: config.color
                   }}>
@@ -145,14 +144,14 @@ const Visualization = () => {
 
           {/* Pie Chart Representation */}
           <Card className="game-card">
-            <div className="flex items-center gap-3 mb-6">
-              <PieChart className="h-8 w-8 text-primary" />
-              <h3 className="text-2xl font-space-grotesk font-bold">Pie Chart View</h3>
+            <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
+              <PieChart className="h-6 w-6 md:h-8 md:w-8 text-primary" />
+              <h3 className="text-lg md:text-xl lg:text-2xl font-space-grotesk font-bold">Pie Chart View</h3>
             </div>
             
             {/* Pie Chart - Real SVG Implementation */}
-            <div className="space-y-4">
-              <div className="relative w-64 h-64 mx-auto">
+            <div className="space-y-3 md:space-y-4">
+              <div className="relative w-48 h-48 md:w-56 md:h-56 lg:w-64 lg:h-64 mx-auto">
                 <svg className="w-full h-full" viewBox="0 0 200 200">
                   {(() => {
                   let startAngle = 0;
@@ -185,7 +184,7 @@ const Visualization = () => {
                     const config = animalConfig[type as keyof typeof animalConfig];
                     const slice = <g key={type}>
                           <path d={pathData} fill={config.color} stroke="white" strokeWidth="2" className="transition-all duration-300 hover:opacity-80" />
-                          {percentage > 5 && <text x={labelX} y={labelY} textAnchor="middle" dy="0.3em" className="text-xs font-bold fill-white" style={{
+                          {percentage > 5 && <text x={labelX} y={labelY} textAnchor="middle" dy="0.3em" className="text-xs md:text-sm font-bold fill-white" style={{
                         textShadow: '1px 1px 1px rgba(0,0,0,0.5)'
                       }}>
                                {count}
@@ -199,21 +198,21 @@ const Visualization = () => {
               </div>
               
               <div className="text-center">
-                <p className="text-lg font-dm-sans text-muted-foreground mb-4">
+                <p className="text-sm md:text-base lg:text-lg font-dm-sans text-muted-foreground mb-3 md:mb-4">
                   Each slice represents the proportion of animals you collected
                 </p>
-                <div className="grid grid-cols-1 gap-2">
+                <div className="grid grid-cols-1 gap-1 md:gap-2">
                   {dataEntries.map(([type, count]) => {
                   const config = animalConfig[type as keyof typeof animalConfig];
                   const percentage = Math.round(count / totalAnimals * 100);
-                  return <div key={type} className="flex items-center justify-between px-4 py-2 bg-muted rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <div className="w-4 h-4 rounded-full border border-brand-black" style={{
+                  return <div key={type} className="flex items-center justify-between px-3 md:px-4 py-2 bg-muted rounded-lg">
+                        <div className="flex items-center gap-2 md:gap-3">
+                          <div className="w-3 h-3 md:w-4 md:h-4 rounded-full border border-brand-black" style={{
                         backgroundColor: config.color
                       }}></div>
-                          <span className="font-dm-sans">{config.emoji} {config.name}</span>
+                          <span className="font-dm-sans text-sm md:text-base">{config.emoji} {config.name}</span>
                         </div>
-                        <span className="font-dm-sans font-bold">{count}</span>
+                        <span className="font-dm-sans font-bold text-sm md:text-base">{count}</span>
                       </div>;
                 })}
                 </div>

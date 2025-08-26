@@ -130,28 +130,56 @@ All colors MUST be HSL.
     font-weight: 700;
   }
   
-  /* GradeAid Component Styles */
+  /* GradeAid Component Styles - Responsive */
   .game-button {
-    @apply rounded-full shadow-lg border-b-[10px] border-l-[10px] border-brand-black 
-           bg-primary text-primary-foreground font-medium text-xl uppercase
-           min-h-[44px] px-8 py-3 transition-all duration-200
+    @apply rounded-full shadow-lg border-b-[6px] md:border-b-[8px] lg:border-b-[10px] 
+           border-l-[6px] md:border-l-[8px] lg:border-l-[10px] border-brand-black 
+           bg-primary text-primary-foreground font-medium text-base md:text-lg lg:text-xl uppercase
+           min-h-[40px] md:min-h-[44px] px-4 md:px-6 lg:px-8 py-2 md:py-3 transition-all duration-200
            hover:scale-105 focus:outline-none focus:ring-4 focus:ring-ring
            active:scale-95;
-    box-shadow: -10px 10px 40px rgba(0, 0, 0, 0.25);
+    box-shadow: -6px 6px 24px rgba(0, 0, 0, 0.25);
+  }
+  
+  @media (min-width: 768px) {
+    .game-button {
+      box-shadow: -8px 8px 32px rgba(0, 0, 0, 0.25);
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .game-button {
+      box-shadow: -10px 10px 40px rgba(0, 0, 0, 0.25);
+    }
   }
   
   .game-button-secondary {
-    @apply rounded-full shadow-lg border-b-[10px] border-l-[10px] border-brand-black 
-           bg-secondary text-secondary-foreground font-medium text-xl uppercase
-           min-h-[44px] px-8 py-3 transition-all duration-200
+    @apply rounded-full shadow-lg border-b-[6px] md:border-b-[8px] lg:border-b-[10px] 
+           border-l-[6px] md:border-l-[8px] lg:border-l-[10px] border-brand-black 
+           bg-secondary text-secondary-foreground font-medium text-base md:text-lg lg:text-xl uppercase
+           min-h-[40px] md:min-h-[44px] px-4 md:px-6 lg:px-8 py-2 md:py-3 transition-all duration-200
            hover:scale-105 focus:outline-none focus:ring-4 focus:ring-ring
            active:scale-95;
-    box-shadow: -10px 10px 40px rgba(0, 0, 0, 0.25);
+    box-shadow: -6px 6px 24px rgba(0, 0, 0, 0.25);
+  }
+  
+  @media (min-width: 768px) {
+    .game-button-secondary {
+      box-shadow: -8px 8px 32px rgba(0, 0, 0, 0.25);
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .game-button-secondary {
+      box-shadow: -10px 10px 40px rgba(0, 0, 0, 0.25);
+    }
   }
   
   .game-card {
-    @apply rounded-[50px] border-b-[10px] border-l-[10px] border-brand-black
-           bg-card text-card-foreground p-8 shadow-lg;
+    @apply rounded-[24px] md:rounded-[36px] lg:rounded-[50px] 
+           border-b-[6px] md:border-b-[8px] lg:border-b-[10px] 
+           border-l-[6px] md:border-l-[8px] lg:border-l-[10px] border-brand-black
+           bg-card text-card-foreground p-4 md:p-6 lg:p-8 shadow-lg;
   }
   
   .animal-category-mammals { @apply bg-mammals-red; }

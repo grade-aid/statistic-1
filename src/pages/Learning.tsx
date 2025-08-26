@@ -945,40 +945,58 @@ const Learning = () => {
         </Card>
       </div>;
   }
-  return <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-2 overflow-hidden">
-      <div className="max-w-6xl mx-auto space-y-2 h-screen flex flex-col">
+  return <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-3 md:p-4 lg:p-6">
+      <div className="max-w-6xl mx-auto space-y-3 md:space-y-4 min-h-screen flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between mb-2">
-          <div>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-3 md:mb-4">
+          <div className="text-center sm:text-left">
+            <h1 className="text-lg md:text-xl lg:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              🧮 Learning Percentages & Data
             </h1>
           </div>
           <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setIsCalculatorOpen(true)}
+              className="flex items-center gap-1 text-xs md:text-sm"
+            >
+              <HelpCircle size={16} />
+              <span className="hidden sm:inline">Calculator</span>
+            </Button>
           </div>
         </div>
 
         {/* Progress */}
-        <div className="mb-2">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-medium">Progress</span>
-            <span className="text-xs text-muted-foreground">
+        <div className="mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+            <span className="text-xs md:text-sm font-medium">Progress</span>
+            <span className="text-xs md:text-sm text-muted-foreground">
               Phase {currentPhase} of 6
             </span>
           </div>
-          <Progress value={((currentPhase - 1) / 6) * 100} className="h-1" />
+          <Progress value={((currentPhase - 1) / 6) * 100} className="h-2" />
         </div>
 
         {/* Current Phase Content */}
-        <div className="flex-1 overflow-y-auto">
-          {currentPhase === 3 && renderPhase3()}
-          {currentPhase === 4 && renderPhase4()}
-          {currentPhase === 5 && renderPhase5()}
-          {currentPhase === 6 && renderPhase6()}
+        <div className="flex-1 min-h-0">
+          <div className="h-full overflow-y-auto space-y-4">
+            {currentPhase === 3 && renderPhase3()}
+            {currentPhase === 4 && renderPhase4()}
+            {currentPhase === 5 && renderPhase5()}
+            {currentPhase === 6 && renderPhase6()}
+          </div>
         </div>
 
         {/* Navigation */}
-        <div className="flex justify-between items-center pt-2 border-t">
-          <Button variant="outline" size="sm" onClick={() => setCurrentPhase(Math.max(3, currentPhase - 1))} disabled={currentPhase === 3}>
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-3 pt-4 border-t">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setCurrentPhase(Math.max(3, currentPhase - 1))} 
+            disabled={currentPhase === 3}
+            className="w-full sm:w-auto text-xs md:text-sm"
+          >
             Previous Phase
           </Button>
           
