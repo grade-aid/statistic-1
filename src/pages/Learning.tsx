@@ -307,14 +307,14 @@ const Learning = () => {
           </div>
         </div>
         
-        {/* Color Legend - Birds Only */}
+        {/* Color Legend - Show current animal */}
         <div className="flex flex-wrap gap-1 justify-center mt-2">
           <div className="flex items-center gap-0.5">
             <div className="w-2 h-2 rounded-sm" style={{
-              backgroundColor: animalConfig.birds.color
+              backgroundColor: Object.entries(animalConfig).find(([type, config]) => config.emoji === emoji)?.[1].color || '#6b7280'
             }} />
             <span className="text-xs text-muted-foreground">
-              {animalConfig.birds.emoji}
+              {emoji}
             </span>
           </div>
         </div>
