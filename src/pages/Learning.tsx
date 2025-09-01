@@ -859,6 +859,15 @@ const Learning = () => {
             Previous Phase
           </Button>
           
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setCurrentPhase(Math.min(6, currentPhase + 1))} 
+            disabled={currentPhase === 6}
+            className="w-full sm:w-auto text-xs md:text-sm"
+          >
+            Skip Phase
+          </Button>
         </div>
       </div>
       {/* Calculator component for math help */}
