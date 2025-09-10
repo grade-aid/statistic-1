@@ -478,6 +478,14 @@ const Index = () => {
               <p className="text-base md:text-lg font-dm-sans">
                 {totalCollected} / {totalTarget} animals
               </p>
+              <Button 
+                onClick={autoComplete} 
+                variant="outline" 
+                size="sm"
+                className="text-xs md:text-sm"
+              >
+                Auto Complete
+              </Button>
             </div>
           </div>
 
