@@ -172,7 +172,7 @@ const Learning = () => {
       setCurrentTargetAnimal(remaining[0][0]);
     } else {
       // All completed
-      navigate('/visualization');
+      navigate('/percentage-of-number');
     }
   };
 

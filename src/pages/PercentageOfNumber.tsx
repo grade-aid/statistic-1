@@ -508,12 +508,9 @@ const PercentageOfNumber = () => {
   }
 
   if (phase === 'collection') {
-    const cellSize = getResponsiveCellSize();
-    const boardSize = GRID_SIZE * cellSize + 32;
-    
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-4xl mx-auto">
           <div className="text-center mb-4">
             <h2 className="text-2xl font-bold mb-2">🐘 Collect Animals for Percentage Learning</h2>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-2">
@@ -531,22 +528,12 @@ const PercentageOfNumber = () => {
           </div>
 
           <div className="flex justify-center">
-            <Card className="w-full max-w-none">
-              <div 
-                className="relative bg-muted rounded-xl p-4 mx-auto overflow-hidden"
-                style={{
-                  width: Math.min(boardSize, window.innerWidth - 64),
-                  height: Math.min(boardSize, window.innerHeight - 200),
-                  maxWidth: '100%',
-                  aspectRatio: '1'
-                }}
-              >
+            <Card className="w-full max-w-2xl mx-auto">
+              <div className="relative bg-muted rounded-xl p-4 aspect-square">
                 <div 
-                  className="grid gap-0 relative"
+                  className="grid gap-px relative w-full h-full"
                   style={{ 
                     gridTemplateColumns: `repeat(${GRID_SIZE}, 1fr)`,
-                    width: '100%',
-                    height: '100%'
                   }}
                 >
                   {Array.from({ length: GRID_SIZE * GRID_SIZE }, (_, index) => {
@@ -561,14 +548,14 @@ const PercentageOfNumber = () => {
                       <div
                         key={index}
                         className={`
-                          border border-border/20 flex items-center justify-center text-xs sm:text-sm
+                          border border-border/20 flex items-center justify-center text-lg
                           ${isWallCell ? 'bg-stone-600' : 'bg-background/50'}
                         `}
                         style={{ aspectRatio: '1' }}
                       >
-                        {isPlayer && <span className="text-base sm:text-lg">🧑</span>}
-                        {animal && <span className="text-base sm:text-lg">{animal.emoji}</span>}
-                        {hunter && <span className="text-base sm:text-lg">{hunter.emoji}</span>}
+                        {isPlayer && <span className="text-xl">🧑</span>}
+                        {animal && <span className="text-xl">{animal.emoji}</span>}
+                        {hunter && <span className="text-xl">{hunter.emoji}</span>}
                       </div>
                     );
                   })}
