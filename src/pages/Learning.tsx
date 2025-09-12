@@ -507,22 +507,6 @@ const Learning = () => {
             <Progress value={(currentStep / totalSteps) * 100} className="h-3" />
           </div>
           
-          {/* Step Indicators */}
-          <div className="flex justify-center gap-4 mb-6">
-            <div className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${currentStep >= 1 ? 'bg-primary/10 border-primary/30 text-primary' : 'bg-gray-50 border-gray-200 text-gray-500'}`}>
-              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${currentStep >= 1 ? 'bg-primary text-white' : 'bg-gray-300 text-gray-600'}`}>
-                1
-              </div>
-              <span className="text-sm font-medium">Visual Intro</span>
-            </div>
-            
-            <div className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${currentStep >= 2 ? 'bg-secondary/10 border-secondary/30 text-secondary' : 'bg-gray-50 border-gray-200 text-gray-500'}`}>
-              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${currentStep >= 2 ? 'bg-secondary text-white' : 'bg-gray-300 text-gray-600'}`}>
-                2
-              </div>
-              <span className="text-sm font-medium">Interactive Learning</span>
-            </div>
-          </div>
         </Card>
 
         {/* Current Step Content */}
