@@ -345,30 +345,26 @@ const Learning = () => {
                             onClick={() => handleAnimalClick(type)}
                           />
                           {/* Animal emoji in slice */}
-                          {animalPercentage > 8 && (
-                            <text 
-                              x={labelX} 
-                              y={labelY} 
-                              textAnchor="middle" 
-                              dy="0.3em" 
-                              className="text-2xl pointer-events-none"
-                            >
-                              {typeConfig.emoji}
-                            </text>
-                          )}
+                          <text 
+                            x={labelX} 
+                            y={labelY} 
+                            textAnchor="middle" 
+                            dy="0.3em" 
+                            className="text-2xl pointer-events-none"
+                          >
+                            {typeConfig.emoji}
+                          </text>
                           {/* Animal count */}
-                          {animalPercentage > 5 && (
-                            <text 
-                              x={labelX} 
-                              y={labelY + 18} 
-                              textAnchor="middle" 
-                              dy="0.3em" 
-                              className="text-sm font-bold fill-white pointer-events-none"
-                              style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}
-                            >
-                              {count}
-                            </text>
-                          )}
+                          <text 
+                            x={labelX} 
+                            y={labelY + 18} 
+                            textAnchor="middle" 
+                            dy="0.3em" 
+                            className="text-sm font-bold fill-white pointer-events-none"
+                            style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}
+                          >
+                            {count}
+                          </text>
                         </g>
                       );
                       
