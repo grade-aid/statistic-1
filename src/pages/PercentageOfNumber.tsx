@@ -45,13 +45,7 @@ interface PercentageExercise {
 
 const GRID_SIZE = 20;
 
-const getResponsiveCellSize = () => {
-  if (typeof window === 'undefined') return 20;
-  const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
-  if (vw >= 1024) return 24;
-  if (vw >= 768) return 18;
-  return 16;
-};
+// Remove dynamic sizing - use CSS instead
 
 const PercentageOfNumber = () => {
   const { toast } = useToast();
@@ -532,9 +526,7 @@ const PercentageOfNumber = () => {
               <div className="relative bg-muted rounded-xl p-4 aspect-square">
                 <div 
                   className="grid gap-px relative w-full h-full"
-                  style={{ 
-                    gridTemplateColumns: `repeat(${GRID_SIZE}, 1fr)`,
-                  }}
+                  style={{ gridTemplateColumns: 'repeat(20, minmax(0, 1fr))' }}
                 >
                   {Array.from({ length: GRID_SIZE * GRID_SIZE }, (_, index) => {
                     const x = index % GRID_SIZE;
