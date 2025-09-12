@@ -750,13 +750,13 @@ const WholeFromPercentage = () => {
                 <div className="space-y-6">
                   <div className="bg-green-50 p-6 rounded-lg border-2 border-green-200">
                     <div className="text-3xl font-bold text-green-700 mb-4">
-                      🎉 Answer: {currentExercise.wholeCount} {animalConfig[currentExercise.targetType].emoji}!
+                      🎉 Answer: {currentExercise.wholeCount} total animals!
                     </div>
                     <div className="text-xl text-green-600 mb-4">
                       {currentExercise.partCount} ÷ {currentExercise.percentage}% = {currentExercise.wholeCount}
                     </div>
                     <div className="text-lg text-gray-600">
-                      So you collected <span className="font-bold">{currentExercise.partCount}</span> out of <span className="font-bold">{currentExercise.wholeCount}</span> total {animalConfig[currentExercise.targetType].emoji}
+                      So you collected <span className="font-bold">{currentExercise.partCount}</span> out of <span className="font-bold">{currentExercise.wholeCount}</span> total animals
                     </div>
                   </div>
 
