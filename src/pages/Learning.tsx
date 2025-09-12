@@ -159,47 +159,122 @@ const Learning = () => {
   };
 
   // Step 1: Visual Animation Component  
-  const VisualIntroduction = () => (
-    <Card className="p-6 border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-secondary/5">
-      <div className="text-center space-y-6">
-        <div className="text-4xl mb-4">🔢</div>
-        
-        <div className={`transition-all duration-1000 ${showVisualAnimation ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
-          {/* Total Animals Display */}
-          <div className="bg-white p-4 rounded-lg border-2 border-primary/30 mb-6">
-            <div className="text-6xl font-bold text-primary animate-pulse">
-              {totalAnimals}
-            </div>
-            <div className="text-lg text-muted-foreground">Total Animals</div>
-          </div>
+  const VisualIntroduction = () => {
+    // Pick the first animal with the highest count as example
+    const exampleAnimal = animalEntries.reduce((max, current) => 
+      current[1] > max[1] ? current : max, animalEntries[0]
+    );
+    const [exampleType, exampleCount] = exampleAnimal || ['mammals', 0];
+    const exampleConfig = animalConfig[exampleType as keyof typeof animalConfig];
+    const examplePercentage = totalAnimals > 0 ? Math.round(exampleCount / totalAnimals * 100) : 0;
+    
+    return (
+      <Card className="p-6 border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-secondary/5">
+        <div className="text-center space-y-6">
+          <div className="text-4xl mb-4">📊</div>
           
-          {/* Visual Division Animation */}
-          <div className="flex items-center justify-center gap-4 mb-6">
-            <Badge variant="outline" className="text-2xl px-4 py-2">{totalAnimals}</Badge>
-            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-              <span className="text-white font-bold">÷</span>
+          <div className={`transition-all duration-1000 ${showVisualAnimation ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
+            <h3 className="text-2xl font-bold mb-6">Learn How to Calculate Percentages!</h3>
+            
+            {/* Show Pie Chart */}
+            <div className="flex justify-center mb-6">
+              <div className="relative w-48 h-48">
+                <svg className="w-full h-full" viewBox="0 0 200 200">
+                  {(() => {
+                    let startAngle = 0;
+                    const radius = 80;
+                    const centerX = 100;
+                    const centerY = 100;
+                    
+                    return Object.entries(collectedData).map(([type, count]) => {
+                      const animalPercentage = count / totalAnimals * 100;
+                      const angle = animalPercentage / 100 * 360;
+                      const endAngle = startAngle + angle;
+                      
+                      const startAngleRad = startAngle * Math.PI / 180;
+                      const endAngleRad = endAngle * Math.PI / 180;
+                      
+                      const x1 = centerX + radius * Math.cos(startAngleRad);
+                      const y1 = centerY + radius * Math.sin(startAngleRad);
+                      const x2 = centerX + radius * Math.cos(endAngleRad);
+                      const y2 = centerY + radius * Math.sin(endAngleRad);
+                      const largeArcFlag = angle > 180 ? 1 : 0;
+                      const pathData = [`M ${centerX} ${centerY}`, `L ${x1} ${y1}`, `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`, 'Z'].join(' ');
+                      
+                      const typeConfig = animalConfig[type as keyof typeof animalConfig];
+                      const isExample = type === exampleType;
+                      
+                      const slice = (
+                        <g key={type}>
+                          <path 
+                            d={pathData} 
+                            fill={typeConfig.color} 
+                            stroke="white" 
+                            strokeWidth="3" 
+                            className={`transition-all duration-1000 ${isExample ? 'opacity-100 drop-shadow-lg animate-pulse' : 'opacity-40'}`}
+                            style={{
+                              filter: isExample ? 'brightness(1.2)' : 'brightness(0.7)'
+                            }}
+                          />
+                        </g>
+                      );
+                      
+                      startAngle = endAngle;
+                      return slice;
+                    });
+                  })()}
+                </svg>
+              </div>
             </div>
-            <Badge variant="outline" className="text-2xl px-4 py-2">100</Badge>
-            <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
-              <span className="text-white font-bold">×</span>
+            
+            {/* Example Animal Display */}
+            <div className="bg-white p-4 rounded-lg border-2 border-primary/30 mb-6">
+              <div className="text-3xl mb-2">{exampleConfig.emoji}</div>
+              <div className="text-xl font-bold">{exampleConfig.name}</div>
+              <div className="text-lg text-muted-foreground">{exampleCount} out of {totalAnimals} animals</div>
             </div>
-            <Badge variant="outline" className="text-2xl px-4 py-2">100</Badge>
-            <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center">
-              <span className="text-white font-bold">=</span>
+            
+            {/* Step-by-step Calculation Example */}
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg border-2 border-blue-200 mb-6">
+              <div className="text-lg font-bold mb-4">Example Calculation:</div>
+              
+              {/* Step 1: Division */}
+              <div className="flex items-center justify-center gap-4 mb-4 text-xl">
+                <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg border">
+                  <span className="text-2xl">{exampleConfig.emoji}</span>
+                  <span className="font-bold">{exampleCount}</span>
+                </div>
+                <span>÷</span>
+                <div className="bg-white px-4 py-2 rounded-lg border font-bold">{totalAnimals}</div>
+                <span>=</span>
+                <div className="bg-blue-100 px-4 py-2 rounded-lg border font-bold text-blue-700">
+                  {(exampleCount / totalAnimals).toFixed(2)}
+                </div>
+              </div>
+              
+              {/* Step 2: Multiply by 100 */}
+              <div className="flex items-center justify-center gap-4 text-xl">
+                <div className="bg-blue-100 px-4 py-2 rounded-lg border font-bold text-blue-700">
+                  {(exampleCount / totalAnimals).toFixed(2)}
+                </div>
+                <span>×</span>
+                <div className="bg-white px-4 py-2 rounded-lg border font-bold">100</div>
+                <span>=</span>
+                <Badge className={`text-xl px-6 py-3 animate-bounce`} style={{ backgroundColor: exampleConfig.color }}>
+                  {examplePercentage}%
+                </Badge>
+              </div>
             </div>
-            <Badge className="text-2xl px-4 py-2 bg-primary text-white">%</Badge>
-          </div>
-          
-          {/* Animated Explanation */}
-          <div className="grid grid-cols-3 gap-4 text-4xl">
-            <div className="animate-bounce" style={{ animationDelay: '0ms' }}>📊</div>
-            <div className="animate-bounce" style={{ animationDelay: '200ms' }}>🧮</div>
-            <div className="animate-bounce" style={{ animationDelay: '400ms' }}>📈</div>
+            
+            {/* Call to Action */}
+            <div className="text-lg text-muted-foreground">
+              Next, you'll practice by clicking on the pie chart slices! 🎯
+            </div>
           </div>
         </div>
-      </div>
-    </Card>
-  );
+      </Card>
+    );
+  };
 
   // Step 2: Single Pie Chart Focus Component
   const SingleAnimalFocus = () => {
