@@ -87,72 +87,67 @@ const Learning = () => {
     }
   };
 
-  // New 4-step learning state
-  const [currentStep, setCurrentStep] = useState(1);
-  const [currentAnimalIndex, setCurrentAnimalIndex] = useState(0);
+  // Single exercise state
   const [showConfetti, setShowConfetti] = useState(false);
   const [showVisualAnimation, setShowVisualAnimation] = useState(false);
-  const [selectedAnimals, setSelectedAnimals] = useState<string[]>([]);
-  const [showCalculation, setShowCalculation] = useState(false);
-  const [animatingNumbers, setAnimatingNumbers] = useState(false);
+  const [completedAnimals, setCompletedAnimals] = useState<string[]>([]);
+  const [currentTargetAnimal, setCurrentTargetAnimal] = useState<string | null>(null);
+  const [showCalculations, setShowCalculations] = useState<Record<string, boolean>>({});
+  const [animatingNumbers, setAnimatingNumbers] = useState<Record<string, boolean>>({});
   
-  // Get animal entries for sequential display
+  // Get animal entries for the exercise
   const animalEntries = Object.entries(collectedData).filter(([, count]) => count > 0);
-  const totalSteps = 3;
-  const currentAnimal = animalEntries[currentAnimalIndex];
-  const isLastAnimal = currentAnimalIndex >= animalEntries.length - 1;
+  const isAllCompleted = completedAnimals.length === animalEntries.length;
 
-  // Auto-start visual animation in step 1
+  // Auto-start visual animation and set first target
   useEffect(() => {
-    if (currentStep === 1) {
-      setShowVisualAnimation(true);
-      const timer = setTimeout(() => {
-        setShowVisualAnimation(false);
-        setCurrentStep(2);
-      }, 8000);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [currentStep]);
+    setShowVisualAnimation(true);
+    const timer = setTimeout(() => {
+      setShowVisualAnimation(false);
+      // Set first target animal (highest count)
+      const firstTarget = animalEntries.reduce((max, current) => 
+        current[1] > max[1] ? current : max, animalEntries[0]
+      );
+      setCurrentTargetAnimal(firstTarget[0]);
+    }, 6000);
+    
+    return () => clearTimeout(timer);
+  }, []);
 
-  // Manual progression - no auto-advance
-  const handleNext = () => {
-    if (currentStep === 3) {
-      if (isLastAnimal) {
-        // All animals completed
-        setShowConfetti(true);
+  // Handle animal click
+  const handleAnimalClick = (animalType: string) => {
+    if (completedAnimals.includes(animalType)) return;
+    
+    if (animalType === currentTargetAnimal) {
+      // Correct animal clicked
+      setCompletedAnimals(prev => [...prev, animalType]);
+      setShowCalculations(prev => ({ ...prev, [animalType]: true }));
+      setAnimatingNumbers(prev => ({ ...prev, [animalType]: true }));
+      setShowConfetti(true);
+      
+      // Clear animation after delay
+      setTimeout(() => {
+        setAnimatingNumbers(prev => ({ ...prev, [animalType]: false }));
+        setShowConfetti(false);
+      }, 2000);
+      
+      // Set next target animal
+      const remaining = animalEntries.filter(([type]) => 
+        !completedAnimals.includes(type) && type !== animalType
+      );
+      if (remaining.length > 0) {
+        setTimeout(() => {
+          setCurrentTargetAnimal(remaining[0][0]);
+        }, 1000);
+      } else {
+        // All completed
         setTimeout(() => {
           navigate('/visualization');
-        }, 2000);
-      } else {
-        setCurrentAnimalIndex(prev => prev + 1);
-        setShowCalculation(false);
-        setCurrentStep(2); // Back to pie chart for next animal
+        }, 3000);
       }
     }
   };
 
-  // Handle pie slice click in step 2
-  const handlePieSliceClick = (animalType: string) => {
-    if (!currentAnimal) return;
-    
-    const [currentType] = currentAnimal;
-    
-    if (animalType === currentType) {
-      // Correct slice clicked
-      setSelectedAnimals(prev => [...prev, animalType]);
-      setShowCalculation(true);
-      setAnimatingNumbers(true);
-      setShowConfetti(true);
-      setCurrentStep(3); // Move to calculation display
-      
-      // Clear confetti after animation
-      setTimeout(() => {
-        setShowConfetti(false);
-        setAnimatingNumbers(false);
-      }, 2000);
-    }
-  };
 
   // Step 1: Visual Animation Component  
   const VisualIntroduction = () => {
@@ -272,52 +267,32 @@ const Learning = () => {
     );
   };
 
-  // Step 2: Interactive Pie Chart Component
-  const InteractivePieChart = () => {
-    if (!currentAnimal) return null;
+  // Main Learning Exercise Component
+  const LearningExercise = () => {
+    if (!currentTargetAnimal) return null;
     
-    const [animalType, animalCount] = currentAnimal;
-    const config = animalConfig[animalType as keyof typeof animalConfig];
-    const targetPercentage = totalAnimals > 0 ? Math.round(animalCount / totalAnimals * 100) : 0;
-    const isCorrectClicked = selectedAnimals.includes(animalType);
+    const targetConfig = animalConfig[currentTargetAnimal as keyof typeof animalConfig];
+    const targetCount = collectedData[currentTargetAnimal as keyof AnimalData];
+    const targetPercentage = totalAnimals > 0 ? Math.round(targetCount / totalAnimals * 100) : 0;
     
     return (
       <Card className="p-6 border-2 border-secondary/20 bg-gradient-to-br from-secondary/5 to-accent/5">
         <div className="text-center space-y-6">
           <div className="flex items-center justify-center gap-2 mb-4">
             <Target className="h-6 w-6 text-secondary" />
-            <h3 className="text-xl font-bold">Find the Animal That Equals {targetPercentage}%</h3>
+            <h3 className="text-xl font-bold">Click the Animal That Equals {targetPercentage}%</h3>
           </div>
           
-          {/* Equation Template */}
-          <div className="bg-white p-6 rounded-lg border-2 border-accent/30 mb-6">
-            <div className="flex items-center justify-center gap-4 text-xl">
-              <div className={`px-4 py-2 rounded-lg border-2 border-dashed transition-all duration-500 ${
-                isCorrectClicked 
-                  ? 'border-green-500 bg-green-50' 
-                  : 'border-gray-300 bg-gray-50'
-              }`}>
-                {isCorrectClicked ? (
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl">{config.emoji}</span>
-                    <span className="font-bold text-green-600">{animalCount}</span>
-                  </div>
-                ) : (
-                  <span className="text-gray-500">?</span>
-                )}
-              </div>
-              <span>÷</span>
-              <div className="bg-blue-100 px-4 py-2 rounded-lg border font-bold">{totalAnimals}</div>
-              <span>× 100 =</span>
-              <Badge className="text-xl px-4 py-2 bg-accent text-white">
-                {targetPercentage}%
-              </Badge>
-            </div>
+          {/* Current Target Display */}
+          <div className="bg-white p-4 rounded-lg border-2 border-accent/30 mb-6">
+            <div className="text-3xl mb-2">{targetConfig.emoji}</div>
+            <div className="text-lg font-bold">{targetConfig.name}</div>
+            <div className="text-sm text-muted-foreground">Find this animal in the circle below</div>
           </div>
           
-          {/* Pie Chart - Show All Animals */}
+          {/* Pie Chart - All Animals */}
           <div className="flex justify-center mb-6">
-            <div className="relative w-72 h-72">
+            <div className="relative w-80 h-80">
               <svg className="w-full h-full" viewBox="0 0 200 200">
                 {(() => {
                   let startAngle = 0;
@@ -343,10 +318,10 @@ const Learning = () => {
                       const pathData = [`M ${centerX} ${centerY}`, `L ${x1} ${y1}`, `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`, 'Z'].join(' ');
                       
                       const typeConfig = animalConfig[type as keyof typeof animalConfig];
-                      const isTargetAnimal = type === animalType;
-                      const isClicked = selectedAnimals.includes(type);
+                      const isTarget = type === currentTargetAnimal;
+                      const isCompleted = completedAnimals.includes(type);
                       
-                      // Calculate label position
+                      // Calculate label position for animal emoji
                       const labelAngle = (startAngle + endAngle) / 2;
                       const labelRadius = radius * 0.7;
                       const labelX = centerX + labelRadius * Math.cos(labelAngle * Math.PI / 180);
@@ -360,25 +335,34 @@ const Learning = () => {
                             stroke="white" 
                             strokeWidth="3" 
                             className={`transition-all duration-500 cursor-pointer hover:brightness-110 ${
-                              isClicked && isTargetAnimal
-                                ? 'animate-pulse drop-shadow-lg' 
-                                : isClicked
-                                ? 'opacity-50'
-                                : 'opacity-100 hover:opacity-90'
+                              isCompleted
+                                ? 'opacity-70' 
+                                : isTarget
+                                ? 'animate-pulse drop-shadow-lg'
+                                : 'opacity-90 hover:opacity-100'
                             }`}
-                            style={{
-                              filter: isClicked && isTargetAnimal ? 'brightness(1.2)' : 'brightness(1.0)'
-                            }}
-                            onClick={() => handlePieSliceClick(type)}
+                            onClick={() => handleAnimalClick(type)}
                           />
-                          {/* Animal count labels */}
-                          {animalPercentage > 5 && (
+                          {/* Animal emoji in slice */}
+                          {animalPercentage > 8 && (
                             <text 
                               x={labelX} 
                               y={labelY} 
                               textAnchor="middle" 
                               dy="0.3em" 
-                              className="text-sm font-bold fill-white pointer-events-none"
+                              className="text-xl pointer-events-none"
+                            >
+                              {typeConfig.emoji}
+                            </text>
+                          )}
+                          {/* Animal count */}
+                          {animalPercentage > 5 && (
+                            <text 
+                              x={labelX} 
+                              y={labelY + 15} 
+                              textAnchor="middle" 
+                              dy="0.3em" 
+                              className="text-xs font-bold fill-white pointer-events-none"
                               style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}
                             >
                               {count}
@@ -395,121 +379,46 @@ const Learning = () => {
             </div>
           </div>
           
-          {/* Animal Legend */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {Object.entries(collectedData)
-              .filter(([, count]) => count > 0)
-              .map(([type, count]) => {
-                const typeConfig = animalConfig[type as keyof typeof animalConfig];
-                const isTarget = type === animalType;
-                const isClicked = selectedAnimals.includes(type);
-                const percentage = Math.round(count / totalAnimals * 100);
-                
-                return (
-                  <div 
-                    key={type}
-                    className={`p-3 rounded-lg border-2 transition-all duration-300 ${
-                      isClicked && isTarget
-                        ? 'border-green-500 bg-green-50'
-                        : isTarget
-                        ? 'border-accent bg-accent/10 animate-pulse'
-                        : 'border-gray-200 bg-white'
-                    }`}
-                  >
-                    <div className="text-2xl mb-1">{typeConfig.emoji}</div>
-                    <div className="text-sm font-bold">{typeConfig.name}</div>
-                    <div className="text-xs text-muted-foreground">{count} animals</div>
-                    <div className="text-xs font-bold" style={{ color: typeConfig.color }}>
-                      {percentage}%
+          {/* Progress Display */}
+          <div className="bg-white p-4 rounded-lg border-2 border-primary/30">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-sm font-medium">Progress:</span>
+              <Progress value={(completedAnimals.length / animalEntries.length) * 100} className="flex-1" />
+              <span className="text-sm text-muted-foreground">
+                {completedAnimals.length} / {animalEntries.length}
+              </span>
+            </div>
+          </div>
+          
+          {/* Completed Animals Calculations */}
+          {completedAnimals.length > 0 && (
+            <div className="space-y-4">
+              <h4 className="text-lg font-bold">Completed Calculations:</h4>
+              <div className="grid gap-3">
+                {completedAnimals.map(animalType => {
+                  const config = animalConfig[animalType as keyof typeof animalConfig];
+                  const count = collectedData[animalType as keyof AnimalData];
+                  const percentage = Math.round(count / totalAnimals * 100);
+                  const isAnimating = animatingNumbers[animalType];
+                  
+                  return (
+                    <div key={animalType} className="bg-green-50 p-4 rounded-lg border-2 border-green-200">
+                      <div className="flex items-center justify-center gap-4 text-lg">
+                        <div className="flex items-center gap-2">
+                          <span className="text-2xl">{config.emoji}</span>
+                          <span className={`font-bold transition-all duration-500 ${isAnimating ? 'animate-pulse text-green-600' : ''}`}>
+                            {count}
+                          </span>
+                        </div>
+                        <span>÷ {totalAnimals} × 100 =</span>
+                        <Badge className={`text-lg px-4 py-2 bg-green-600 text-white transition-all duration-500 ${isAnimating ? 'scale-110 animate-bounce' : ''}`}>
+                          {percentage}%
+                        </Badge>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-          </div>
-          
-          {/* Progress and Instructions */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Animal {currentAnimalIndex + 1} of {animalEntries.length}</span>
-              <Progress value={((currentAnimalIndex + 1) / animalEntries.length) * 100} className="flex-1" />
-            </div>
-            
-            {!isCorrectClicked && (
-              <div className="text-sm text-muted-foreground">
-                Click on the pie slice that represents {targetPercentage}% of your animals
+                  );
+                })}
               </div>
-            )}
-          </div>
-        </div>
-      </Card>
-    );
-  };
-
-
-  // Step 3: Auto-Calculation Display Component  
-  const AutoCalculationDisplay = () => {
-    if (!currentAnimal || !showCalculation) return null;
-    
-    const [animalType, animalCount] = currentAnimal;
-    const config = animalConfig[animalType as keyof typeof animalConfig];
-    const percentage = totalAnimals > 0 ? Math.round(animalCount / totalAnimals * 100) : 0;
-    
-    return (
-      <Card className="p-6 border-2 border-green-500/20 bg-gradient-to-br from-green-50 to-emerald-50">
-        <div className="text-center space-y-6">
-          <div className="text-2xl font-bold text-green-700 mb-4">
-            🎉 Calculation Complete!
-          </div>
-          
-          {/* Auto-filled Equation */}
-          <div className="bg-white p-6 rounded-lg border-2 border-green-300">
-            <div className="flex items-center justify-center gap-4 text-2xl font-bold mb-4">
-              <div className="flex items-center gap-2 bg-green-100 px-4 py-2 rounded-lg border-2 border-green-300">
-                <span className="text-2xl">{config.emoji}</span>
-                <span className={`transition-all duration-1000 ${animatingNumbers ? 'animate-pulse text-green-600' : ''}`}>
-                  {animalCount}
-                </span>
-              </div>
-              <span>÷ 100 × 100 =</span>
-              <Badge className={`text-2xl px-6 py-3 bg-green-600 text-white transition-all duration-1000 ${animatingNumbers ? 'scale-110 animate-bounce' : ''}`}>
-                {percentage}%
-              </Badge>
-            </div>
-            
-            {/* Step-by-step breakdown */}
-            <div className="text-lg text-muted-foreground space-y-2">
-              <div className="flex justify-center gap-2">
-                <span>{animalCount}</span>
-                <span>÷</span>
-                <span>{totalAnimals}</span>
-                <span>=</span>
-                <span className="font-bold">{(animalCount / totalAnimals).toFixed(2)}</span>
-              </div>
-              <div className="flex justify-center gap-2">
-                <span>{(animalCount / totalAnimals).toFixed(2)}</span>
-                <span>×</span>
-                <span>100</span>
-                <span>=</span>
-                <span className="font-bold text-green-600">{percentage}%</span>
-              </div>
-            </div>
-          </div>
-          
-          {/* Animal Info */}
-          <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-            <div className="text-4xl mb-2">{config.emoji}</div>
-            <div className="text-xl font-bold">{config.name}</div>
-            <div className="text-green-700">{animalCount} out of {totalAnimals} animals = {percentage}%</div>
-          </div>
-          
-          {/* Next Button or Completion */}
-          {!isLastAnimal ? (
-            <div className="text-sm text-muted-foreground">
-              Moving to next animal in 3 seconds...
-            </div>
-          ) : (
-            <div className="text-lg font-bold text-green-600">
-              🎊 All animals completed! Redirecting to visualization...
             </div>
           )}
         </div>
@@ -517,60 +426,35 @@ const Learning = () => {
     );
   };
 
-  // Main render function for current step
-  const renderCurrentStep = () => {
-    switch (currentStep) {
-      case 1:
-        return (
-          <div className="space-y-6">
-            <VisualIntroduction />
-          </div>
-        );
-      
-      case 2:
-        return (
-          <div className="space-y-6">
-            <InteractivePieChart />
-            {selectedAnimals.includes(currentAnimal?.[0] || '') && (
-              <div className="flex justify-center">
-                <Button 
-                  onClick={() => setCurrentStep(3)}
-                  className="bg-primary hover:bg-primary/90 text-white px-8 py-3"
-                >
-                  See Full Calculation <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </div>
-            )}
-          </div>
-        );
-      
-      case 3:
-        return (
-          <div className="space-y-6">
-            <AutoCalculationDisplay />
-            <div className="flex justify-center gap-4">
-              {!isLastAnimal ? (
-                <Button 
-                  onClick={handleNext}
-                  className="bg-primary hover:bg-primary/90 text-white px-8 py-3"
-                >
-                  Next Animal <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              ) : (
-                <Button 
-                  onClick={handleNext}
-                  className="bg-green-600 hover:bg-green-700 text-white px-8 py-3"
-                >
-                  Complete Learning <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              )}
-            </div>
-          </div>
-        );
-      
-      default:
-        return null;
+
+
+  // Main render function
+  const renderContent = () => {
+    if (showVisualAnimation) {
+      return <VisualIntroduction />;
     }
+    
+    if (isAllCompleted) {
+      return (
+        <Card className="p-8 text-center border-2 border-green-500/20 bg-gradient-to-br from-green-50 to-emerald-50">
+          <div className="text-4xl mb-4">🎊</div>
+          <h2 className="text-2xl font-bold text-green-700 mb-4">
+            Congratulations! All Animals Completed!
+          </h2>
+          <p className="text-lg text-green-600 mb-6">
+            You've successfully calculated the percentage for all {animalEntries.length} animal types!
+          </p>
+          <Button 
+            onClick={() => navigate('/visualization')}
+            className="bg-green-600 hover:bg-green-700 text-white px-8 py-3"
+          >
+            Continue to Visualization <ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
+        </Card>
+      );
+    }
+    
+    return <LearningExercise />;
   };
 
   if (totalAnimals === 0) {
@@ -596,21 +480,11 @@ const Learning = () => {
           <h1 className="text-2xl md:text-3xl font-bold text-center mb-6">
             🧮 Interactive Percentage Learning
           </h1>
-          
-          {/* Step Progress */}
-          <div className="mb-6">
-            <div className="flex justify-between text-sm text-muted-foreground mb-2">
-              <span>Step {currentStep} of {totalSteps}</span>
-              <span>{Math.round((currentStep / totalSteps) * 100)}% Complete</span>
-            </div>
-            <Progress value={(currentStep / totalSteps) * 100} className="h-3" />
-          </div>
-          
         </Card>
 
-        {/* Current Step Content */}
+        {/* Main Content */}
         <div className="mb-6">
-          {renderCurrentStep()}
+          {renderContent()}
         </div>
       </div>
 
