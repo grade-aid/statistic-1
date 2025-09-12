@@ -1,305 +1,668 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
+import { Play, ArrowRight } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Target } from "lucide-react";
 import Confetti from "@/components/Confetti";
 
-interface Exercise {
-  number: number;
+type GamePhase = 'start' | 'collection' | 'learning' | 'complete';
+
+interface GameState {
+  mammals: number;
+  birds: number;
+  reptiles: number;
+  fish: number;
+  insects: number;
+}
+
+interface Position {
+  x: number;
+  y: number;
+}
+
+interface Animal {
+  id: string;
+  type: keyof GameState;
+  position: Position;
+  emoji: string;
+  color: string;
+}
+
+interface Hunter {
+  id: string;
+  position: Position;
+  emoji: string;
+  direction: 'up' | 'down' | 'left' | 'right';
+}
+
+interface PercentageExercise {
+  targetType: keyof GameState;
   percentage: number;
   answer: number;
   id: string;
 }
 
+const GRID_SIZE = 20;
+
+const getResponsiveCellSize = () => {
+  if (typeof window === 'undefined') return 20;
+  const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+  if (vw >= 1024) return 24;
+  if (vw >= 768) return 18;
+  return 16;
+};
+
 const PercentageOfNumber = () => {
+  const { toast } = useToast();
   const navigate = useNavigate();
-
-  // Generate exercises
-  const generateExercises = (): Exercise[] => [
-    { id: '1', number: 500, percentage: 22, answer: 110 },
-    { id: '2', number: 800, percentage: 15, answer: 120 },
-    { id: '3', number: 1200, percentage: 25, answer: 300 },
-    { id: '4', number: 750, percentage: 40, answer: 300 },
-    { id: '5', number: 900, percentage: 33, answer: 297 }
-  ];
-
-  const exercises = generateExercises();
-
-  // Exercise state
-  const [showConfetti, setShowConfetti] = useState(false);
-  const [showVisualAnimation, setShowVisualAnimation] = useState(false);
-  const [completedExercises, setCompletedExercises] = useState<string[]>([]);
-  const [currentExercise, setCurrentExercise] = useState<Exercise | null>(null);
-  const [currentCalculation, setCurrentCalculation] = useState<Exercise | null>(null);
-  const [animatingNumbers, setAnimatingNumbers] = useState(false);
-  const [userAnswer, setUserAnswer] = useState<string>('');
   
-  const isAllCompleted = completedExercises.length === exercises.length;
+  // Game phases
+  const [phase, setPhase] = useState<GamePhase>('start');
+  
+  // Collection game state
+  const [playerPosition, setPlayerPosition] = useState<Position>({ x: 1, y: 1 });
+  const [animals, setAnimals] = useState<Animal[]>([]);
+  const [hunters, setHunters] = useState<Hunter[]>([]);
+  const [lives, setLives] = useState(9);
+  const [collected, setCollected] = useState<GameState>({
+    mammals: 0, birds: 0, reptiles: 0, fish: 0, insects: 0
+  });
+  const [totalTarget, setTotalTarget] = useState(20);
+  const [walls, setWalls] = useState<Position[]>([]);
+  
+  // Learning state
+  const [exercises, setExercises] = useState<PercentageExercise[]>([]);
+  const [currentExercise, setCurrentExercise] = useState<PercentageExercise | null>(null);
+  const [completedExercises, setCompletedExercises] = useState<string[]>([]);
+  const [selectedSlice, setSelectedSlice] = useState<keyof GameState | null>(null);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [showAnswer, setShowAnswer] = useState(false);
 
-  // Auto-start visual animation and set first exercise
-  useEffect(() => {
-    setShowVisualAnimation(true);
-    const timer = setTimeout(() => {
-      setShowVisualAnimation(false);
-      setCurrentExercise(exercises[0]);
-    }, 6000);
-    
-    return () => clearTimeout(timer);
+  const animalConfig = {
+    mammals: { emoji: '🐘', color: '#ef4444' },
+    birds: { emoji: '🦅', color: '#3b82f6' },
+    reptiles: { emoji: '🐍', color: '#22c55e' },
+    fish: { emoji: '🐟', color: '#06b6d4' },
+    insects: { emoji: '🐛', color: '#eab308' }
+  };
+
+  const generateWalls = useCallback(() => {
+    const newWalls: Position[] = [];
+    for (let x = 0; x < GRID_SIZE; x++) {
+      for (let y = 0; y < GRID_SIZE; y++) {
+        if (x === 0 || x === GRID_SIZE - 1 || y === 0 || y === GRID_SIZE - 1) {
+          newWalls.push({ x, y });
+        } else if (x % 3 === 0 && y % 3 === 0 && Math.random() > 0.5) {
+          newWalls.push({ x, y });
+        }
+      }
+    }
+    return newWalls;
   }, []);
 
-  // Handle answer submission
-  const handleAnswerSubmit = () => {
-    if (!currentExercise) return;
+  const isWall = useCallback((pos: Position) => {
+    return walls.some(wall => wall.x === pos.x && wall.y === pos.y);
+  }, [walls]);
+
+  const generateAnimals = useCallback((wallPositions: Position[]) => {
+    const newAnimals: Animal[] = [];
+    const animalTypes = Object.keys(animalConfig) as Array<keyof GameState>;
     
-    const answer = parseInt(userAnswer);
-    if (answer === currentExercise.answer) {
-      // Correct answer
-      setCompletedExercises(prev => [...prev, currentExercise.id]);
-      setCurrentCalculation(currentExercise);
-      setAnimatingNumbers(true);
-      setShowConfetti(true);
-      setUserAnswer('');
+    const animalDistributions = [
+      { total: 25, counts: [1, 3, 4, 7, 10] },
+      { total: 25, counts: [2, 4, 5, 6, 8] },
+      { total: 50, counts: [3, 7, 9, 11, 20] },
+      { total: 50, counts: [4, 6, 10, 12, 18] },
+      { total: 100, counts: [5, 15, 20, 25, 35] },
+      { total: 20, counts: [1, 2, 3, 5, 9] }
+    ];
+    
+    const selectedDistribution = animalDistributions[Math.floor(Math.random() * animalDistributions.length)];
+    setTotalTarget(selectedDistribution.total);
+    
+    const isWallPosition = (pos: Position) => {
+      return wallPositions.some(wall => wall.x === pos.x && wall.y === pos.y);
+    };
+    
+    let animalIndex = 0;
+    animalTypes.forEach((type, typeIndex) => {
+      const count = selectedDistribution.counts[typeIndex];
+      const config = animalConfig[type];
+      for (let i = 0; i < count; i++) {
+        let position: Position;
+        let attempts = 0;
+        do {
+          position = {
+            x: Math.floor(Math.random() * (GRID_SIZE - 2)) + 1,
+            y: Math.floor(Math.random() * (GRID_SIZE - 2)) + 1
+          };
+          attempts++;
+        } while ((position.x === 1 && position.y === 1 || isWallPosition(position) || 
+                  newAnimals.some(animal => animal.position.x === position.x && animal.position.y === position.y)) 
+                  && attempts < 50);
+        
+        newAnimals.push({
+          id: `${type}-${animalIndex}`,
+          type,
+          position,
+          emoji: config.emoji,
+          color: config.color
+        });
+        animalIndex++;
+      }
+    });
+    setAnimals(newAnimals);
+  }, []);
+
+  const generateHunters = useCallback((wallPositions: Position[]) => {
+    const newHunters: Hunter[] = [];
+    const hunterEmojis = ['🐺', '🦖'];
+    
+    const isWallPosition = (pos: Position) => {
+      return wallPositions.some(wall => wall.x === pos.x && wall.y === pos.y);
+    };
+    
+    for (let i = 0; i < 2; i++) {
+      let position: Position;
+      let attempts = 0;
+      do {
+        position = {
+          x: Math.floor(Math.random() * (GRID_SIZE - 2)) + 1,
+          y: Math.floor(Math.random() * (GRID_SIZE - 2)) + 1
+        };
+        attempts++;
+      } while ((position.x === 1 && position.y === 1 || isWallPosition(position) || 
+                newHunters.some(hunter => hunter.position.x === position.x && hunter.position.y === position.y)) 
+                && attempts < 50);
       
-      // Clear animation after delay
+      newHunters.push({
+        id: `hunter-${i}`,
+        position,
+        emoji: hunterEmojis[i],
+        direction: ['up', 'down', 'left', 'right'][Math.floor(Math.random() * 4)] as any
+      });
+    }
+    setHunters(newHunters);
+  }, []);
+
+  const generateExercises = useCallback(() => {
+    const animalTypes = Object.keys(collected) as Array<keyof GameState>;
+    const availableTypes = animalTypes.filter(type => collected[type] > 0);
+    
+    if (availableTypes.length === 0) return [];
+    
+    const newExercises: PercentageExercise[] = [];
+    const percentages = [25, 50, 75, 20, 40, 60, 80];
+    
+    for (let i = 0; i < Math.min(5, availableTypes.length); i++) {
+      const type = availableTypes[i % availableTypes.length];
+      const percentage = percentages[i % percentages.length];
+      const totalAnimals = collected[type];
+      const answer = Math.round((percentage / 100) * totalAnimals);
+      
+      if (answer > 0) {
+        newExercises.push({
+          id: `exercise-${i}`,
+          targetType: type,
+          percentage,
+          answer
+        });
+      }
+    }
+    
+    return newExercises;
+  }, [collected]);
+
+  const startGame = () => {
+    setPhase('collection');
+    setPlayerPosition({ x: 1, y: 1 });
+    setLives(9);
+    setCollected({ mammals: 0, birds: 0, reptiles: 0, fish: 0, insects: 0 });
+    
+    const newWalls = generateWalls();
+    setWalls(newWalls);
+    generateAnimals(newWalls);
+    generateHunters(newWalls);
+  };
+
+  const movePlayer = useCallback((direction: string) => {
+    if (phase !== 'collection') return;
+    setPlayerPosition(prev => {
+      let newX = prev.x;
+      let newY = prev.y;
+      
+      switch (direction) {
+        case 'up':
+        case 'w':
+          newY = Math.max(0, prev.y - 1);
+          break;
+        case 'down':
+        case 's':
+          newY = Math.min(GRID_SIZE - 1, prev.y + 1);
+          break;
+        case 'left':
+        case 'a':
+          newX = Math.max(0, prev.x - 1);
+          break;
+        case 'right':
+        case 'd':
+          newX = Math.min(GRID_SIZE - 1, prev.x + 1);
+          break;
+      }
+      
+      const newPos = { x: newX, y: newY };
+      if (isWall(newPos)) {
+        return prev;
+      }
+      return newPos;
+    });
+  }, [phase, isWall]);
+
+  // Hunter movement and collision logic
+  useEffect(() => {
+    if (phase !== 'collection' || hunters.length === 0) return;
+    
+    const interval = setInterval(() => {
+      setHunters(prevHunters => prevHunters.map(hunter => {
+        const directions = ['up', 'down', 'left', 'right'] as const;
+        let newPosition = { ...hunter.position };
+        let newDirection = hunter.direction;
+        
+        if (Math.random() < 0.6) {
+          const dx = playerPosition.x - hunter.position.x;
+          const dy = playerPosition.y - hunter.position.y;
+          
+          if (Math.abs(dx) > Math.abs(dy)) {
+            newDirection = dx > 0 ? 'right' : 'left';
+          } else if (dy !== 0) {
+            newDirection = dy > 0 ? 'down' : 'up';
+          }
+        } else {
+          newDirection = directions[Math.floor(Math.random() * directions.length)];
+        }
+        
+        switch (newDirection) {
+          case 'up':
+            newPosition.y = Math.max(0, hunter.position.y - 1);
+            break;
+          case 'down':
+            newPosition.y = Math.min(GRID_SIZE - 1, hunter.position.y + 1);
+            break;
+          case 'left':
+            newPosition.x = Math.max(0, hunter.position.x - 1);
+            break;
+          case 'right':
+            newPosition.x = Math.min(GRID_SIZE - 1, hunter.position.x + 1);
+            break;
+        }
+        
+        if (isWall(newPosition)) {
+          newPosition = hunter.position;
+        }
+        
+        return { ...hunter, position: newPosition, direction: newDirection };
+      }));
+    }, 180);
+    
+    return () => clearInterval(interval);
+  }, [phase, hunters.length, isWall, playerPosition]);
+
+  // Hunter collision
+  useEffect(() => {
+    const hunterAtPosition = hunters.find(hunter => 
+      hunter.position.x === playerPosition.x && hunter.position.y === playerPosition.y
+    );
+    
+    if (hunterAtPosition && phase === 'collection') {
+      setLives(prev => {
+        const newLives = prev - 1;
+        if (newLives <= 0) {
+          setPhase('start');
+          toast({
+            title: "💀 Game Over!",
+            description: "Better luck next time!",
+            duration: 3000
+          });
+        } else {
+          setPlayerPosition({ x: 1, y: 1 });
+          toast({
+            title: `💔 Hit by ${hunterAtPosition.emoji}!`,
+            description: `${newLives} lives remaining`,
+            duration: 2000
+          });
+        }
+        return newLives;
+      });
+    }
+  }, [playerPosition, hunters, phase, toast]);
+
+  // Keyboard controls
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      const key = e.key.toLowerCase();
+      if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'w', 'a', 's', 'd'].includes(key)) {
+        e.preventDefault();
+        const direction = key.replace('arrow', '');
+        movePlayer(direction);
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [movePlayer]);
+
+  // Animal collection
+  useEffect(() => {
+    const animalAtPosition = animals.find(animal => 
+      animal.position.x === playerPosition.x && animal.position.y === playerPosition.y
+    );
+    
+    if (animalAtPosition) {
+      setAnimals(prev => prev.filter(animal => animal.id !== animalAtPosition.id));
+      setCollected(prev => ({
+        ...prev,
+        [animalAtPosition.type]: prev[animalAtPosition.type] + 1
+      }));
+    }
+  }, [playerPosition, animals]);
+
+  // Check collection completion
+  const totalCollected = Object.values(collected).reduce((sum, count) => sum + count, 0);
+  const isCollectionComplete = totalCollected === totalTarget && phase === 'collection';
+
+  useEffect(() => {
+    if (isCollectionComplete) {
       setTimeout(() => {
-        setAnimatingNumbers(false);
+        const newExercises = generateExercises();
+        setExercises(newExercises);
+        setCurrentExercise(newExercises[0] || null);
+        setPhase('learning');
+      }, 1000);
+    }
+  }, [isCollectionComplete, generateExercises]);
+
+  const handleSliceClick = (animalType: keyof GameState) => {
+    if (!currentExercise || showAnswer) return;
+    
+    setSelectedSlice(animalType);
+    
+    if (animalType === currentExercise.targetType) {
+      setShowAnswer(true);
+      setShowConfetti(true);
+      setCompletedExercises(prev => [...prev, currentExercise.id]);
+      
+      setTimeout(() => {
         setShowConfetti(false);
-      }, 2000);
-    }
-  };
-
-  // Handle next button click
-  const handleNext = () => {
-    const remaining = exercises.filter(ex => 
-      !completedExercises.includes(ex.id) && ex.id !== currentCalculation?.id
-    );
-    
-    setCurrentCalculation(null);
-    
-    if (remaining.length > 0) {
-      setCurrentExercise(remaining[0]);
+        setShowAnswer(false);
+        setSelectedSlice(null);
+        
+        const nextExercise = exercises.find(ex => !completedExercises.includes(ex.id) && ex.id !== currentExercise.id);
+        if (nextExercise) {
+          setCurrentExercise(nextExercise);
+        } else {
+          setPhase('complete');
+        }
+      }, 3000);
     } else {
-      navigate('/percentage-visualization');
+      setTimeout(() => {
+        setSelectedSlice(null);
+      }, 1000);
     }
   };
 
-  // Visual Introduction Component  
-  const VisualIntroduction = () => {
-    const exampleExercise = exercises[0];
+  const renderPieChart = () => {
+    const radius = 90;
+    const centerX = 100;
+    const centerY = 100;
+    
+    let startAngle = 0;
+    const animalTypes = Object.keys(collected) as Array<keyof GameState>;
     
     return (
-      <Card className="p-6 border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-secondary/5">
-        <div className="text-center space-y-6">
-          <div className="text-4xl mb-4">🧮</div>
+      <svg className="w-full h-full cursor-pointer" viewBox="0 0 200 200">
+        {animalTypes.map((type) => {
+          const count = collected[type];
+          if (count === 0) return null;
           
-          <div className={`transition-all duration-1000 ${showVisualAnimation ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
-            <h3 className="text-2xl font-bold mb-6">Learn How to Calculate Percentage of a Number!</h3>
-            
-            {/* Example Problem */}
-            <div className="bg-white p-4 rounded-lg border-2 border-primary/30 mb-6">
-              <div className="text-xl font-bold mb-2">Example Problem:</div>
-              <div className="text-lg">Find {exampleExercise.percentage}% of {exampleExercise.number}</div>
-            </div>
-            
-            {/* Step-by-step Calculation */}
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg border-2 border-blue-200 mb-6">
-              <div className="text-lg font-bold mb-4">Step-by-Step Solution:</div>
-              
-              {/* Step 1: Convert percentage to decimal */}
-              <div className="flex items-center justify-center gap-4 mb-4 text-xl">
-                <div className="bg-white px-4 py-2 rounded-lg border font-bold">{exampleExercise.percentage}%</div>
-                <span>=</span>
-                <div className="bg-blue-100 px-4 py-2 rounded-lg border font-bold text-blue-700">
-                  {(exampleExercise.percentage / 100).toFixed(2)}
-                </div>
-              </div>
-              
-              {/* Step 2: Multiply */}
-              <div className="flex items-center justify-center gap-4 text-xl">
-                <div className="bg-white px-4 py-2 rounded-lg border font-bold">{exampleExercise.number}</div>
-                <span>×</span>
-                <div className="bg-blue-100 px-4 py-2 rounded-lg border font-bold text-blue-700">
-                  {(exampleExercise.percentage / 100).toFixed(2)}
-                </div>
-                <span>=</span>
-                <Badge className="text-xl px-6 py-3 animate-bounce bg-green-600">
-                  {exampleExercise.answer}
-                </Badge>
-              </div>
-            </div>
-            
-            {/* Visual representation */}
-            <div className="bg-gray-50 p-6 rounded-lg border-2 border-gray-200 mb-6">
-              <div className="text-lg font-bold mb-4">Visual Representation:</div>
-              <div className="w-full bg-gray-200 rounded-full h-8 mb-2">
-                <div 
-                  className="h-full bg-primary rounded-full transition-all duration-2000" 
-                  style={{ width: `${exampleExercise.percentage}%` }}
-                ></div>
-              </div>
-              <div className="text-sm text-muted-foreground">
-                {exampleExercise.percentage}% of {exampleExercise.number} = {exampleExercise.answer}
-              </div>
-            </div>
-            
-            <div className="text-lg text-muted-foreground">
-              Next, you'll practice with different problems! 🎯
-            </div>
-          </div>
-        </div>
-      </Card>
-    );
-  };
-
-  // Main Learning Exercise Component
-  const LearningExercise = () => {
-    if (!currentExercise) return null;
-    
-    return (
-      <Card className="p-6 border-2 border-secondary/20 bg-gradient-to-br from-secondary/5 to-accent/5">
-        <div className="text-center space-y-6">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <Target className="h-6 w-6 text-secondary" />
-            <h3 className="text-xl font-bold">Calculate {currentExercise.percentage}% of {currentExercise.number}</h3>
-          </div>
+          const percentage = (count / totalCollected) * 100;
+          const angle = (percentage / 100) * 360;
+          const endAngle = startAngle + angle;
           
-          {/* Problem Display */}
-          <div className="bg-white p-6 rounded-lg border-2 border-accent/30 mb-6">
-            <div className="text-2xl font-bold mb-4">
-              Find {currentExercise.percentage}% of {currentExercise.number}
-            </div>
-            
-            {/* Visual bar */}
-            <div className="w-full bg-gray-200 rounded-full h-6 mb-4">
-              <div 
-                className="h-full bg-primary rounded-full transition-all duration-1000" 
-                style={{ width: `${currentExercise.percentage}%` }}
-              ></div>
-            </div>
-            
-            {/* Answer input */}
-            <div className="flex items-center justify-center gap-4 text-xl">
-              <span>{currentExercise.number} × {(currentExercise.percentage / 100).toFixed(2)} =</span>
-              <input
-                type="number"
-                value={userAnswer}
-                onChange={(e) => setUserAnswer(e.target.value)}
-                className="w-24 px-3 py-2 border-2 border-primary/30 rounded-lg text-center font-bold"
-                placeholder="?"
+          const x1 = centerX + radius * Math.cos((startAngle * Math.PI) / 180);
+          const y1 = centerY + radius * Math.sin((startAngle * Math.PI) / 180);
+          const x2 = centerX + radius * Math.cos((endAngle * Math.PI) / 180);
+          const y2 = centerY + radius * Math.sin((endAngle * Math.PI) / 180);
+          
+          const largeArcFlag = angle > 180 ? 1 : 0;
+          const pathData = `M ${centerX} ${centerY} L ${x1} ${y1} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2} Z`;
+          
+          const labelAngle = startAngle + angle / 2;
+          const labelRadius = radius * 0.7;
+          const labelX = centerX + labelRadius * Math.cos((labelAngle * Math.PI) / 180);
+          const labelY = centerY + labelRadius * Math.sin((labelAngle * Math.PI) / 180);
+          
+          const isTarget = currentExercise?.targetType === type;
+          const isSelected = selectedSlice === type;
+          const isCorrect = showAnswer && isTarget;
+          
+          startAngle = endAngle;
+          
+          return (
+            <g key={type} onClick={() => handleSliceClick(type)}>
+              <path
+                d={pathData}
+                fill={animalConfig[type].color}
+                stroke="white"
+                strokeWidth="4"
+                className={`transition-all duration-300 ${
+                  isTarget ? 'opacity-100 drop-shadow-lg animate-pulse' : 
+                  isSelected ? 'opacity-80' : 'opacity-90'
+                } ${isCorrect ? 'animate-bounce' : ''}`}
+                style={{
+                  filter: isTarget ? 'brightness(1.2)' : 
+                          isSelected ? 'brightness(0.8)' : 'brightness(1.0)'
+                }}
               />
-              <Button onClick={handleAnswerSubmit} disabled={!userAnswer}>
-                Check
-              </Button>
-            </div>
-          </div>
-          
-          {/* Progress Display */}
-          <div className="bg-white p-4 rounded-lg border-2 border-primary/30">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-sm font-medium">Progress:</span>
-              <Progress value={(completedExercises.length / exercises.length) * 100} className="flex-1" />
-              <span className="text-sm text-muted-foreground">
-                {completedExercises.length} / {exercises.length}
-              </span>
-            </div>
-          </div>
-          
-          {/* Current Calculation Display */}
-          {currentCalculation && (
-            <div className="bg-green-50 p-6 rounded-lg border-2 border-green-200">
-              <div className="text-center space-y-4">
-                <div className="text-lg font-bold text-green-700 mb-2">
-                  🎉 Correct Answer!
-                </div>
-                
-                <div className="flex items-center justify-center gap-4 text-xl">
-                  <span>{currentCalculation.number} × {(currentCalculation.percentage / 100).toFixed(2)} =</span>
-                  <Badge className={`text-xl px-4 py-2 bg-green-600 text-white transition-all duration-500 ${animatingNumbers ? 'scale-110 animate-bounce' : ''}`}>
-                    {currentCalculation.answer}
-                  </Badge>
-                </div>
-                
-                <div className="text-sm text-green-600 mb-4">
-                  {currentCalculation.percentage}% of {currentCalculation.number} is {currentCalculation.answer}!
-                </div>
-                
-                {/* Next Button */}
-                <div className="flex justify-center">
-                  {completedExercises.length < exercises.length ? (
-                    <Button 
-                      onClick={handleNext}
-                      className="bg-primary hover:bg-primary/90 text-white px-6 py-2"
-                    >
-                      Next Problem <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
-                  ) : (
-                    <Button 
-                      onClick={handleNext}
-                      className="bg-green-600 hover:bg-green-700 text-white px-6 py-2"
-                    >
-                      Complete Learning <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </Card>
+              <text
+                x={labelX}
+                y={labelY - 8}
+                textAnchor="middle"
+                dy="0.3em"
+                className="text-3xl pointer-events-none"
+              >
+                {animalConfig[type].emoji}
+              </text>
+              <text
+                x={labelX}
+                y={labelY + 15}
+                textAnchor="middle"
+                dy="0.3em"
+                className="text-base font-bold fill-white pointer-events-none"
+                style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}
+              >
+                {count}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
     );
   };
 
-  // Main render function
-  const renderContent = () => {
-    if (showVisualAnimation) {
-      return <VisualIntroduction />;
-    }
-    
-    if (isAllCompleted) {
-      return (
-        <Card className="p-8 text-center border-2 border-green-500/20 bg-gradient-to-br from-green-50 to-emerald-50">
-          <div className="text-4xl mb-4">🎊</div>
-          <h2 className="text-2xl font-bold text-green-700 mb-4">
-            Congratulations! All Problems Completed!
-          </h2>
-          <p className="text-lg text-green-600 mb-6">
-            You've successfully solved all {exercises.length} percentage problems!
-          </p>
-          <Button 
-            onClick={() => navigate('/percentage-visualization')}
-            className="bg-green-600 hover:bg-green-700 text-white px-8 py-3"
-          >
-            Continue to Visualization <ArrowRight className="w-4 h-4 ml-2" />
+  // Render different phases
+  if (phase === 'start') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+        <Card className="p-8 text-center w-full max-w-md">
+          <div className="text-6xl mb-6">🧮</div>
+          <h1 className="text-3xl font-bold mb-4">🐘 Percentage Game</h1>
+          <p className="text-lg text-muted-foreground mb-6">Collect animals, then find percentages!</p>
+          <Button onClick={startGame} className="w-full text-xl py-4">
+            <Play className="mr-2 h-5 w-5" />
+            Start Adventure
           </Button>
         </Card>
-      );
-    }
+      </div>
+    );
+  }
+
+  if (phase === 'collection') {
+    const cellSize = getResponsiveCellSize();
+    const boardSize = GRID_SIZE * cellSize + 32;
     
-    return <LearningExercise />;
-  };
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-4">
+            <h2 className="text-2xl font-bold mb-2">🐘 Collect Animals for Percentage Learning</h2>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-2">
+              <div className="flex items-center gap-1">
+                {Array.from({ length: 9 }, (_, i) => (
+                  <span key={i} className="text-lg">
+                    {i < lives ? '❤️' : '🖤'}
+                  </span>
+                ))}
+              </div>
+              <p className="text-lg">
+                {totalCollected} / {totalTarget} animals
+              </p>
+            </div>
+          </div>
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <div className="max-w-4xl mx-auto">
-        <Card className="p-6 mb-6 bg-white/80 backdrop-blur-sm">
-          <h1 className="text-2xl md:text-3xl font-bold text-center mb-6">
-            🧮 Percentage of a Number
-          </h1>
-        </Card>
+          <div className="flex justify-center">
+            <Card className="w-full max-w-none">
+              <div 
+                className="relative bg-muted rounded-xl p-4 mx-auto overflow-hidden"
+                style={{
+                  width: Math.min(boardSize, window.innerWidth - 64),
+                  height: Math.min(boardSize, window.innerHeight - 200),
+                  maxWidth: '100%',
+                  aspectRatio: '1'
+                }}
+              >
+                <div 
+                  className="grid gap-0 relative"
+                  style={{ 
+                    gridTemplateColumns: `repeat(${GRID_SIZE}, 1fr)`,
+                    width: '100%',
+                    height: '100%'
+                  }}
+                >
+                  {Array.from({ length: GRID_SIZE * GRID_SIZE }, (_, index) => {
+                    const x = index % GRID_SIZE;
+                    const y = Math.floor(index / GRID_SIZE);
+                    const isWallCell = isWall({ x, y });
+                    const isPlayer = playerPosition.x === x && playerPosition.y === y;
+                    const animal = animals.find(a => a.position.x === x && a.position.y === y);
+                    const hunter = hunters.find(h => h.position.x === x && h.position.y === y);
+                    
+                    return (
+                      <div
+                        key={index}
+                        className={`
+                          border border-border/20 flex items-center justify-center text-xs sm:text-sm
+                          ${isWallCell ? 'bg-stone-600' : 'bg-background/50'}
+                        `}
+                        style={{ aspectRatio: '1' }}
+                      >
+                        {isPlayer && <span className="text-base sm:text-lg">🧑</span>}
+                        {animal && <span className="text-base sm:text-lg">{animal.emoji}</span>}
+                        {hunter && <span className="text-base sm:text-lg">{hunter.emoji}</span>}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </Card>
+          </div>
 
-        {/* Main Content */}
-        <div className="mb-6">
-          {renderContent()}
+          <div className="text-center mt-4">
+            <p className="text-sm text-muted-foreground">Use WASD or arrow keys to move • Avoid hunters • Collect all animals!</p>
+          </div>
         </div>
       </div>
+    );
+  }
 
-      {/* Confetti */}
-      <Confetti trigger={showConfetti} onComplete={() => setShowConfetti(false)} />
-    </div>
-  );
+  if (phase === 'learning') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+        <div className="max-w-4xl mx-auto">
+          <Card className="p-6 mb-6 bg-white/80 backdrop-blur-sm">
+            <h1 className="text-3xl font-bold text-center mb-6">
+              🧮 Find Percentage of Animals
+            </h1>
+          </Card>
+
+          {currentExercise && (
+            <Card className="p-8 text-center">
+              <div className="mb-8">
+                <div className="text-6xl mb-4">
+                  {animalConfig[currentExercise.targetType].emoji}
+                </div>
+                <div className="text-4xl font-bold mb-2">
+                  Find {currentExercise.percentage}%
+                </div>
+                <div className="text-2xl text-muted-foreground">
+                  Click the correct slice!
+                </div>
+              </div>
+
+              <div className="flex justify-center mb-8">
+                <div className="w-80 h-80">
+                  {renderPieChart()}
+                </div>
+              </div>
+
+              {showAnswer && (
+                <div className="bg-green-50 p-6 rounded-lg border-2 border-green-200">
+                  <div className="text-2xl font-bold text-green-700 mb-4">
+                    🎉 Correct! 
+                  </div>
+                  <div className="flex items-center justify-center gap-4 text-xl">
+                    <span>{currentExercise.percentage}% of</span>
+                    <span className="text-3xl">{animalConfig[currentExercise.targetType].emoji}</span>
+                    <span>×{collected[currentExercise.targetType]} = {currentExercise.answer}</span>
+                  </div>
+                </div>
+              )}
+
+              <div className="text-sm text-muted-foreground mt-4">
+                Progress: {completedExercises.length} / {exercises.length} completed
+              </div>
+            </Card>
+          )}
+        </div>
+
+        <Confetti trigger={showConfetti} onComplete={() => setShowConfetti(false)} />
+      </div>
+    );
+  }
+
+  if (phase === 'complete') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+        <Card className="p-8 text-center w-full max-w-md">
+          <div className="text-6xl mb-6">🎊</div>
+          <h2 className="text-2xl font-bold text-green-700 mb-4">
+            Percentage Mastery Complete!
+          </h2>
+          <p className="text-lg text-green-600 mb-6">
+            You've mastered finding percentages of numbers using your collected animals!
+          </p>
+          <Button 
+            onClick={() => navigate('/whole-from-percentage')}
+            className="w-full text-xl py-4 bg-green-600 hover:bg-green-700"
+          >
+            Next Challenge <ArrowRight className="w-5 h-5 ml-2" />
+          </Button>
+        </Card>
+      </div>
+    );
+  }
+
+  return null;
 };
 
 export default PercentageOfNumber;
