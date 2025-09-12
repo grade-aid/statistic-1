@@ -389,38 +389,6 @@ const Learning = () => {
               </span>
             </div>
           </div>
-          
-          {/* Completed Animals Calculations */}
-          {completedAnimals.length > 0 && (
-            <div className="space-y-4">
-              <h4 className="text-lg font-bold">Completed Calculations:</h4>
-              <div className="grid gap-3">
-                {completedAnimals.map(animalType => {
-                  const config = animalConfig[animalType as keyof typeof animalConfig];
-                  const count = collectedData[animalType as keyof AnimalData];
-                  const percentage = Math.round(count / totalAnimals * 100);
-                  const isAnimating = animatingNumbers[animalType];
-                  
-                  return (
-                    <div key={animalType} className="bg-green-50 p-4 rounded-lg border-2 border-green-200">
-                      <div className="flex items-center justify-center gap-4 text-lg">
-                        <div className="flex items-center gap-2">
-                          <span className="text-2xl">{config.emoji}</span>
-                          <span className={`font-bold transition-all duration-500 ${isAnimating ? 'animate-pulse text-green-600' : ''}`}>
-                            {count}
-                          </span>
-                        </div>
-                        <span>÷ {totalAnimals} × 100 =</span>
-                        <Badge className={`text-lg px-4 py-2 bg-green-600 text-white transition-all duration-500 ${isAnimating ? 'scale-110 animate-bounce' : ''}`}>
-                          {percentage}%
-                        </Badge>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
         </div>
       </Card>
     );
