@@ -574,13 +574,13 @@ const PercentageDifference = () => {
                     onClick={() => handleAnswerSubmit(option)}
                     disabled={showAnswerDialog && (selectedAnswer === currentExercise.correctAnswer || !canTryAgain)}
                     className={`h-16 text-xl ${
-                      showAnswerDialog && option === currentExercise.correctAnswer
+                      showAnswerDialog && selectedAnswer !== null && option === currentExercise.correctAnswer
                         ? 'bg-green-600 text-white'
-                        : showAnswerDialog && option === selectedAnswer && option !== currentExercise.correctAnswer
+                        : showAnswerDialog && selectedAnswer !== null && option === selectedAnswer && option !== currentExercise.correctAnswer
                         ? 'bg-red-600 text-white'
                         : ''
                     }`}
-                    variant={showAnswerDialog && option === currentExercise.correctAnswer ? 'default' : 'outline'}
+                    variant={showAnswerDialog && selectedAnswer !== null && option === currentExercise.correctAnswer ? 'default' : 'outline'}
                   >
                     {option}%
                   </Button>
