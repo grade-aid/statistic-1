@@ -92,8 +92,8 @@ const Learning = () => {
   const [showVisualAnimation, setShowVisualAnimation] = useState(false);
   const [completedAnimals, setCompletedAnimals] = useState<string[]>([]);
   const [currentTargetAnimal, setCurrentTargetAnimal] = useState<string | null>(null);
-  const [showCalculations, setShowCalculations] = useState<Record<string, boolean>>({});
-  const [animatingNumbers, setAnimatingNumbers] = useState<Record<string, boolean>>({});
+  const [currentCalculation, setCurrentCalculation] = useState<string | null>(null);
+  const [animatingNumbers, setAnimatingNumbers] = useState(false);
   
   // Get animal entries for the exercise
   const animalEntries = Object.entries(collectedData).filter(([, count]) => count > 0);
@@ -119,26 +119,27 @@ const Learning = () => {
     if (completedAnimals.includes(animalType)) return;
     
     if (animalType === currentTargetAnimal) {
-      // Correct animal clicked
+      // Correct animal clicked - show calculation for this animal
       setCompletedAnimals(prev => [...prev, animalType]);
-      setShowCalculations(prev => ({ ...prev, [animalType]: true }));
-      setAnimatingNumbers(prev => ({ ...prev, [animalType]: true }));
+      setCurrentCalculation(animalType);
+      setAnimatingNumbers(true);
       setShowConfetti(true);
       
       // Clear animation after delay
       setTimeout(() => {
-        setAnimatingNumbers(prev => ({ ...prev, [animalType]: false }));
+        setAnimatingNumbers(false);
         setShowConfetti(false);
       }, 2000);
       
-      // Set next target animal
+      // Set next target animal and clear current calculation
       const remaining = animalEntries.filter(([type]) => 
         !completedAnimals.includes(type) && type !== animalType
       );
       if (remaining.length > 0) {
         setTimeout(() => {
+          setCurrentCalculation(null); // Clear previous calculation
           setCurrentTargetAnimal(remaining[0][0]);
-        }, 1000);
+        }, 3000);
       } else {
         // All completed
         setTimeout(() => {
@@ -389,6 +390,34 @@ const Learning = () => {
               </span>
             </div>
           </div>
+          
+          {/* Current Calculation Display */}
+          {currentCalculation && (
+            <div className="bg-green-50 p-6 rounded-lg border-2 border-green-200">
+              <div className="text-center space-y-4">
+                <div className="text-lg font-bold text-green-700 mb-2">
+                  🎉 Calculation Complete!
+                </div>
+                
+                <div className="flex items-center justify-center gap-4 text-xl">
+                  <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg border">
+                    <span className="text-2xl">{animalConfig[currentCalculation as keyof typeof animalConfig].emoji}</span>
+                    <span className={`font-bold transition-all duration-500 ${animatingNumbers ? 'animate-pulse text-green-600' : ''}`}>
+                      {collectedData[currentCalculation as keyof AnimalData]}
+                    </span>
+                  </div>
+                  <span>÷ {totalAnimals} × 100 =</span>
+                  <Badge className={`text-xl px-4 py-2 bg-green-600 text-white transition-all duration-500 ${animatingNumbers ? 'scale-110 animate-bounce' : ''}`}>
+                    {Math.round(collectedData[currentCalculation as keyof AnimalData] / totalAnimals * 100)}%
+                  </Badge>
+                </div>
+                
+                <div className="text-sm text-green-600">
+                  {animalConfig[currentCalculation as keyof typeof animalConfig].name} represents {Math.round(collectedData[currentCalculation as keyof AnimalData] / totalAnimals * 100)}% of your animals!
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </Card>
     );
