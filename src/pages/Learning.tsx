@@ -509,10 +509,10 @@ const Learning = () => {
             You've successfully calculated the percentage for all {animalEntries.length} animal types!
           </p>
           <Button 
-            onClick={() => navigate('/visualization')}
+            onClick={() => navigate('/percentage-of-number')}
             className="bg-green-600 hover:bg-green-700 text-white px-8 py-3"
           >
-            Continue to Visualization <ArrowRight className="w-4 h-4 ml-2" />
+            Next Challenge: Percentage Game <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         </Card>
       );
