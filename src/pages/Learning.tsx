@@ -102,9 +102,10 @@ const Learning = () => {
   const currentAnimal = animalEntries[currentAnimalIndex];
   const isLastAnimal = currentAnimalIndex >= animalEntries.length - 1;
 
-  // Auto-advance visual animation in step 1
+  // Auto-start visual animation in step 1
   useEffect(() => {
-    if (currentStep === 1 && showVisualAnimation) {
+    if (currentStep === 1) {
+      setShowVisualAnimation(true);
       const timer = setTimeout(() => {
         setShowVisualAnimation(false);
         setCurrentStep(2);
@@ -112,7 +113,7 @@ const Learning = () => {
       
       return () => clearTimeout(timer);
     }
-  }, [currentStep, showVisualAnimation]);
+  }, [currentStep]);
 
   // Check if current step is completed
   useEffect(() => {
@@ -447,16 +448,6 @@ const Learning = () => {
         return (
           <div className="space-y-6">
             <VisualIntroduction />
-            {!showVisualAnimation && (
-              <div className="text-center">
-                <Button 
-                  onClick={() => setShowVisualAnimation(true)}
-                  className="bg-primary hover:bg-primary/90"
-                >
-                  Start Visual Introduction
-                </Button>
-              </div>
-            )}
           </div>
         );
       
