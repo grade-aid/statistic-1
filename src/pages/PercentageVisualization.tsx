@@ -1,10 +1,13 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calculator, BarChart3, PieChart, TrendingUp } from 'lucide-react';
+import { Calculator, BarChart3, PieChart, TrendingUp, ChevronLeft, ChevronRight, Play } from 'lucide-react';
 
 const PercentageVisualization = () => {
   const navigate = useNavigate();
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
 
   const concepts = [
     {
@@ -13,8 +16,15 @@ const PercentageVisualization = () => {
       example: "22% of 500 = 110",
       formula: "Number × (Percentage ÷ 100)",
       color: "#3b82f6",
+      bgColor: "from-blue-50 to-blue-100",
       icon: Calculator,
-      route: "/percentage-of-number"
+      route: "/percentage-of-number",
+      visual: {
+        type: "progress",
+        percentage: 22,
+        total: 500,
+        result: 110
+      }
     },
     {
       title: "Whole from Percentage",
@@ -22,8 +32,15 @@ const PercentageVisualization = () => {
       example: "48 is 12% of 400",
       formula: "Part ÷ (Percentage ÷ 100)",
       color: "#8b5cf6",
+      bgColor: "from-purple-50 to-purple-100",
       icon: BarChart3,
-      route: "/whole-from-percentage"
+      route: "/whole-from-percentage",
+      visual: {
+        type: "reverse",
+        part: 48,
+        percentage: 12,
+        whole: 400
+      }
     },
     {
       title: "Percentage Difference",
@@ -31,151 +48,328 @@ const PercentageVisualization = () => {
       example: "1200 is 33.3% more than 900",
       formula: "(Difference ÷ Original) × 100",
       color: "#ef4444",
+      bgColor: "from-red-50 to-red-100",
       icon: TrendingUp,
-      route: "/percentage-difference"
+      route: "/percentage-difference",
+      visual: {
+        type: "comparison",
+        original: 900,
+        new: 1200,
+        difference: 33.3
+      }
     }
   ];
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <Card className="p-6 mb-6 bg-white/80 backdrop-blur-sm">
-          <h1 className="text-2xl md:text-3xl font-bold text-center mb-4">
-            Percentage Concepts
-          </h1>
-          <p className="text-center text-muted-foreground">
-            Master three essential percentage calculation methods
-          </p>
-        </Card>
+  const currentConcept = concepts[currentIndex];
 
-        {/* Concepts Grid */}
-        <div className="grid gap-6 md:grid-cols-3 mb-8">
-          {concepts.map((concept, index) => {
-            const IconComponent = concept.icon;
-            return (
-              <Card key={index} className="p-6 border-2 border-gray-200 hover:border-primary/50 transition-all duration-300 hover:shadow-lg">
-                <div className="text-center space-y-4">
-                  <div 
-                    className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
-                    style={{ backgroundColor: concept.color + '20' }}
-                  >
-                    <IconComponent 
-                      className="h-8 w-8" 
-                      style={{ color: concept.color }}
-                    />
-                  </div>
-                  
-                  <h3 className="text-xl font-bold mb-2">{concept.title}</h3>
-                  <p className="text-sm text-muted-foreground mb-4">{concept.description}</p>
-                  
-                  {/* Example */}
-                  <div 
-                    className="p-3 rounded-lg text-white font-semibold"
-                    style={{ backgroundColor: concept.color }}
-                  >
-                    {concept.example}
-                  </div>
-                  
-                  {/* Formula */}
-                  <div className="bg-gray-50 p-3 rounded-lg">
-                    <div className="text-xs text-muted-foreground mb-1">Formula:</div>
-                    <div className="font-mono text-sm">{concept.formula}</div>
-                  </div>
-                  
-                  <Button 
-                    onClick={() => navigate(concept.route)}
-                    className="w-full"
-                    style={{ backgroundColor: concept.color }}
-                  >
-                    Practice This Concept
-                  </Button>
-                </div>
-              </Card>
-            );
-          })}
+  const nextConcept = () => {
+    setIsAnimating(true);
+    setTimeout(() => {
+      setCurrentIndex((prev) => (prev + 1) % concepts.length);
+      setIsAnimating(false);
+    }, 150);
+  };
+
+  const prevConcept = () => {
+    setIsAnimating(true);
+    setTimeout(() => {
+      setCurrentIndex((prev) => (prev - 1 + concepts.length) % concepts.length);
+      setIsAnimating(false);
+    }, 150);
+  };
+
+  const renderVisual = (concept: typeof concepts[0]) => {
+    const IconComponent = concept.icon;
+    
+    if (concept.visual.type === "progress") {
+      return (
+        <div className="space-y-6">
+          {/* Large Icon */}
+          <div className="flex justify-center mb-8">
+            <div 
+              className="w-24 h-24 rounded-full flex items-center justify-center animate-scale-in"
+              style={{ backgroundColor: concept.color + '20' }}
+            >
+              <IconComponent 
+                className="h-12 w-12" 
+                style={{ color: concept.color }}
+              />
+            </div>
+          </div>
+
+          {/* Progress Bar Visual */}
+          <div className="max-w-lg mx-auto">
+            <div className="text-center mb-4">
+              <div className="text-6xl font-bold mb-2" style={{ color: concept.color }}>
+                {concept.visual.percentage}%
+              </div>
+              <div className="text-xl text-muted-foreground">
+                of {concept.visual.total}
+              </div>
+            </div>
+            
+            <div className="w-full bg-gray-200 rounded-full h-12 mb-4 overflow-hidden">
+              <div 
+                className="h-full rounded-full transition-all duration-2000 flex items-center justify-end pr-4 text-white font-bold animate-slide-in-right"
+                style={{ 
+                  backgroundColor: concept.color,
+                  width: `${concept.visual.percentage}%`
+                }}
+              >
+                {concept.visual.result}
+              </div>
+            </div>
+            
+            <div className="text-center">
+              <div className="text-3xl font-bold animate-fade-in" style={{ color: concept.color }}>
+                = {concept.visual.result}
+              </div>
+            </div>
+          </div>
         </div>
+      );
+    }
 
-        {/* Interactive Comparison Chart */}
-        <Card className="p-6 mb-6">
-          <div className="flex items-center gap-2 mb-4">
-            <PieChart className="h-6 w-6 text-primary" />
-            <h2 className="text-xl font-bold">Visual Comparison</h2>
+    if (concept.visual.type === "reverse") {
+      return (
+        <div className="space-y-6">
+          {/* Large Icon */}
+          <div className="flex justify-center mb-8">
+            <div 
+              className="w-24 h-24 rounded-full flex items-center justify-center animate-scale-in"
+              style={{ backgroundColor: concept.color + '20' }}
+            >
+              <IconComponent 
+                className="h-12 w-12" 
+                style={{ color: concept.color }}
+              />
+            </div>
+          </div>
+
+          {/* Reverse Visual */}
+          <div className="max-w-lg mx-auto">
+            <div className="text-center mb-6">
+              <div className="text-4xl font-bold mb-2" style={{ color: concept.color }}>
+                {concept.visual.part}
+              </div>
+              <div className="text-xl text-muted-foreground">
+                is {concept.visual.percentage}% of what number?
+              </div>
+            </div>
+            
+            <div className="w-full bg-gray-200 rounded-full h-12 mb-4 relative overflow-hidden">
+              <div 
+                className="h-full rounded-full transition-all duration-2000 flex items-center justify-center text-white font-bold animate-slide-in-right"
+                style={{ 
+                  backgroundColor: concept.color,
+                  width: `${concept.visual.percentage}%`
+                }}
+              >
+                {concept.visual.part}
+              </div>
+              <div className="absolute top-0 right-0 h-full flex items-center pr-4 text-gray-600 font-semibold">
+                {concept.visual.whole}
+              </div>
+            </div>
+            
+            <div className="text-center">
+              <div className="text-3xl font-bold animate-fade-in" style={{ color: concept.color }}>
+                Answer: {concept.visual.whole}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (concept.visual.type === "comparison") {
+      return (
+        <div className="space-y-6">
+          {/* Large Icon */}
+          <div className="flex justify-center mb-8">
+            <div 
+              className="w-24 h-24 rounded-full flex items-center justify-center animate-scale-in"
+              style={{ backgroundColor: concept.color + '20' }}
+            >
+              <IconComponent 
+                className="h-12 w-12" 
+                style={{ color: concept.color }}
+              />
+            </div>
+          </div>
+
+          {/* Comparison Visual */}
+          <div className="max-w-lg mx-auto">
+            <div className="text-center mb-6">
+              <div className="text-xl text-muted-foreground mb-4">
+                Compare these two values:
+              </div>
+            </div>
+            
+            <div className="flex items-end justify-center gap-8 mb-6">
+              <div className="text-center">
+                <div 
+                  className="w-20 rounded-lg flex items-end justify-center text-white font-bold pb-2 animate-scale-in"
+                  style={{ 
+                    backgroundColor: concept.color + '80',
+                    height: '80px'
+                  }}
+                >
+                  {concept.visual.original}
+                </div>
+                <div className="text-sm text-muted-foreground mt-2">Original</div>
+              </div>
+              
+              <div className="text-4xl text-muted-foreground animate-fade-in">→</div>
+              
+              <div className="text-center">
+                <div 
+                  className="w-20 rounded-lg flex items-end justify-center text-white font-bold pb-2 animate-scale-in"
+                  style={{ 
+                    backgroundColor: concept.color,
+                    height: '120px'
+                  }}
+                >
+                  {concept.visual.new}
+                </div>
+                <div className="text-sm text-muted-foreground mt-2">New</div>
+              </div>
+            </div>
+            
+            <div className="text-center">
+              <div className="text-3xl font-bold animate-fade-in" style={{ color: concept.color }}>
+                {concept.visual.difference}% increase
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return null;
+  };
+
+  return (
+    <div className={`min-h-screen bg-gradient-to-br ${currentConcept.bgColor} p-4 transition-all duration-500`}>
+      <div className="max-w-4xl mx-auto">
+        {/* Header with Progress */}
+        <Card className="p-6 mb-8 bg-white/90 backdrop-blur-sm animate-fade-in">
+          <div className="text-center mb-4">
+            <h1 className="text-3xl font-bold mb-2">Percentage Concepts</h1>
+            <p className="text-muted-foreground">
+              Master essential percentage calculation methods
+            </p>
           </div>
           
-          <div className="grid gap-6 md:grid-cols-3">
-            {/* Percentage of Number Visual */}
-            <div className="text-center">
-              <h4 className="font-semibold mb-3 text-blue-600">Percentage of Number</h4>
-              <div className="w-full bg-gray-200 rounded-full h-8 mb-2">
-                <div 
-                  className="h-full bg-blue-500 rounded-full transition-all duration-2000 flex items-center justify-center text-white text-sm font-bold"
-                  style={{ width: '22%' }}
-                >
-                  22%
-                </div>
-              </div>
-              <div className="text-sm text-muted-foreground">
-                22% of 500 = <span className="font-bold text-blue-600">110</span>
-              </div>
-            </div>
+          {/* Progress Indicators */}
+          <div className="flex justify-center gap-3 mt-6">
+            {concepts.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => {
+                  setIsAnimating(true);
+                  setTimeout(() => {
+                    setCurrentIndex(index);
+                    setIsAnimating(false);
+                  }, 150);
+                }}
+                className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                  index === currentIndex 
+                    ? 'scale-125' 
+                    : 'hover:scale-110'
+                }`}
+                style={{ 
+                  backgroundColor: index === currentIndex ? currentConcept.color : '#d1d5db'
+                }}
+              />
+            ))}
+          </div>
+        </Card>
 
-            {/* Whole from Percentage Visual */}
-            <div className="text-center">
-              <h4 className="font-semibold mb-3 text-purple-600">Whole from Percentage</h4>
-              <div className="w-full bg-gray-200 rounded-full h-8 mb-2">
-                <div 
-                  className="h-full bg-purple-500 rounded-full transition-all duration-2000 flex items-center justify-center text-white text-sm font-bold"
-                  style={{ width: '12%' }}
-                >
-                  48
-                </div>
-              </div>
-              <div className="text-sm text-muted-foreground">
-                If 48 is 12%, whole = <span className="font-bold text-purple-600">400</span>
-              </div>
+        {/* Main Concept Display */}
+        <Card className={`p-8 mb-8 bg-white/95 backdrop-blur-sm transition-all duration-300 ${
+          isAnimating ? 'opacity-50 scale-95' : 'opacity-100 scale-100 animate-fade-in'
+        }`}>
+          <div className="text-center mb-8">
+            <h2 className="text-4xl font-bold mb-4" style={{ color: currentConcept.color }}>
+              {currentConcept.title}
+            </h2>
+            <p className="text-xl text-muted-foreground mb-6">
+              {currentConcept.description}
+            </p>
+            
+            {/* Example Badge */}
+            <div 
+              className="inline-block px-6 py-3 rounded-full text-white font-bold text-lg mb-8 animate-scale-in"
+              style={{ backgroundColor: currentConcept.color }}
+            >
+              {currentConcept.example}
             </div>
+          </div>
 
-            {/* Percentage Difference Visual */}
-            <div className="text-center">
-              <h4 className="font-semibold mb-3 text-red-600">Percentage Difference</h4>
-              <div className="flex items-end gap-2 justify-center mb-2">
-                <div className="bg-red-400 w-12 h-16 rounded flex items-end justify-center text-white text-xs font-bold pb-1">
-                  900
-                </div>
-                <div className="bg-red-600 w-12 h-20 rounded flex items-end justify-center text-white text-xs font-bold pb-1">
-                  1200
-                </div>
-              </div>
-              <div className="text-sm text-muted-foreground">
-                1200 is <span className="font-bold text-red-600">33.3%</span> more than 900
-              </div>
+          {/* Visual Representation */}
+          {renderVisual(currentConcept)}
+
+          {/* Formula */}
+          <div className="max-w-md mx-auto mt-8">
+            <div className="bg-gray-50 p-4 rounded-lg text-center animate-fade-in">
+              <div className="text-sm text-muted-foreground mb-2">Formula:</div>
+              <div className="font-mono text-lg font-semibold">{currentConcept.formula}</div>
             </div>
           </div>
         </Card>
 
-        {/* Summary Stats */}
-        <Card className="p-6 bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-green-700 mb-4">
-              🎉 Ready to Master Percentages!
-            </h2>
-            <p className="text-green-600 mb-6">
-              Choose any concept above to start practicing with interactive exercises
-            </p>
-            <div className="grid grid-cols-3 gap-4 max-w-md mx-auto">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-green-700">3</div>
-                <div className="text-sm text-green-600">Concepts</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-green-700">15</div>
-                <div className="text-sm text-green-600">Practice Problems</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-green-700">∞</div>
-                <div className="text-sm text-green-600">Learning</div>
-              </div>
+        {/* Navigation and Action */}
+        <div className="flex items-center justify-between gap-4 mb-8">
+          <Button
+            onClick={prevConcept}
+            variant="outline"
+            size="lg"
+            className="hover-scale"
+          >
+            <ChevronLeft className="w-5 h-5 mr-2" />
+            Previous
+          </Button>
+
+          <Button
+            onClick={() => navigate(currentConcept.route)}
+            size="lg"
+            className="px-8 hover-scale"
+            style={{ backgroundColor: currentConcept.color }}
+          >
+            <Play className="w-5 h-5 mr-2" />
+            Practice This Concept
+          </Button>
+
+          <Button
+            onClick={nextConcept}
+            variant="outline"
+            size="lg"
+            className="hover-scale"
+          >
+            Next
+            <ChevronRight className="w-5 h-5 ml-2" />
+          </Button>
+        </div>
+
+        {/* Summary */}
+        <Card className="p-6 bg-white/90 backdrop-blur-sm text-center animate-fade-in">
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <PieChart className="h-6 w-6 text-primary" />
+            <h3 className="text-xl font-bold">Learning Progress</h3>
+          </div>
+          <div className="grid grid-cols-3 gap-4 max-w-sm mx-auto">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-primary">{currentIndex + 1}/3</div>
+              <div className="text-sm text-muted-foreground">Concepts</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-primary">∞</div>
+              <div className="text-sm text-muted-foreground">Practice</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-primary">🎯</div>
+              <div className="text-sm text-muted-foreground">Mastery</div>
             </div>
           </div>
         </Card>
