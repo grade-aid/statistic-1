@@ -130,22 +130,22 @@ const Learning = () => {
         setAnimatingNumbers(false);
         setShowConfetti(false);
       }, 2000);
-      
-      // Set next target animal and clear current calculation
-      const remaining = animalEntries.filter(([type]) => 
-        !completedAnimals.includes(type) && type !== animalType
-      );
-      if (remaining.length > 0) {
-        setTimeout(() => {
-          setCurrentCalculation(null); // Clear previous calculation
-          setCurrentTargetAnimal(remaining[0][0]);
-        }, 3000);
-      } else {
-        // All completed
-        setTimeout(() => {
-          navigate('/visualization');
-        }, 3000);
-      }
+    }
+  };
+
+  // Handle next button click
+  const handleNext = () => {
+    const remaining = animalEntries.filter(([type]) => 
+      !completedAnimals.includes(type) && type !== currentCalculation
+    );
+    
+    setCurrentCalculation(null); // Clear current calculation
+    
+    if (remaining.length > 0) {
+      setCurrentTargetAnimal(remaining[0][0]);
+    } else {
+      // All completed
+      navigate('/visualization');
     }
   };
 
@@ -412,8 +412,27 @@ const Learning = () => {
                   </Badge>
                 </div>
                 
-                <div className="text-sm text-green-600">
+                <div className="text-sm text-green-600 mb-4">
                   {animalConfig[currentCalculation as keyof typeof animalConfig].name} represents {Math.round(collectedData[currentCalculation as keyof AnimalData] / totalAnimals * 100)}% of your animals!
+                </div>
+                
+                {/* Next Button */}
+                <div className="flex justify-center">
+                  {completedAnimals.length < animalEntries.length ? (
+                    <Button 
+                      onClick={handleNext}
+                      className="bg-primary hover:bg-primary/90 text-white px-6 py-2"
+                    >
+                      Next Animal <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  ) : (
+                    <Button 
+                      onClick={handleNext}
+                      className="bg-green-600 hover:bg-green-700 text-white px-6 py-2"
+                    >
+                      Complete Learning <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>
