@@ -293,7 +293,7 @@ const Learning = () => {
           
           {/* Pie Chart - All Animals */}
           <div className="flex justify-center mb-6">
-            <div className="relative w-96 h-96">
+            <div className="relative w-72 h-72">
               <svg className="w-full h-full" viewBox="0 0 200 200">
                 {(() => {
                   let startAngle = 0;
