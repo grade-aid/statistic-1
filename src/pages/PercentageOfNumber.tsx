@@ -524,99 +524,127 @@ const PercentageOfNumber = () => {
   }
 
   if (phase === 'intro') {
+    const [step, setStep] = useState(1);
+    const [showAnimals, setShowAnimals] = useState(false);
+    const [showPieChart, setShowPieChart] = useState(false);
+    const [showCalculation, setShowCalculation] = useState(false);
+    const [showResult, setShowResult] = useState(false);
+
+    useEffect(() => {
+      const timer1 = setTimeout(() => setShowAnimals(true), 500);
+      const timer2 = setTimeout(() => setShowPieChart(true), 2000);
+      const timer3 = setTimeout(() => setShowCalculation(true), 3500);
+      const timer4 = setTimeout(() => setShowResult(true), 5000);
+      return () => {
+        clearTimeout(timer1);
+        clearTimeout(timer2);
+        clearTimeout(timer3);
+        clearTimeout(timer4);
+      };
+    }, []);
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-        <div className="max-w-4xl mx-auto">
-          <Card className="p-8 mb-6 bg-white/90 backdrop-blur-sm">
-            <div className="text-center mb-8">
-              <div className="text-6xl mb-4">🧮</div>
-              <h1 className="text-4xl font-bold mb-4">Learn: Percentage of a Number</h1>
-              <p className="text-xl text-muted-foreground mb-8">
-                Discover how to find what percentage one number is of another!
-              </p>
-            </div>
-
-            {/* Visual Example */}
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-8 rounded-xl border-2 border-blue-200 mb-8">
-              <h3 className="text-2xl font-bold text-center mb-6">Here's How It Works:</h3>
+        <div className="max-w-4xl mx-auto flex items-center justify-center min-h-screen">
+          <Card className="p-12 bg-white/90 backdrop-blur-sm">
+            <div className="text-center">
               
-              {/* Example with visual pie chart */}
-              <div className="grid md:grid-cols-2 gap-8 items-center">
-                <div>
-                  <div className="text-center mb-4">
-                    <div className="text-4xl mb-2">🐘🐘🐘🐟🐟🐟🐟🐟</div>
-                    <p className="text-lg">You collected 8 animals total</p>
-                  </div>
-                  
-                  <div className="bg-white p-4 rounded-lg border-2 border-blue-300 mb-4">
-                    <div className="text-center">
-                      <div className="text-3xl mb-2">🐘🐘🐘</div>
-                      <p className="text-lg font-bold">3 Elephants</p>
-                      <p className="text-sm text-muted-foreground">What percentage of total?</p>
-                    </div>
-                  </div>
+              {/* Step 1: Show animals collecting */}
+              <div className={`transition-all duration-1000 mb-8 ${showAnimals ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
+                <div className="text-7xl mb-4">🎯</div>
+                <div className="grid grid-cols-4 gap-4 mb-4 justify-center max-w-md mx-auto">
+                  <div className="text-4xl animate-bounce" style={{ animationDelay: '0s' }}>🐘</div>
+                  <div className="text-4xl animate-bounce" style={{ animationDelay: '0.2s' }}>🐘</div>
+                  <div className="text-4xl animate-bounce" style={{ animationDelay: '0.4s' }}>🐘</div>
+                  <div className="text-4xl animate-bounce" style={{ animationDelay: '0.6s' }}>🐟</div>
+                  <div className="text-4xl animate-bounce" style={{ animationDelay: '0.8s' }}>🐟</div>
+                  <div className="text-4xl animate-bounce" style={{ animationDelay: '1s' }}>🐟</div>
+                  <div className="text-4xl animate-bounce" style={{ animationDelay: '1.2s' }}>🐟</div>
+                  <div className="text-4xl animate-bounce" style={{ animationDelay: '1.4s' }}>🐟</div>
                 </div>
-                
-                <div>
-                  <div className="flex justify-center mb-4">
-                    <svg className="w-48 h-48" viewBox="0 0 200 200">
-                      {/* Elephants slice - 37.5% */}
+              </div>
+
+              {/* Step 2: Show pie chart forming */}
+              <div className={`transition-all duration-1000 mb-8 ${showPieChart ? 'opacity-100' : 'opacity-0'}`}>
+                <div className="flex justify-center mb-6">
+                  <div className="relative">
+                    <svg className="w-64 h-64" viewBox="0 0 200 200">
+                      {/* Elephants slice - 37.5% with animation */}
                       <path
                         d="M 100 100 L 100 10 A 90 90 0 0 1 166.4 65.8 Z"
                         fill="#ef4444"
                         stroke="white"
-                        strokeWidth="4"
+                        strokeWidth="6"
+                        className="animate-pulse"
+                        style={{
+                          strokeDasharray: showPieChart ? 'none' : '200',
+                          strokeDashoffset: showPieChart ? '0' : '200',
+                          transition: 'all 1s ease-in-out'
+                        }}
                       />
                       {/* Fish slice - 62.5% */}
                       <path
                         d="M 100 100 L 166.4 65.8 A 90 90 0 1 1 100 10 Z"
                         fill="#06b6d4"
                         stroke="white"
-                        strokeWidth="4"
+                        strokeWidth="6"
+                        style={{
+                          strokeDasharray: showPieChart ? 'none' : '300',
+                          strokeDashoffset: showPieChart ? '0' : '300',
+                          transition: 'all 1.5s ease-in-out'
+                        }}
                       />
-                      <text x="130" y="50" textAnchor="middle" className="text-2xl">🐘</text>
-                      <text x="70" y="130" textAnchor="middle" className="text-2xl">🐟</text>
+                      <text x="130" y="50" textAnchor="middle" className="text-3xl">🐘</text>
+                      <text x="70" y="130" textAnchor="middle" className="text-3xl">🐟</text>
                     </svg>
                   </div>
-                  
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600 mb-2">
-                      3 ÷ 8 × 100 = 37.5%
-                    </div>
-                    <p className="text-lg">
-                      <span className="font-bold text-red-500">37.5%</span> of your animals are elephants!
-                    </p>
+                </div>
+              </div>
+
+              {/* Step 3: Show calculation visually */}
+              <div className={`transition-all duration-1000 mb-8 ${showCalculation ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
+                <div className="flex items-center justify-center gap-6 text-4xl mb-4">
+                  <div className="bg-red-100 p-4 rounded-full animate-pulse">
+                    <span>🐘</span>
+                    <div className="text-lg font-bold">3</div>
                   </div>
+                  <div className="text-6xl">÷</div>
+                  <div className="bg-blue-100 p-4 rounded-full">
+                    <span>📊</span>
+                    <div className="text-lg font-bold">8</div>
+                  </div>
+                  <div className="text-6xl">×</div>
+                  <div className="bg-green-100 p-4 rounded-full">
+                    <span>💯</span>
+                  </div>
+                  <div className="text-6xl">=</div>
                 </div>
               </div>
-            </div>
 
-            {/* Game Instructions */}
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-xl border-2 border-green-200 mb-8">
-              <h3 className="text-xl font-bold mb-4 text-center">🎮 Game Instructions:</h3>
-              <div className="grid md:grid-cols-3 gap-4">
-                <div className="text-center">
-                  <div className="text-3xl mb-2">🏃‍♂️</div>
-                  <h4 className="font-bold mb-2">Step 1: Collect</h4>
-                  <p className="text-sm">Move with WASD keys to collect animals while avoiding hunters</p>
+              {/* Step 4: Show result */}
+              <div className={`transition-all duration-1000 mb-8 ${showResult ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
+                <div className="bg-gradient-to-r from-yellow-200 to-orange-200 p-6 rounded-full inline-block animate-bounce">
+                  <div className="text-6xl font-bold text-orange-700">37.5%</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-3xl mb-2">🧮</div>
-                  <h4 className="font-bold mb-2">Step 2: Calculate</h4>
-                  <p className="text-sm">Find what percentage each animal type represents</p>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl mb-2">🎯</div>
-                  <h4 className="font-bold mb-2">Step 3: Click</h4>
-                  <p className="text-sm">Click the correct pie chart slice to answer</p>
-                </div>
+                <div className="text-5xl mt-4">🎉</div>
               </div>
-            </div>
 
-            <div className="text-center">
-              <Button onClick={startGame} className="text-xl py-4 px-8 bg-blue-600 hover:bg-blue-700">
-                Let's Start Collecting! 🚀
-              </Button>
+              {/* Navigation */}
+              <div className="flex gap-4 justify-center mt-8">
+                <Button 
+                  onClick={() => setPhase('start')} 
+                  variant="outline"
+                  className="text-lg py-3 px-6"
+                >
+                  ← Back
+                </Button>
+                <Button 
+                  onClick={startGame} 
+                  className="text-xl py-4 px-8 bg-blue-600 hover:bg-blue-700"
+                >
+                  🚀 Start Game
+                </Button>
+              </div>
             </div>
           </Card>
         </div>
