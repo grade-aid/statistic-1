@@ -206,8 +206,7 @@ const Learning = () => {
                     const centerY = 100;
                     
                     return Object.entries(collectedData).map(([type, count]) => {
-                      const visualWeight = visualData[type];
-                      const animalPercentage = visualWeight / totalVisualWeight * 100;
+                      const animalPercentage = count / totalAnimals * 100;
                       const angle = animalPercentage / 100 * 360;
                       const endAngle = startAngle + angle;
                       
@@ -332,8 +331,7 @@ const Learning = () => {
                   return Object.entries(collectedData)
                     .filter(([, count]) => count > 0)
                     .map(([type, count]) => {
-                      const visualWeight = visualData[type];
-                      const animalPercentage = visualWeight / totalVisualWeight * 100;
+                      const animalPercentage = count / totalAnimals * 100;
                       const angle = animalPercentage / 100 * 360;
                       const endAngle = startAngle + angle;
                       
@@ -379,7 +377,7 @@ const Learning = () => {
                             y={labelY} 
                             textAnchor="middle" 
                             dy="0.3em" 
-                            className="text-2xl pointer-events-none"
+                            className={type === 'mammals' ? 'text-3xl pointer-events-none' : 'text-2xl pointer-events-none'}
                           >
                             {typeConfig.emoji}
                           </text>
@@ -389,7 +387,7 @@ const Learning = () => {
                             y={labelY + 18} 
                             textAnchor="middle" 
                             dy="0.3em" 
-                            className="text-sm font-bold fill-white pointer-events-none"
+                            className={`${type === 'mammals' ? 'text-base' : 'text-sm'} font-bold fill-white pointer-events-none`}
                             style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}
                           >
                             {count}
