@@ -195,37 +195,83 @@ const Learning = () => {
           <div className={`transition-all duration-1000 ${showVisualAnimation ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
             <h3 className="text-2xl font-bold mb-6">Learn How to Calculate Percentages!</h3>
             
-            {/* Show Animals */}
+            {/* Show Pie Chart */}
             <div className="flex justify-center mb-6">
-              <div className="grid grid-cols-2 gap-4 max-w-md">
-                {Object.entries(collectedData)
-                  .filter(([, count]) => count > 0)
-                  .map(([type, count]) => {
-                    const typeConfig = animalConfig[type as keyof typeof animalConfig];
-                    const animalPercentage = Math.round(count / totalAnimals * 100);
-                    const isExample = type === exampleType;
+              <div className="relative w-48 h-48">
+                <svg className="w-full h-full" viewBox="0 0 200 200">
+                  {(() => {
+                    let startAngle = 0;
+                    const radius = 80;
+                    const centerX = 100;
+                    const centerY = 100;
                     
-                    return (
-                      <div 
-                        key={type}
-                        className={`bg-white p-4 rounded-lg border-2 transition-all duration-1000 ${
-                          isExample ? 'border-primary/50 animate-pulse scale-105' : 'border-gray-200'
-                        }`}
-                        style={{ borderColor: isExample ? typeConfig.color : undefined }}
-                      >
-                        <div className="text-center">
-                          <div className="text-4xl mb-2">{typeConfig.emoji}</div>
-                          <div className="font-bold text-lg">{typeConfig.name}</div>
-                          <div className="text-2xl font-bold" style={{ color: typeConfig.color }}>
-                            {count}
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            {animalPercentage}%
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
+                    return Object.entries(collectedData)
+                      .filter(([, count]) => count > 0)
+                      .map(([type, count]) => {
+                        const animalPercentage = count / totalAnimals * 100;
+                        const angle = animalPercentage / 100 * 360;
+                        const endAngle = startAngle + angle;
+                        
+                        const startAngleRad = startAngle * Math.PI / 180;
+                        const endAngleRad = endAngle * Math.PI / 180;
+                        
+                        const x1 = centerX + radius * Math.cos(startAngleRad);
+                        const y1 = centerY + radius * Math.sin(startAngleRad);
+                        const x2 = centerX + radius * Math.cos(endAngleRad);
+                        const y2 = centerY + radius * Math.sin(endAngleRad);
+                        const largeArcFlag = angle > 180 ? 1 : 0;
+                        const pathData = [`M ${centerX} ${centerY}`, `L ${x1} ${y1}`, `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`, 'Z'].join(' ');
+                        
+                        const typeConfig = animalConfig[type as keyof typeof animalConfig];
+                        const isExample = type === exampleType;
+                        
+                        // Calculate label position for animal emoji
+                        const labelAngle = (startAngle + endAngle) / 2;
+                        const labelRadius = radius * 0.7;
+                        const labelX = centerX + labelRadius * Math.cos(labelAngle * Math.PI / 180);
+                        const labelY = centerY + labelRadius * Math.sin(labelAngle * Math.PI / 180);
+                        
+                        const slice = (
+                          <g key={type}>
+                            <path 
+                              d={pathData} 
+                              fill={typeConfig.color} 
+                              stroke="white" 
+                              strokeWidth="3" 
+                              className={`transition-all duration-1000 ${isExample ? 'opacity-100 drop-shadow-lg animate-pulse' : 'opacity-70'}`}
+                              style={{
+                                filter: isExample ? 'brightness(1.2)' : 'brightness(0.8)'
+                              }}
+                            />
+                            {/* Animal emoji in slice */}
+                            <text 
+                              x={labelX} 
+                              y={labelY - 5} 
+                              textAnchor="middle" 
+                              dy="0.3em" 
+                              className="text-2xl pointer-events-none"
+                            >
+                              {typeConfig.emoji}
+                            </text>
+                            {/* Animal count */}
+                            <text 
+                              x={labelX} 
+                              y={labelY + 12} 
+                              textAnchor="middle" 
+                              dy="0.3em" 
+                              className="text-sm font-bold fill-white pointer-events-none"
+                              style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}
+                            >
+                              {count}
+                            </text>
+                          </g>
+                        );
+                        
+                        startAngle = endAngle;
+                        return slice;
+                      });
+                  })()}
+                </svg>
               </div>
             </div>
             
