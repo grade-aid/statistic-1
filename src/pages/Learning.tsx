@@ -1,14 +1,12 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useNavigate } from "react-router-dom";
-import { CheckCircle, Calculator as CalculatorIcon, Lightbulb, Divide, X, Equal, HelpCircle } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { ArrowRight, ChevronRight, Eye, Target } from "lucide-react";
 import Confetti from "@/components/Confetti";
-import Calculator from "@/components/Calculator";
+
 interface AnimalData {
   mammals: number;
   birds: number;
@@ -16,6 +14,7 @@ interface AnimalData {
   fish: number;
   insects: number;
 }
+
 const Learning = () => {
   const navigate = useNavigate();
 
@@ -55,8 +54,8 @@ const Learning = () => {
       insects: 0
     };
   };
-  const collectedData = getStoredData();
 
+  const collectedData = getStoredData();
   const totalAnimals = Object.values(collectedData).reduce((sum: number, count: number) => sum + count, 0);
   
   // Consolidated animalConfig with all properties
@@ -87,714 +86,399 @@ const Learning = () => {
       color: '#eab308'
     }
   };
-  const [currentPhase, setCurrentPhase] = useState(3);
-  const [userAnswers, setUserAnswers] = useState<{
-    [key: string]: string;
-  }>({});
-  const [answerStates, setAnswerStates] = useState<{
-    [key: string]: 'correct' | 'incorrect' | 'unanswered';
-  }>({});
-  const [shakingQuestions, setShakingQuestions] = useState<{
-    [key: string]: boolean;
-  }>({});
+
+  // New 4-step learning state
+  const [currentStep, setCurrentStep] = useState(1);
+  const [currentAnimalIndex, setCurrentAnimalIndex] = useState(0);
   const [showConfetti, setShowConfetti] = useState(false);
-  const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
+  const [showVisualAnimation, setShowVisualAnimation] = useState(false);
+  const [selectedAnimals, setSelectedAnimals] = useState<string[]>([]);
+  const [showCalculation, setShowCalculation] = useState(false);
+  const [animatingNumbers, setAnimatingNumbers] = useState(false);
   
-  // Drag and drop state for Phase 6
-  const [draggedItem, setDraggedItem] = useState<string | null>(null);
-  const [droppedItems, setDroppedItems] = useState<{[key: string]: string[]}>({
-    low: [],
-    medium: [],
-    high: []
-  });
-  const [completedTasks, setCompletedTasks] = useState<{[key: string]: boolean}>({});
-  const [phaseCompleted, setPhaseCompleted] = useState<{[key: number]: boolean}>({});
+  // Get animal entries for sequential display
+  const animalEntries = Object.entries(collectedData).filter(([, count]) => count > 0);
+  const totalSteps = 4;
+  const currentAnimal = animalEntries[currentAnimalIndex];
+  const isLastAnimal = currentAnimalIndex >= animalEntries.length - 1;
 
-  // Auto-check phase completion when answer states change
+  // Auto-advance visual animation in step 1
   useEffect(() => {
-    const timer = setTimeout(() => {
-      checkPhaseCompletion(currentPhase);
-    }, 100); // Small delay to ensure state updates are complete
-    
-    return () => clearTimeout(timer);
-  }, [answerStates, droppedItems, currentPhase]);
-
-  // Calculate correct answers - ensure numbers are properly typed
-  const mammalsPercentage = totalAnimals > 0 ? Math.round(collectedData.mammals / totalAnimals * 100) : 0;
-  const onePercent = totalAnimals > 0 ? totalAnimals / 100 : 0;
-
-  // Drag and drop handlers
-  const handleDragStart = (e: React.DragEvent, itemId: string) => {
-    setDraggedItem(itemId);
-    e.dataTransfer.effectAllowed = 'move';
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-  };
-
-  const handleDrop = (e: React.DragEvent, targetId: string) => {
-    e.preventDefault();
-    if (draggedItem) {
-      // Remove animal from other zones first
-      setDroppedItems(prev => {
-        const newItems = { ...prev };
-        // Remove from all zones
-        Object.keys(newItems).forEach(zone => {
-          newItems[zone] = newItems[zone].filter(animal => animal !== draggedItem);
-        });
-        // Add to target zone
-        newItems[targetId] = [...newItems[targetId], draggedItem];
-        return newItems;
-      });
+    if (currentStep === 1 && showVisualAnimation) {
+      const timer = setTimeout(() => {
+        setShowVisualAnimation(false);
+        setCurrentStep(2);
+      }, 8000);
       
-      // Check if it's correct
-      const isCorrect = checkDragDropAnswer(draggedItem, targetId);
-      if (isCorrect) {
-        setShowConfetti(true);
-        setTimeout(() => setShowConfetti(false), 2000);
-      }
-      
-      // Phase completion will be checked by useEffect
-      
-      setDraggedItem(null);
+      return () => clearTimeout(timer);
     }
-  };
+  }, [currentStep, showVisualAnimation]);
 
-  const checkDragDropAnswer = (draggedId: string, targetId: string): boolean => {
-    // Define correct matches based on percentage ranges
-    const animalPercentages = Object.entries(collectedData).map(([type, count]) => ({
-      type,
-      percentage: totalAnimals > 0 ? Math.round(count / totalAnimals * 100) : 0
-    }));
-
-    const draggedAnimal = animalPercentages.find(animal => animal.type === draggedId);
-    if (!draggedAnimal) return false;
-
-    // Define percentage ranges
-    const ranges = {
-      'low': [0, 15],      // 0-15%
-      'medium': [16, 35],  // 16-35%
-      'high': [36, 100]    // 36-100%
-    };
-
-    const targetRange = ranges[targetId as keyof typeof ranges];
-    if (!targetRange) return false;
-
-    return draggedAnimal.percentage >= targetRange[0] && draggedAnimal.percentage <= targetRange[1];
-  };
-
-  // Visual Components
-  const VisualCalculator = ({
-    operation,
-    values,
-    result,
-    color = "blue"
-  }: {
-    operation: string;
-    values: (string | number)[];
-    result: string;
-    color?: string;
-  }) => <div className={`bg-gradient-to-r from-${color}-100 to-${color}-50 p-2 rounded-lg border border-${color}-200`}>
-      <div className="text-center mb-2">
-        <div className="text-xs font-medium text-muted-foreground">🐘 Mammals Calculation</div>
-      </div>
-      <div className="flex items-center justify-center gap-2 text-sm font-bold">
-        <Badge variant="outline" className="text-sm px-2 py-1">{values[0]}</Badge>
-        <div className={`w-6 h-6 rounded-full bg-${color}-500 flex items-center justify-center text-black`}>
-          {operation === 'divide' && <Divide size={12} />}
-          {operation === 'multiply' && <X size={12} />}
-          {operation === 'percentage' && <Divide size={12} />}
-        </div>
-        <Badge variant="outline" className="text-sm px-2 py-1">{values[1]}</Badge>
-        {operation === 'percentage' && <>
-            <div className={`w-6 h-6 rounded-full bg-${color}-500 flex items-center justify-center text-black`}>
-              <X size={12} />
-            </div>
-            <Badge variant="outline" className="text-sm px-2 py-1">100</Badge>
-          </>}
-        <div className={`w-6 h-6 rounded-full bg-${color}-600 flex items-center justify-center text-black`}>
-          <Equal size={12} />
-        </div>
-        <Badge variant="secondary" className="text-sm px-2 py-1 bg-orange-600 text-white">
-          {result}
-        </Badge>
-      </div>
-    </div>;
-  const AnimalVisual = ({
-    count,
-    emoji,
-    total,
-    name,
-    showPercentages = false
-  }: {
-    count: number;
-    emoji: string;
-    total: number;
-    name: string;
-    showPercentages?: boolean;
-  }) => {
-    const percentage = total > 0 ? Math.round(count / total * 100) : 0;
-
-    // Get all animal data for pie chart
-    const dataEntries = Object.entries(collectedData);
-
-    // Use the consolidated animalConfig from parent scope
-    return <div className="bg-white p-2 rounded-lg border space-y-2">
-        <div className="flex items-center gap-2">
-          <span className="text-xl">{emoji}</span>
-          <div>
-            <div className="text-sm font-bold">{name}</div>
-          </div>
-        </div>
-        
-        {/* Mini Pie Chart from Visualization */}
-        <div className="flex justify-center">
-          <div className="relative w-32 h-32">
-            {/* Calculator Button */}
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="absolute -top-2 -right-2 w-6 h-6 p-0 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 z-10" onClick={() => setIsCalculatorOpen(true)}>
-                  <HelpCircle size={14} />
-                </Button>
-              </DialogTrigger>
-            </Dialog>
-            <svg className="w-full h-full" viewBox="0 0 200 200">
-              {(() => {
-              let startAngle = 0;
-              const radius = 80;
-              const centerX = 100;
-              const centerY = 100;
-              return dataEntries.map(([type, animalCount]) => {
-                const animalPercentage = animalCount / total * 100;
-                const angle = animalPercentage / 100 * 360;
-                const endAngle = startAngle + angle;
-
-                // Convert angles to radians
-                const startAngleRad = startAngle * Math.PI / 180;
-                const endAngleRad = endAngle * Math.PI / 180;
-
-                // Calculate path coordinates
-                const x1 = centerX + radius * Math.cos(startAngleRad);
-                const y1 = centerY + radius * Math.sin(startAngleRad);
-                const x2 = centerX + radius * Math.cos(endAngleRad);
-                const y2 = centerY + radius * Math.sin(endAngleRad);
-                const largeArcFlag = angle > 180 ? 1 : 0;
-                const pathData = [`M ${centerX} ${centerY}`, `L ${x1} ${y1}`, `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`, 'Z'].join(' ');
-
-                // Label position (middle of slice)
-                const labelAngle = (startAngle + endAngle) / 2;
-                const labelAngleRad = labelAngle * Math.PI / 180;
-                const labelRadius = radius * 0.7;
-                const labelX = centerX + labelRadius * Math.cos(labelAngleRad);
-                const labelY = centerY + labelRadius * Math.sin(labelAngleRad);
-                const config = animalConfig[type as keyof typeof animalConfig];
-                const slice = <g key={type}>
-                      <path d={pathData} fill={config.color} stroke="white" strokeWidth="4" className="transition-all duration-300" />
-                      {animalPercentage > 2 && <text x={labelX} y={labelY} textAnchor="middle" dy="0.3em" className="text-xs font-bold fill-white" style={{
-                    textShadow: '2px 2px 2px rgba(0,0,0,0.8)',
-                    fontSize: animalPercentage < 8 ? '10px' : '14px'
-                  }}>
-                          {showPercentages ? `${Math.round(animalPercentage)}%` : animalCount}
-                         </text>}
-                    </g>;
-                startAngle = endAngle;
-                return slice;
-              });
-            })()}
-            </svg>
-          </div>
-        </div>
-        
-        {/* Color Legend - Show current animal */}
-        <div className="flex flex-wrap gap-1 justify-center mt-2">
-          <div className="flex items-center gap-0.5">
-            <div className="w-2 h-2 rounded-sm" style={{
-              backgroundColor: Object.entries(animalConfig).find(([type, config]) => config.emoji === emoji)?.[1].color || '#6b7280'
-            }} />
-            <span className="text-xs text-muted-foreground">
-              {emoji}
-            </span>
-          </div>
-        </div>
-        
-        
-      </div>;
-  };
-  // Check if a phase is completed
-  const checkPhaseCompletion = (phase: number) => {
-    console.log(`🔍 Checking phase ${phase} completion...`);
-    console.log(`Already completed:`, phaseCompleted[phase]);
-    
-    // Don't duplicate completion logic, but allow function to check progress
-    if (phaseCompleted[phase]) {
-      console.log(`Phase ${phase} already completed, skipping completion check`);
-      return false;
-    }
-    
-    let isCompleted = false;
-    
-    if (phase === 3) {
-      // Phase 3: All animal percentage calculations (excluding mammals which is example)
-      const phase3Questions = Object.keys(collectedData).filter(type => type !== 'mammals');
-      console.log(`Phase 3 questions:`, phase3Questions);
-      console.log(`Answer states:`, answerStates);
-      isCompleted = phase3Questions.every(type => answerStates[`phase3-${type}`] === 'correct');
-      console.log(`Phase 3 completed:`, isCompleted);
-    } 
-    else if (phase === 4) {
-      // Phase 4: All animal decimal conversions (excluding mammals which is example)
-      const phase4Questions = Object.keys(collectedData).filter(type => type !== 'mammals');
-      console.log(`Phase 4 questions:`, phase4Questions);
-      console.log(`Answer states:`, answerStates);
-      isCompleted = phase4Questions.every(type => answerStates[`phase4-${type}`] === 'correct');
-      console.log(`Phase 4 completed:`, isCompleted);
-    }
-    else if (phase === 5) {
-      // Phase 5: All percentage multiplication tasks
-      const phase5Questions = [1, 3, 7, 12];
-      console.log(`Phase 5 questions:`, phase5Questions);
-      console.log(`Answer states:`, answerStates);
-      isCompleted = phase5Questions.every(multiplier => answerStates[`phase5-${multiplier}`] === 'correct');
-      console.log(`Phase 5 completed:`, isCompleted);
-    }
-    else if (phase === 6) {
-      // Phase 6: All animals sorted correctly
-      const totalAnimalsCount = Object.keys(collectedData).length;
-      const sortedAnimalsCount = Object.values(droppedItems).flat().length;
-      console.log(`Phase 6 - Total animals:`, totalAnimalsCount, `Sorted:`, sortedAnimalsCount);
-      console.log(`Dropped items:`, droppedItems);
-      
-      // Check if all animals are sorted and correctly placed
-      isCompleted = sortedAnimalsCount === totalAnimalsCount && 
-        Object.values(droppedItems).flat().every(animalType => {
-          // Find which zone this animal is in
-          const zone = Object.keys(droppedItems).find(zoneName => 
-            droppedItems[zoneName].includes(animalType)
-          );
-          const isCorrect = zone && checkDragDropAnswer(animalType, zone);
-          console.log(`Animal ${animalType} in zone ${zone}: ${isCorrect}`);
-          return isCorrect;
-        });
-      console.log(`Phase 6 completed:`, isCompleted);
-    }
-    
-    if (isCompleted && !phaseCompleted[phase]) {
-      console.log(`🎉 Phase ${phase} completed! Auto-advancing in 1 second...`);
-      
-      // Mark phase as completed
-      setPhaseCompleted(prev => ({
-        ...prev,
-        [phase]: true
-      }));
-      
-      // Show confetti celebration
-      setShowConfetti(true);
-      
-      // Auto-advance to next phase after celebration
-      setTimeout(() => {
-        console.log(`⏰ Moving from phase ${phase} to phase ${phase + 1}`);
-        setShowConfetti(false);
-        if (phase < 6) {
-          setCurrentPhase(phase + 1);
+  // Check if current step is completed
+  useEffect(() => {
+    if (currentStep === 2 && currentAnimal && selectedAnimals.includes(currentAnimal[0])) {
+      const timer = setTimeout(() => {
+        if (isLastAnimal) {
+          // All animals completed
+          setShowConfetti(true);
+          setTimeout(() => {
+            navigate('/visualization');
+          }, 2000);
+        } else {
+          setCurrentAnimalIndex(prev => prev + 1);
+          setShowCalculation(false);
         }
-      }, 1000);
+      }, 3000);
       
-      return true;
+      return () => clearTimeout(timer);
     }
-    
-    return false;
-  };
+  }, [currentStep, selectedAnimals, currentAnimal, isLastAnimal, navigate]);
 
-
-  const checkAnswer = (questionId: string, userAnswer: string, correctAnswer: number) => {
-    // Add detailed debugging for fish question
-    if (questionId === 'phase3-fish') {
-      console.log(`🐟 FISH QUESTION DEBUG:`);
-      console.log(`- Question ID: ${questionId}`);
-      console.log(`- User Answer: "${userAnswer}"`);
-      console.log(`- Correct Answer: ${correctAnswer}`);
-      console.log(`- Fish Count: ${collectedData.fish}`);
-      console.log(`- Total Animals: ${totalAnimals}`);
-      console.log(`- Fish Percentage Calculation: ${collectedData.fish} / ${totalAnimals} * 100 = ${totalAnimals > 0 ? Math.round(collectedData.fish / totalAnimals * 100) : 0}`);
-    }
+  // Handle animal selection in step 2
+  const handleAnimalSelect = (animalType: string) => {
+    if (!currentAnimal) return;
     
-    // Use higher tolerance for percentage questions (whole numbers)
-    const tolerance = correctAnswer > 10 ? 1.0 : 0.1;
-    const isCorrect = Math.abs(parseFloat(userAnswer) - correctAnswer) < tolerance;
+    const [currentType, currentCount] = currentAnimal;
+    const correctPercentage = totalAnimals > 0 ? Math.round(currentCount / totalAnimals * 100) : 0;
+    const selectedCount = collectedData[animalType as keyof AnimalData];
+    const selectedPercentage = totalAnimals > 0 ? Math.round(selectedCount / totalAnimals * 100) : 0;
     
-    // More debugging for fish question
-    if (questionId === 'phase3-fish') {
-      console.log(`- Tolerance: ${tolerance}`);
-      console.log(`- Parsed User Answer: ${parseFloat(userAnswer)}`);
-      console.log(`- Difference: ${Math.abs(parseFloat(userAnswer) - correctAnswer)}`);
-      console.log(`- Is Correct: ${isCorrect}`);
-    }
-    if (isCorrect) {
-      // Update answer state to correct
-      setAnswerStates(prev => ({
-        ...prev,
-        [questionId]: 'correct'
-      }));
-
-      // Trigger confetti animation
+    if (selectedPercentage === correctPercentage && animalType === currentType) {
+      // Correct selection
+      setSelectedAnimals(prev => [...prev, animalType]);
+      setShowCalculation(true);
+      setAnimatingNumbers(true);
       setShowConfetti(true);
-
+      
       // Clear confetti after animation
-      setTimeout(() => setShowConfetti(false), 3000);
-      
-      // Phase completion will be checked by useEffect
-    } else {
-      // Update answer state to incorrect
-      setAnswerStates(prev => ({
-        ...prev,
-        [questionId]: 'incorrect'
-      }));
-
-      // Trigger shake animation
-      setShakingQuestions(prev => ({
-        ...prev,
-        [questionId]: true
-      }));
-
-      // Clear shake animation
       setTimeout(() => {
-        setShakingQuestions(prev => ({
-          ...prev,
-          [questionId]: false
-        }));
-      }, 500);
+        setShowConfetti(false);
+        setAnimatingNumbers(false);
+      }, 2000);
+    } else {
+      // Wrong selection - shake effect could be added here
+      console.log('Wrong selection');
     }
-    return isCorrect;
   };
 
-  const renderPhase3 = () => <Card className="p-3 border border-green-200 bg-green-50">
-      <div className="flex items-center gap-2 mb-3">
-        <CalculatorIcon className="h-5 w-5 text-green-600" />
-        <h3 className="text-base font-bold text-green-800">Amount → Percentage 🐘</h3>
-      </div>
-      
-      <div className="space-y-3">
-        {/* Visual Example */}
-        <div className="bg-white p-3 rounded-lg border border-green-200">
-          <h4 className="text-sm font-bold mb-2 text-green-700">📚 Example: Mammals</h4>
-          
-          <div className="grid grid-cols-2 gap-3">
-            <AnimalVisual count={collectedData.mammals} emoji="🐘" total={totalAnimals} name="Mammals" showPercentages={false} />
-            <div className="space-y-2">
-              <VisualCalculator operation="percentage" values={[collectedData.mammals, totalAnimals]} result={`${mammalsPercentage}%`} color="green" />
-            </div>
-          </div>
-        </div>
-
-        {/* Interactive Practice */}
-        <div className="bg-white p-3 rounded-lg border border-green-200">
-          <h4 className="text-sm font-bold mb-2 text-green-700">✏️ Your Turn</h4>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-1">
-            {Object.entries(collectedData).filter(([type]) => type !== 'mammals').map(([type, count]) => {
-            const config = animalConfig[type as keyof typeof animalConfig];
-            const correctPercentage = totalAnimals > 0 ? Math.round(count / totalAnimals * 100) : 0;
-            const questionId = `phase3-${type}`;
-            const answerState = answerStates[questionId] || 'unanswered';
-            const isShaking = shakingQuestions[questionId] || false;
-            return <div key={type} className={`bg-gray-50 p-1 rounded-lg space-y-1 transition-colors duration-300 ${answerState === 'correct' ? 'bg-green-100 border-2 border-green-300' : answerState === 'incorrect' ? 'bg-red-50 border-2 border-red-200' : ''} ${isShaking ? 'animate-shake' : ''}`}>
-                  <AnimalVisual count={count} emoji={config.emoji} total={totalAnimals} name={config.name} showPercentages={false} />
-                  <div className="flex gap-1">
-                    <Input type="number" placeholder="%" value={userAnswers[questionId] || ''} onChange={e => setUserAnswers(prev => ({
-                  ...prev,
-                  [questionId]: e.target.value
-                }))} className={`flex-1 text-sm h-7 ${answerState === 'correct' ? 'border-green-500 bg-green-50' : answerState === 'incorrect' ? 'border-red-500 bg-red-50' : ''}`} disabled={answerState === 'correct'} />
-                    <Button onClick={() => checkAnswer(questionId, userAnswers[questionId], correctPercentage)} disabled={!userAnswers[questionId] || answerState === 'correct'} size="sm" variant={answerState === 'correct' ? 'default' : 'outline'} className={`h-7 w-7 p-0 text-xs ${answerState === 'correct' ? 'bg-green-600 hover:bg-green-700' : ''}`}>
-                      {answerState === 'correct' ? '✅' : '✓'}
-                    </Button>
-                  </div>
-                </div>;
-          })}
-          </div>
-        </div>
-      </div>
-    </Card>;
-  const renderPhase4 = () => {
-    // Get mammals percentage for the example
-    const mammalsPercentage = totalAnimals > 0 ? Math.round(collectedData.mammals / totalAnimals * 100) : 0;
-    const mammalsDecimal = mammalsPercentage / 100;
-    return <Card className="p-3 border border-blue-200 bg-blue-50">
-        <div className="flex items-center gap-2 mb-3">
-          <Lightbulb className="h-5 w-5 text-blue-600" />
-          <h3 className="text-base font-bold text-blue-800">Percentage → Decimal 🔢</h3>
-        </div>
+  // Step 1: Visual Animation Component  
+  const VisualIntroduction = () => (
+    <Card className="p-6 border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-secondary/5">
+      <div className="text-center space-y-6">
+        <div className="text-4xl mb-4">🔢</div>
         
-        <div className="space-y-3">
-          {/* Visual Example */}
-          <div className="bg-white p-3 rounded-lg border border-blue-200">
-            <h4 className="text-sm font-bold mb-2 text-blue-700">📚 Example: Mammals</h4>
-            
-            <div className="grid grid-cols-2 gap-3">
-              <AnimalVisual count={collectedData.mammals} emoji="🐘" total={totalAnimals} name="Mammals" showPercentages={true} />
-              <div className="space-y-2">
-                <VisualCalculator operation="divide" values={[mammalsPercentage, "100"]} result={mammalsDecimal.toFixed(2)} color="blue" />
-              </div>
+        <div className={`transition-all duration-1000 ${showVisualAnimation ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
+          {/* Total Animals Display */}
+          <div className="bg-white p-4 rounded-lg border-2 border-primary/30 mb-6">
+            <div className="text-6xl font-bold text-primary animate-pulse">
+              {totalAnimals}
             </div>
+            <div className="text-lg text-muted-foreground">Total Animals</div>
           </div>
-
-          {/* Interactive Practice */}
-          <div className="bg-white p-3 rounded-lg border border-blue-200">
-            <h4 className="text-sm font-bold mb-2 text-blue-700">✏️ Your Turn</h4>
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
-              {Object.entries(collectedData).filter(([type]) => type !== 'mammals').map(([type, count]) => {
-              const config = animalConfig[type as keyof typeof animalConfig];
-              const percentage = totalAnimals > 0 ? Math.round(count / totalAnimals * 100) : 0;
-              const correctDecimal = percentage / 100;
-              const questionId = `phase4-${type}`;
-              const answerState = answerStates[questionId] || 'unanswered';
-              const isShaking = shakingQuestions[questionId] || false;
-              return <div key={type} className={`bg-gray-50 p-2 rounded-lg space-y-2 transition-colors duration-300 ${answerState === 'correct' ? 'bg-green-100 border-2 border-green-300' : answerState === 'incorrect' ? 'bg-red-50 border-2 border-red-200' : ''} ${isShaking ? 'animate-shake' : ''}`}>
-                      <div className="flex items-center gap-1 mb-1">
-                        <span className="text-lg">{config.emoji}</span>
-                        <div>
-                          <div className="flex items-center gap-1">
-                            <span className="text-xs font-semibold">{config.name}</span>
-                            <Dialog>
-                              <DialogTrigger asChild>
-                                <Button variant="outline" size="sm" className="w-4 h-4 p-0 rounded-full bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => setIsCalculatorOpen(true)}>
-                                  <HelpCircle size={10} />
-                                </Button>
-                              </DialogTrigger>
-                            </Dialog>
-                          </div>
-                          <div className="text-xs text-muted-foreground">{percentage}% → ? decimal</div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex gap-1">
-                        <Input type="number" step="0.01" placeholder="0,00" value={userAnswers[questionId] || ''} onChange={e => setUserAnswers(prev => ({
-                    ...prev,
-                    [questionId]: e.target.value
-                  }))} className={`flex-1 text-sm h-7 ${answerState === 'correct' ? 'border-green-500 bg-green-50' : answerState === 'incorrect' ? 'border-red-500 bg-red-50' : ''}`} disabled={answerState === 'correct'} />
-                        <Button onClick={() => checkAnswer(questionId, userAnswers[questionId], correctDecimal)} disabled={!userAnswers[questionId] || answerState === 'correct'} size="sm" variant={answerState === 'correct' ? 'default' : 'outline'} className={`h-7 w-7 p-0 text-xs ${answerState === 'correct' ? 'bg-green-600 hover:bg-green-700' : ''}`}>
-                          {answerState === 'correct' ? '✅' : '✓'}
-                        </Button>
-                      </div>
-                    </div>;
-            })}
+          
+          {/* Visual Division Animation */}
+          <div className="flex items-center justify-center gap-4 mb-6">
+            <Badge variant="outline" className="text-2xl px-4 py-2">{totalAnimals}</Badge>
+            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+              <span className="text-white font-bold">÷</span>
             </div>
+            <Badge variant="outline" className="text-2xl px-4 py-2">100</Badge>
+            <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
+              <span className="text-white font-bold">×</span>
+            </div>
+            <Badge variant="outline" className="text-2xl px-4 py-2">100</Badge>
+            <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center">
+              <span className="text-white font-bold">=</span>
+            </div>
+            <Badge className="text-2xl px-4 py-2 bg-primary text-white">%</Badge>
+          </div>
+          
+          {/* Animated Explanation */}
+          <div className="grid grid-cols-3 gap-4 text-4xl">
+            <div className="animate-bounce" style={{ animationDelay: '0ms' }}>📊</div>
+            <div className="animate-bounce" style={{ animationDelay: '200ms' }}>🧮</div>
+            <div className="animate-bounce" style={{ animationDelay: '400ms' }}>📈</div>
           </div>
         </div>
-      </Card>;
-  };
-  const renderPhase5 = () => <Card className="p-3 border border-purple-200 bg-purple-50">
-      <div className="flex items-center gap-2 mb-3">
-        <CheckCircle className="h-5 w-5 text-purple-600" />
-        <h3 className="text-base font-bold text-purple-800">Master 1% 📊</h3>
       </div>
-      
-      <div className="space-y-3">
-        {/* 1% Visual */}
-        <div className="bg-white p-3 rounded-lg border border-purple-200">
-          <h4 className="text-sm font-bold mb-2 text-purple-700">🔍 Find 1%</h4>
+    </Card>
+  );
+
+  // Step 2: Single Pie Chart Focus Component
+  const SingleAnimalFocus = () => {
+    if (!currentAnimal) return null;
+    
+    const [animalType, animalCount] = currentAnimal;
+    const config = animalConfig[animalType as keyof typeof animalConfig];
+    const percentage = totalAnimals > 0 ? Math.round(animalCount / totalAnimals * 100) : 0;
+    
+    return (
+      <Card className="p-6 border-2 border-secondary/20 bg-gradient-to-br from-secondary/5 to-accent/5">
+        <div className="text-center space-y-6">
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <Eye className="h-6 w-6 text-secondary" />
+            <h3 className="text-xl font-bold">Focus on One Animal</h3>
+          </div>
           
-          <VisualCalculator operation="divide" values={[totalAnimals, "100"]} result={`${onePercent.toFixed(1)} animals`} color="purple" />
+          {/* Large Single Pie Chart */}
+          <div className="flex justify-center">
+            <div className="relative w-64 h-64">
+              <svg className="w-full h-full" viewBox="0 0 200 200">
+                {(() => {
+                  let startAngle = 0;
+                  const radius = 90;
+                  const centerX = 100;
+                  const centerY = 100;
+                  
+                  return Object.entries(collectedData).map(([type, count]) => {
+                    const animalPercentage = count / totalAnimals * 100;
+                    const angle = animalPercentage / 100 * 360;
+                    const endAngle = startAngle + angle;
+                    
+                    const startAngleRad = startAngle * Math.PI / 180;
+                    const endAngleRad = endAngle * Math.PI / 180;
+                    
+                    const x1 = centerX + radius * Math.cos(startAngleRad);
+                    const y1 = centerY + radius * Math.sin(startAngleRad);
+                    const x2 = centerX + radius * Math.cos(endAngleRad);
+                    const y2 = centerY + radius * Math.sin(endAngleRad);
+                    const largeArcFlag = angle > 180 ? 1 : 0;
+                    const pathData = [`M ${centerX} ${centerY}`, `L ${x1} ${y1}`, `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`, 'Z'].join(' ');
+                    
+                    const typeConfig = animalConfig[type as keyof typeof animalConfig];
+                    const isCurrentAnimal = type === animalType;
+                    
+                    const slice = (
+                      <g key={type}>
+                        <path 
+                          d={pathData} 
+                          fill={typeConfig.color} 
+                          stroke="white" 
+                          strokeWidth="4" 
+                          className={`transition-all duration-500 ${isCurrentAnimal ? 'opacity-100 drop-shadow-lg' : 'opacity-30'}`}
+                          style={{
+                            filter: isCurrentAnimal ? 'brightness(1.2)' : 'brightness(0.8)'
+                          }}
+                        />
+                        {animalPercentage > 2 && isCurrentAnimal && (
+                          <text 
+                            x={centerX} 
+                            y={centerY} 
+                            textAnchor="middle" 
+                            dy="0.3em" 
+                            className="text-2xl font-bold fill-white animate-pulse"
+                            style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}
+                          >
+                            {Math.round(animalPercentage)}%
+                          </text>
+                        )}
+                      </g>
+                    );
+                    
+                    startAngle = endAngle;
+                    return slice;
+                  });
+                })()}
+              </svg>
+            </div>
+          </div>
           
-          <div className="mt-2 text-center">
-            <Badge variant="secondary" className="text-sm px-2 py-1">
-              1% = {onePercent.toFixed(1)} animals
+          {/* Current Animal Display */}
+          <div className="bg-white p-4 rounded-lg border-2 border-secondary/30">
+            <div className="text-4xl mb-2">{config.emoji}</div>
+            <div className="text-xl font-bold">{config.name}</div>
+            <div className="text-lg text-muted-foreground">{animalCount} animals</div>
+            <Badge className="text-lg px-4 py-2 mt-2" style={{ backgroundColor: config.color }}>
+              {percentage}%
             </Badge>
           </div>
-        </div>
-
-        {/* Interactive Building */}
-        <div className="bg-white p-3 rounded-lg border border-purple-200">
-          <h4 className="text-sm font-bold mb-2 text-purple-700">🔧 Build Any %</h4>
           
-          <div className="grid grid-cols-2 gap-2">
-            {[{
-            label: "1%",
-            multiplier: 1
-          }, {
-            label: "3%",
-            multiplier: 3
-          }, {
-            label: "7%",
-            multiplier: 7
-          }, {
-            label: "12%",
-            multiplier: 12
-          }].map(({
-            label,
-            multiplier
-          }) => {
-            const answerKey = `phase5-${multiplier}`;
-            const correctAmount = (multiplier * onePercent).toFixed(1);
-            const answerState = answerStates[answerKey] || 'unanswered';
-            const isShaking = shakingQuestions[answerKey] || false;
-            return <div key={label} className={`bg-gray-50 p-2 rounded-lg space-y-2 transition-colors duration-300 ${answerState === 'correct' ? 'bg-green-100 border-2 border-green-300' : answerState === 'incorrect' ? 'bg-red-50 border-2 border-red-200' : ''} ${isShaking ? 'animate-shake' : ''}`}>
-                    <div className="text-center">
-                      <div className="flex items-center justify-center gap-1 mb-1">
-                        <Badge variant="outline" className="text-sm px-2 py-1">
-                          {label}
-                        </Badge>
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              className="w-4 h-4 p-0 rounded-full bg-primary text-primary-foreground hover:bg-primary/90" 
-                              onClick={() => setIsCalculatorOpen(true)}
-                            >
-                              <CalculatorIcon size={10} />
-                            </Button>
-                          </DialogTrigger>
-                        </Dialog>
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {multiplier} × {onePercent.toFixed(1)} = ?
-                      </div>
-                    </div>
-                  <div className="flex gap-1">
-                    <Input type="number" step="0.1" placeholder="answer" value={userAnswers[answerKey] || ''} onChange={e => setUserAnswers(prev => ({
-                  ...prev,
-                  [answerKey]: e.target.value
-                }))} className={`flex-1 text-sm h-7 ${answerState === 'correct' ? 'border-green-500 bg-green-50' : answerState === 'incorrect' ? 'border-red-500 bg-red-50' : ''}`} disabled={answerState === 'correct'} />
-                    <Button onClick={() => checkAnswer(answerKey, userAnswers[answerKey], parseFloat(correctAmount))} disabled={!userAnswers[answerKey] || answerState === 'correct'} size="sm" variant={answerState === 'correct' ? 'default' : 'outline'} className={`h-7 w-7 p-0 text-xs ${answerState === 'correct' ? 'bg-green-600 hover:bg-green-700' : ''}`}>
-                      {answerState === 'correct' ? '✅' : '✓'}
-            </Button>
-          </div>
-                </div>;
-          })}
-          </div>
-        </div>
-      </div>
-    </Card>;
-
-  const renderPhase6 = () => {
-    // Calculate animal percentages for drag and drop
-    const animalPercentages = Object.entries(collectedData).map(([type, count]) => ({
-      type,
-      count,
-      percentage: totalAnimals > 0 ? Math.round(count / totalAnimals * 100) : 0,
-      config: animalConfig[type as keyof typeof animalConfig]
-    }));
-
-    const dropZones = [
-      { id: 'low', label: '0-15%', emoji: '🔻', color: 'from-red-100 to-red-50 border-red-200' },
-      { id: 'medium', label: '16-35%', emoji: '📊', color: 'from-yellow-100 to-yellow-50 border-yellow-200' },
-      { id: 'high', label: '36-100%', emoji: '📈', color: 'from-green-100 to-green-50 border-green-200' }
-    ];
-
-    return (
-      <Card className="p-3 border border-orange-200 bg-orange-50">
-        <div className="flex items-center gap-2 mb-3">
-          <Badge className="h-5 w-5 text-orange-600 bg-orange-100 border-orange-300 text-xs">🎯</Badge>
-          <h3 className="text-base font-bold text-orange-800">Analyze Data 📊</h3>
-        </div>
-        
-        <div className="space-y-3">
-          {/* Instructions */}
-          <div className="bg-white p-3 rounded-lg border border-orange-200">
-            <h4 className="text-sm font-bold mb-2 text-orange-700">🎮 Drag & Drop Challenge</h4>
-            <div className="text-center">
-              <Badge variant="outline" className="text-xs px-2 py-1">
-                Sort animals by their percentage ranges
-              </Badge>
-            </div>
-          </div>
-
-          {/* Draggable Animals */}
-          <div className="bg-white p-3 rounded-lg border border-orange-200">
-            <h4 className="text-sm font-bold mb-2 text-orange-700">🐾 Animals to Sort</h4>
-            <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
-              {animalPercentages.map(({ type, count, percentage, config }) => (
-                <div
-                  key={type}
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, type)}
-                  className={`bg-gradient-to-br from-gray-50 to-gray-100 p-2 rounded-lg border border-gray-200 cursor-move hover:shadow-lg transition-all duration-200 text-center ${
-                    draggedItem === type ? 'opacity-50 scale-95' : ''
-                  } ${
-                    Object.values(droppedItems).some(animals => animals.includes(type)) ? 'opacity-30' : ''
-                  }`}
-                >
-                  <div className="text-xl mb-1">{config.emoji}</div>
-                  <div className="font-semibold text-xs">{config.name}</div>
-                  <div className="text-xs text-muted-foreground">{count}</div>
-                  <Badge variant="secondary" className="text-xs mt-1">
-                    {percentage}%
-                  </Badge>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Drop Zones */}
-          <div className="bg-white p-3 rounded-lg border border-orange-200">
-            <h4 className="text-sm font-bold mb-2 text-orange-700">📋 Percentage Ranges</h4>
-            <div className="grid grid-cols-3 gap-2">
-              {dropZones.map((zone) => (
-                <div
-                  key={zone.id}
-                  onDragOver={handleDragOver}
-                  onDrop={(e) => handleDrop(e, zone.id)}
-                  className={`bg-gradient-to-br ${zone.color} p-3 rounded-lg border border-dashed min-h-24 flex flex-col items-center justify-center transition-all duration-300 ${
-                    draggedItem ? 'border-opacity-100 bg-opacity-50' : 'border-opacity-30'
-                  } ${
-                    completedTasks[zone.id] ? 'border-green-500 bg-green-100' : ''
-                  }`}
-                >
-                  <div className="text-lg mb-1">{zone.emoji}</div>
-                  <div className="font-bold text-sm mb-1">{zone.label}</div>
-                  
-                  {/* Show dropped animals */}
-                  {droppedItems[zone.id] && droppedItems[zone.id].length > 0 && (
-                    <div className="mt-2 grid grid-cols-2 gap-1 w-full">
-                      {droppedItems[zone.id].map((animalType) => (
-                        <div key={animalType} className="p-1 bg-white rounded border shadow-sm">
-                          <div className="text-sm mb-0.5">
-                            {animalConfig[animalType as keyof typeof animalConfig]?.emoji}
-                          </div>
-                          <div className="text-xs font-semibold">
-                            {animalConfig[animalType as keyof typeof animalConfig]?.name}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  
-                  {(!droppedItems[zone.id] || droppedItems[zone.id].length === 0) && (
-                    <div className="text-xs text-muted-foreground text-center">
-                      Drop animals here
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-
           {/* Progress */}
-          <div className="bg-white p-2 rounded-lg border border-orange-200">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-xs font-semibold">Progress:</span>
-              <Progress value={(Object.values(droppedItems).flat().length / Object.keys(collectedData).length) * 100} className="flex-1 h-1" />
-              <span className="text-xs text-muted-foreground">
-                {Object.values(droppedItems).flat().length}/{Object.keys(collectedData).length} sorted
-              </span>
-            </div>
-            {Object.values(droppedItems).flat().length === Object.keys(collectedData).length && (
-              <div className="text-center mt-1">
-                <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-300 text-xs">
-                  🎉 All animals sorted!
-                </Badge>
-              </div>
-            )}
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Animal {currentAnimalIndex + 1} of {animalEntries.length}</span>
+            <Progress value={((currentAnimalIndex + 1) / animalEntries.length) * 100} className="flex-1" />
           </div>
         </div>
       </Card>
     );
   };
+
+  // Step 3: Interactive Animal Selection Component
+  const AnimalSelection = () => {
+    if (!currentAnimal) return null;
+    
+    const [, currentCount] = currentAnimal;
+    const targetPercentage = totalAnimals > 0 ? Math.round(currentCount / totalAnimals * 100) : 0;
+    
+    return (
+      <Card className="p-6 border-2 border-accent/20 bg-gradient-to-br from-accent/5 to-primary/5">
+        <div className="text-center space-y-6">
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <Target className="h-6 w-6 text-accent" />
+            <h3 className="text-xl font-bold">Select the Correct Animal</h3>
+          </div>
+          
+          {/* Equation Template */}
+          <div className="bg-white p-6 rounded-lg border-2 border-accent/30 mb-6">
+            <div className="text-2xl font-bold mb-4">Find the animal that equals:</div>
+            <div className="flex items-center justify-center gap-4 text-xl">
+              <div className="bg-gray-100 px-4 py-2 rounded-lg border-2 border-dashed border-gray-300">
+                <span className="text-gray-500">?</span>
+              </div>
+              <span>÷ 100 × 100 =</span>
+              <Badge className="text-xl px-4 py-2 bg-accent text-white">
+                {targetPercentage}%
+              </Badge>
+            </div>
+          </div>
+          
+          {/* Animal Selection Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {Object.entries(collectedData)
+              .filter(([, count]) => count > 0)
+              .map(([animalType, count]) => {
+                const config = animalConfig[animalType as keyof typeof animalConfig];
+                const isSelected = selectedAnimals.includes(animalType);
+                const isCurrentCorrect = animalType === currentAnimal[0];
+                
+                return (
+                  <button
+                    key={animalType}
+                    onClick={() => handleAnimalSelect(animalType)}
+                    disabled={isSelected}
+                    className={`p-4 rounded-lg border-2 transition-all duration-300 transform hover:scale-105 ${
+                      isSelected && isCurrentCorrect
+                        ? 'border-green-500 bg-green-50 cursor-default'
+                        : isSelected
+                        ? 'border-gray-300 bg-gray-100 cursor-default opacity-50'
+                        : 'border-accent/30 bg-white hover:border-accent hover:bg-accent/10 cursor-pointer'
+                    }`}
+                  >
+                    <div className="text-3xl mb-2">{config.emoji}</div>
+                    <div className="font-bold">{config.name}</div>
+                    <div className="text-sm text-muted-foreground">{count} animals</div>
+                    {isSelected && isCurrentCorrect && (
+                      <div className="mt-2 text-green-600 font-bold">✓ Correct!</div>
+                    )}
+                  </button>
+                );
+              })}
+          </div>
+        </div>
+      </Card>
+    );
+  };
+
+  // Step 4: Auto-Calculation Display Component  
+  const AutoCalculationDisplay = () => {
+    if (!currentAnimal || !showCalculation) return null;
+    
+    const [animalType, animalCount] = currentAnimal;
+    const config = animalConfig[animalType as keyof typeof animalConfig];
+    const percentage = totalAnimals > 0 ? Math.round(animalCount / totalAnimals * 100) : 0;
+    
+    return (
+      <Card className="p-6 border-2 border-green-500/20 bg-gradient-to-br from-green-50 to-emerald-50">
+        <div className="text-center space-y-6">
+          <div className="text-2xl font-bold text-green-700 mb-4">
+            🎉 Calculation Complete!
+          </div>
+          
+          {/* Auto-filled Equation */}
+          <div className="bg-white p-6 rounded-lg border-2 border-green-300">
+            <div className="flex items-center justify-center gap-4 text-2xl font-bold mb-4">
+              <div className="flex items-center gap-2 bg-green-100 px-4 py-2 rounded-lg border-2 border-green-300">
+                <span className="text-2xl">{config.emoji}</span>
+                <span className={`transition-all duration-1000 ${animatingNumbers ? 'animate-pulse text-green-600' : ''}`}>
+                  {animalCount}
+                </span>
+              </div>
+              <span>÷ 100 × 100 =</span>
+              <Badge className={`text-2xl px-6 py-3 bg-green-600 text-white transition-all duration-1000 ${animatingNumbers ? 'scale-110 animate-bounce' : ''}`}>
+                {percentage}%
+              </Badge>
+            </div>
+            
+            {/* Step-by-step breakdown */}
+            <div className="text-lg text-muted-foreground space-y-2">
+              <div className="flex justify-center gap-2">
+                <span>{animalCount}</span>
+                <span>÷</span>
+                <span>{totalAnimals}</span>
+                <span>=</span>
+                <span className="font-bold">{(animalCount / totalAnimals).toFixed(2)}</span>
+              </div>
+              <div className="flex justify-center gap-2">
+                <span>{(animalCount / totalAnimals).toFixed(2)}</span>
+                <span>×</span>
+                <span>100</span>
+                <span>=</span>
+                <span className="font-bold text-green-600">{percentage}%</span>
+              </div>
+            </div>
+          </div>
+          
+          {/* Animal Info */}
+          <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+            <div className="text-4xl mb-2">{config.emoji}</div>
+            <div className="text-xl font-bold">{config.name}</div>
+            <div className="text-green-700">{animalCount} out of {totalAnimals} animals = {percentage}%</div>
+          </div>
+          
+          {/* Next Button or Completion */}
+          {!isLastAnimal ? (
+            <div className="text-sm text-muted-foreground">
+              Moving to next animal in 3 seconds...
+            </div>
+          ) : (
+            <div className="text-lg font-bold text-green-600">
+              🎊 All animals completed! Redirecting to visualization...
+            </div>
+          )}
+        </div>
+      </Card>
+    );
+  };
+
+  // Main render function for current step
+  const renderCurrentStep = () => {
+    switch (currentStep) {
+      case 1:
+        return (
+          <div className="space-y-6">
+            <VisualIntroduction />
+            {!showVisualAnimation && (
+              <div className="text-center">
+                <Button 
+                  onClick={() => setShowVisualAnimation(true)}
+                  className="bg-primary hover:bg-primary/90"
+                >
+                  Start Visual Introduction
+                </Button>
+              </div>
+            )}
+          </div>
+        );
+      
+      case 2:
+        return (
+          <div className="space-y-6">
+            <SingleAnimalFocus />
+            <AnimalSelection />
+            {showCalculation && <AutoCalculationDisplay />}
+          </div>
+        );
+      
+      default:
+        return null;
+    }
+  };
+
   if (totalAnimals === 0) {
-    return <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8 flex items-center justify-center">
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8 flex items-center justify-center">
         <Card className="p-8 text-center">
-          <h2 className="text-2xl font-bold mb-4">🧮 Learn Percentages & Fractions</h2>
+          <h2 className="text-2xl font-bold mb-4">🧮 Learn Percentages & Data Analysis</h2>
           <p className="text-muted-foreground mb-4">
             First, collect some animals to start learning! 
           </p>
@@ -802,78 +486,92 @@ const Learning = () => {
             Go Collect Animals
           </Button>
         </Card>
-      </div>;
+      </div>
+    );
   }
-  return <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-3 md:p-4 lg:p-6">
-      <div className="max-w-6xl mx-auto space-y-3 md:space-y-4 min-h-screen flex flex-col">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-3 md:mb-4">
-          <div className="text-center sm:text-left">
-            <h1 className="text-lg md:text-xl lg:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              🧮 Learning Percentages & Data
-            </h1>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => setIsCalculatorOpen(true)}
-              className="flex items-center gap-1 text-xs md:text-sm"
-            >
-              <HelpCircle size={16} />
-              <span className="hidden sm:inline">Calculator</span>
-            </Button>
-          </div>
-        </div>
 
-        {/* Progress */}
-        <div className="mb-4">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
-            <span className="text-xs md:text-sm font-medium">Progress</span>
-            <span className="text-xs md:text-sm text-muted-foreground">
-              Phase {currentPhase} of 6
-            </span>
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+      <div className="max-w-4xl mx-auto">
+        <Card className="p-6 mb-6 bg-white/80 backdrop-blur-sm">
+          <h1 className="text-2xl md:text-3xl font-bold text-center mb-6">
+            🧮 Interactive Percentage Learning
+          </h1>
+          
+          {/* Step Progress */}
+          <div className="mb-6">
+            <div className="flex justify-between text-sm text-muted-foreground mb-2">
+              <span>Step {currentStep} of {totalSteps}</span>
+              <span>{Math.round((currentStep / totalSteps) * 100)}% Complete</span>
+            </div>
+            <Progress value={(currentStep / totalSteps) * 100} className="h-3" />
           </div>
-          <Progress value={((currentPhase - 1) / 6) * 100} className="h-2" />
-        </div>
+          
+          {/* Step Indicators */}
+          <div className="flex justify-center gap-4 mb-6">
+            <div className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${currentStep >= 1 ? 'bg-primary/10 border-primary/30 text-primary' : 'bg-gray-50 border-gray-200 text-gray-500'}`}>
+              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${currentStep >= 1 ? 'bg-primary text-white' : 'bg-gray-300 text-gray-600'}`}>
+                1
+              </div>
+              <span className="text-sm font-medium">Visual Intro</span>
+            </div>
+            
+            <div className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${currentStep >= 2 ? 'bg-secondary/10 border-secondary/30 text-secondary' : 'bg-gray-50 border-gray-200 text-gray-500'}`}>
+              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${currentStep >= 2 ? 'bg-secondary text-white' : 'bg-gray-300 text-gray-600'}`}>
+                2
+              </div>
+              <span className="text-sm font-medium">Interactive Learning</span>
+            </div>
+          </div>
+        </Card>
 
-        {/* Current Phase Content */}
-        <div className="flex-1 min-h-0">
-          <div className="h-full overflow-y-auto space-y-4">
-            {currentPhase === 3 && renderPhase3()}
-            {currentPhase === 4 && renderPhase4()}
-            {currentPhase === 5 && renderPhase5()}
-            {currentPhase === 6 && renderPhase6()}
-          </div>
+        {/* Current Step Content */}
+        <div className="mb-6">
+          {renderCurrentStep()}
         </div>
 
         {/* Navigation */}
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-3 pt-4 border-t">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => setCurrentPhase(Math.max(3, currentPhase - 1))} 
-            disabled={currentPhase === 3}
-            className="w-full sm:w-auto text-xs md:text-sm"
-          >
-            Previous Phase
-          </Button>
-          
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => setCurrentPhase(Math.min(6, currentPhase + 1))} 
-            disabled={currentPhase === 6}
-            className="w-full sm:w-auto text-xs md:text-sm"
-          >
-            Skip Phase
-          </Button>
-        </div>
+        <Card className="p-4 bg-white/80 backdrop-blur-sm">
+          <div className="flex justify-between items-center">
+            <Button 
+              variant="outline" 
+              onClick={() => navigate('/')}
+              className="flex items-center gap-2"
+            >
+              <ArrowRight className="w-4 h-4 rotate-180" />
+              Back to Game
+            </Button>
+            
+            <div className="text-center">
+              {currentStep === 1 && !showVisualAnimation && (
+                <p className="text-sm text-muted-foreground">Click the button above to start the visual introduction</p>
+              )}
+              {currentStep === 1 && showVisualAnimation && (
+                <p className="text-sm text-muted-foreground">Watch the visual explanation...</p>
+              )}
+              {currentStep === 2 && currentAnimal && (
+                <p className="text-sm text-muted-foreground">
+                  Click the animal that matches {totalAnimals > 0 ? Math.round(currentAnimal[1] / totalAnimals * 100) : 0}%
+                </p>
+              )}
+            </div>
+            
+            <Button 
+              variant="outline"
+              onClick={() => navigate('/visualization')}
+              className="flex items-center gap-2"
+            >
+              Skip to Results
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+        </Card>
       </div>
-      {/* Calculator component for math help */}
-      <Calculator isOpen={isCalculatorOpen} onOpenChange={setIsCalculatorOpen} />
-      {/* Confetti celebration effect */}
-      <Confetti trigger={showConfetti} />
-    </div>;
+
+      {/* Confetti */}
+      <Confetti trigger={showConfetti} onComplete={() => setShowConfetti(false)} />
+    </div>
+  );
 };
+
 export default Learning;
