@@ -91,6 +91,22 @@ const WholeFromPercentage = () => {
     }
   }, [phase]);
 
+  // Intro animation effect (always declared)
+  useEffect(() => {
+    if (phase === 'intro') {
+      const timer1 = setTimeout(() => setShowPartial(true), 500);
+      const timer2 = setTimeout(() => setShowCalculation(true), 2500);
+      const timer3 = setTimeout(() => setShowWhole(true), 4000);
+      const timer4 = setTimeout(() => setShowResult(true), 5500);
+      return () => {
+        clearTimeout(timer1);
+        clearTimeout(timer2);
+        clearTimeout(timer3);
+        clearTimeout(timer4);
+      };
+    }
+  }, [phase]);
+
   const animalConfig = {
     mammals: { emoji: '🐘', color: '#ef4444' },
     birds: { emoji: '🦅', color: '#3b82f6' },
@@ -540,19 +556,6 @@ const WholeFromPercentage = () => {
   }
 
   if (phase === 'intro') {
-    useEffect(() => {
-      const timer1 = setTimeout(() => setShowPartial(true), 500);
-      const timer2 = setTimeout(() => setShowCalculation(true), 2500);
-      const timer3 = setTimeout(() => setShowWhole(true), 4000);
-      const timer4 = setTimeout(() => setShowResult(true), 5500);
-      return () => {
-        clearTimeout(timer1);
-        clearTimeout(timer2);
-        clearTimeout(timer3);
-        clearTimeout(timer4);
-      };
-    }, []);
-
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 p-4">
         <div className="max-w-4xl mx-auto flex items-center justify-center min-h-screen">
