@@ -100,8 +100,13 @@ const PercentageVisualization = () => {
           {/* Progress Bar Visual */}
           <div className="max-w-lg mx-auto">
             <div className="text-center mb-4">
-              <div className="text-6xl font-bold mb-2" style={{ color: concept.color }}>
-                {concept.visual.percentage}%
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <div className="text-6xl font-bold" style={{ color: concept.color }}>
+                  {concept.visual.percentage}%
+                </div>
+                <div className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-1">
+                  ✓ Learned
+                </div>
               </div>
               <div className="text-xl text-muted-foreground">
                 of {concept.visual.total}
