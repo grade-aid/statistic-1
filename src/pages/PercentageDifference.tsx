@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, ShoppingCart, MapPin } from "lucide-react";
 import Confetti from "@/components/Confetti";
@@ -69,6 +70,7 @@ const PercentageDifference = () => {
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showAnswer, setShowAnswer] = useState(false);
+  const [showAnswerDialog, setShowAnswerDialog] = useState(false);
   const [completedExercises, setCompletedExercises] = useState<string[]>([]);
 
   // Intro animation
@@ -270,7 +272,7 @@ const PercentageDifference = () => {
     if (showAnswer) return;
     
     setSelectedAnswer(answer);
-    setShowAnswer(true);
+    setShowAnswerDialog(true);
     
     const currentExercise = exercises[currentExerciseIndex];
     if (answer === currentExercise.correctAnswer) {
@@ -285,7 +287,7 @@ const PercentageDifference = () => {
     if (currentExerciseIndex < exercises.length - 1) {
       setCurrentExerciseIndex(prev => prev + 1);
       setSelectedAnswer(null);
-      setShowAnswer(false);
+      setShowAnswerDialog(false);
     } else {
       setPhase('complete');
     }
@@ -558,27 +560,29 @@ const PercentageDifference = () => {
                   <Button
                     key={option}
                     onClick={() => handleAnswerSubmit(option)}
-                    disabled={showAnswer}
+                    disabled={showAnswerDialog}
                     className={`h-16 text-xl ${
-                      showAnswer && option === currentExercise.correctAnswer
+                      showAnswerDialog && option === currentExercise.correctAnswer
                         ? 'bg-green-600 text-white'
-                        : showAnswer && option === selectedAnswer && option !== currentExercise.correctAnswer
+                        : showAnswerDialog && option === selectedAnswer && option !== currentExercise.correctAnswer
                         ? 'bg-red-600 text-white'
                         : ''
                     }`}
-                    variant={showAnswer && option === currentExercise.correctAnswer ? 'default' : 'outline'}
+                    variant={showAnswerDialog && option === currentExercise.correctAnswer ? 'default' : 'outline'}
                   >
                     {option}%
                   </Button>
                 ))}
               </div>
 
-              {/* Answer Explanation */}
-              {showAnswer && (
-                <div className="bg-green-50 p-6 rounded-lg border-2 border-green-200 max-w-lg mx-auto">
-                  <div className="text-green-700 font-bold mb-4 text-xl">
-                    {selectedAnswer === currentExercise.correctAnswer ? '🎉 Correct!' : '❌ Incorrect'}
-                  </div>
+              {/* Answer Explanation Dialog */}
+              <Dialog open={showAnswerDialog} onOpenChange={setShowAnswerDialog}>
+                <DialogContent className="max-w-lg">
+                  <DialogHeader>
+                    <DialogTitle className="text-center">
+                      {selectedAnswer === currentExercise.correctAnswer ? '🎉 Correct!' : '❌ Incorrect'}
+                    </DialogTitle>
+                  </DialogHeader>
                   
                   {/* Calculation Steps */}
                   <div className="bg-white p-4 rounded-lg border mb-4">
@@ -609,7 +613,12 @@ const PercentageDifference = () => {
                       <div className="text-sm font-semibold text-gray-700">3️⃣ Multiply by 100:</div>
                       <div className="bg-green-50 p-2 rounded text-center">
                         <span className="font-mono">
-                          {((Math.abs(currentExercise.newPrice - currentExercise.oldPrice) / (currentExercise.isIncrease ? currentExercise.oldPrice : currentExercise.newPrice))).toFixed(3)} × 100 = <span className="font-bold text-green-600">{currentExercise.correctAnswer}%</span>
+                          {((Math.abs(currentExercise.newPrice - currentExercise.oldPrice) / (currentExercise.isIncrease ? currentExercise.oldPrice : currentExercise.newPrice))).toFixed(3)} × 100 = 
+                          {selectedAnswer === currentExercise.correctAnswer ? (
+                            <span className="font-bold text-green-600"> {currentExercise.correctAnswer}%</span>
+                          ) : (
+                            <span className="font-bold text-orange-600"> ?%</span>
+                          )}
                         </span>
                       </div>
                     </div>
@@ -622,19 +631,26 @@ const PercentageDifference = () => {
                     </div>
                   </div>
                   
-                  <div className="text-green-600 font-bold text-center mb-4">
-                    Answer: {currentExercise.correctAnswer}% {currentExercise.isIncrease ? 'increase' : 'decrease'}
-                  </div>
+                  {selectedAnswer === currentExercise.correctAnswer ? (
+                    <div className="text-green-600 font-bold text-center mb-4">
+                      Answer: {currentExercise.correctAnswer}% {currentExercise.isIncrease ? 'increase' : 'decrease'}
+                    </div>
+                  ) : (
+                    <div className="text-orange-600 font-bold text-center mb-4">
+                      Try to calculate the final percentage yourself!<br/>
+                      <span className="text-sm">Correct answer: {currentExercise.correctAnswer}% {currentExercise.isIncrease ? 'increase' : 'decrease'}</span>
+                    </div>
+                  )}
                   
                   <Button 
                     onClick={handleNext}
-                    className="w-full bg-green-600 hover:bg-green-700"
+                    className="w-full bg-primary hover:bg-primary/90"
                   >
                     {currentExerciseIndex < exercises.length - 1 ? 'Next Question' : 'Complete'} 
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
-                </div>
-              )}
+                </DialogContent>
+              </Dialog>
             </div>
           </Card>
         </div>
