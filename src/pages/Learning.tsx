@@ -197,11 +197,11 @@ const Learning = () => {
             
             {/* Show Pie Chart */}
             <div className="flex justify-center mb-6">
-              <div className="relative w-48 h-48">
+              <div className="relative w-80 h-80">
                 <svg className="w-full h-full" viewBox="0 0 200 200">
                   {(() => {
                     let startAngle = 0;
-                    const radius = 80;
+                    const radius = 90;
                     const centerX = 100;
                     const centerY = 100;
                     
@@ -237,29 +237,29 @@ const Learning = () => {
                               d={pathData} 
                               fill={typeConfig.color} 
                               stroke="white" 
-                              strokeWidth="3" 
-                              className={`transition-all duration-1000 ${isExample ? 'opacity-100 drop-shadow-lg animate-pulse' : 'opacity-70'}`}
+                              strokeWidth="4" 
+                              className={`transition-all duration-1000 ${isExample ? 'opacity-100 drop-shadow-lg animate-pulse' : 'opacity-90'}`}
                               style={{
-                                filter: isExample ? 'brightness(1.2)' : 'brightness(0.8)'
+                                filter: isExample ? 'brightness(1.2)' : 'brightness(1.0)'
                               }}
                             />
                             {/* Animal emoji in slice */}
                             <text 
                               x={labelX} 
-                              y={labelY - 5} 
+                              y={labelY - 8} 
                               textAnchor="middle" 
                               dy="0.3em" 
-                              className="text-2xl pointer-events-none"
+                              className="text-3xl pointer-events-none"
                             >
                               {typeConfig.emoji}
                             </text>
                             {/* Animal count */}
                             <text 
                               x={labelX} 
-                              y={labelY + 12} 
+                              y={labelY + 15} 
                               textAnchor="middle" 
                               dy="0.3em" 
-                              className="text-sm font-bold fill-white pointer-events-none"
+                              className="text-base font-bold fill-white pointer-events-none"
                               style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}
                             >
                               {count}
