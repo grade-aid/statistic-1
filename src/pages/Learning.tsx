@@ -115,26 +115,22 @@ const Learning = () => {
     }
   }, [currentStep]);
 
-  // Check if current step is completed
-  useEffect(() => {
-    if (currentStep === 3 && currentAnimal && selectedAnimals.includes(currentAnimal[0])) {
-      const timer = setTimeout(() => {
-        if (isLastAnimal) {
-          // All animals completed
-          setShowConfetti(true);
-          setTimeout(() => {
-            navigate('/visualization');
-          }, 2000);
-        } else {
-          setCurrentAnimalIndex(prev => prev + 1);
-          setShowCalculation(false);
-          setCurrentStep(2); // Back to pie chart for next animal
-        }
-      }, 3000);
-      
-      return () => clearTimeout(timer);
+  // Manual progression - no auto-advance
+  const handleNext = () => {
+    if (currentStep === 3) {
+      if (isLastAnimal) {
+        // All animals completed
+        setShowConfetti(true);
+        setTimeout(() => {
+          navigate('/visualization');
+        }, 2000);
+      } else {
+        setCurrentAnimalIndex(prev => prev + 1);
+        setShowCalculation(false);
+        setCurrentStep(2); // Back to pie chart for next animal
+      }
     }
-  }, [currentStep, selectedAnimals, currentAnimal, isLastAnimal, navigate]);
+  };
 
   // Handle pie slice click in step 2
   const handlePieSliceClick = (animalType: string) => {
@@ -276,25 +272,52 @@ const Learning = () => {
     );
   };
 
-  // Step 2: Single Pie Chart Focus Component
-  const SingleAnimalFocus = () => {
+  // Step 2: Interactive Pie Chart Component
+  const InteractivePieChart = () => {
     if (!currentAnimal) return null;
     
     const [animalType, animalCount] = currentAnimal;
     const config = animalConfig[animalType as keyof typeof animalConfig];
-    const percentage = totalAnimals > 0 ? Math.round(animalCount / totalAnimals * 100) : 0;
+    const targetPercentage = totalAnimals > 0 ? Math.round(animalCount / totalAnimals * 100) : 0;
+    const isCorrectClicked = selectedAnimals.includes(animalType);
     
     return (
       <Card className="p-6 border-2 border-secondary/20 bg-gradient-to-br from-secondary/5 to-accent/5">
         <div className="text-center space-y-6">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <Eye className="h-6 w-6 text-secondary" />
-            <h3 className="text-xl font-bold">Focus on One Animal</h3>
+            <Target className="h-6 w-6 text-secondary" />
+            <h3 className="text-xl font-bold">Find the Animal That Equals {targetPercentage}%</h3>
           </div>
           
-          {/* Large Single Pie Chart */}
-          <div className="flex justify-center">
-            <div className="relative w-64 h-64">
+          {/* Equation Template */}
+          <div className="bg-white p-6 rounded-lg border-2 border-accent/30 mb-6">
+            <div className="flex items-center justify-center gap-4 text-xl">
+              <div className={`px-4 py-2 rounded-lg border-2 border-dashed transition-all duration-500 ${
+                isCorrectClicked 
+                  ? 'border-green-500 bg-green-50' 
+                  : 'border-gray-300 bg-gray-50'
+              }`}>
+                {isCorrectClicked ? (
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">{config.emoji}</span>
+                    <span className="font-bold text-green-600">{animalCount}</span>
+                  </div>
+                ) : (
+                  <span className="text-gray-500">?</span>
+                )}
+              </div>
+              <span>÷</span>
+              <div className="bg-blue-100 px-4 py-2 rounded-lg border font-bold">{totalAnimals}</div>
+              <span>× 100 =</span>
+              <Badge className="text-xl px-4 py-2 bg-accent text-white">
+                {targetPercentage}%
+              </Badge>
+            </div>
+          </div>
+          
+          {/* Pie Chart - Show All Animals */}
+          <div className="flex justify-center mb-6">
+            <div className="relative w-72 h-72">
               <svg className="w-full h-full" viewBox="0 0 200 200">
                 {(() => {
                   let startAngle = 0;
@@ -302,60 +325,120 @@ const Learning = () => {
                   const centerX = 100;
                   const centerY = 100;
                   
-                  return Object.entries(collectedData).map(([type, count]) => {
-                    const animalPercentage = count / totalAnimals * 100;
-                    const angle = animalPercentage / 100 * 360;
-                    const endAngle = startAngle + angle;
-                    
-                    const startAngleRad = startAngle * Math.PI / 180;
-                    const endAngleRad = endAngle * Math.PI / 180;
-                    
-                    const x1 = centerX + radius * Math.cos(startAngleRad);
-                    const y1 = centerY + radius * Math.sin(startAngleRad);
-                    const x2 = centerX + radius * Math.cos(endAngleRad);
-                    const y2 = centerY + radius * Math.sin(endAngleRad);
-                    const largeArcFlag = angle > 180 ? 1 : 0;
-                    const pathData = [`M ${centerX} ${centerY}`, `L ${x1} ${y1}`, `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`, 'Z'].join(' ');
-                    
-                    const typeConfig = animalConfig[type as keyof typeof animalConfig];
-                    const isCurrentAnimal = type === animalType;
-                    
-                    const slice = (
-                      <g key={type}>
-                        <path 
-                          d={pathData} 
-                          fill={typeConfig.color} 
-                          stroke="white" 
-                          strokeWidth="4" 
-                          className={`transition-all duration-500 cursor-pointer hover:brightness-110 ${isCurrentAnimal ? 'opacity-100 drop-shadow-lg' : 'opacity-30'}`}
-                          style={{
-                            filter: isCurrentAnimal ? 'brightness(1.2)' : 'brightness(0.8)'
-                          }}
-                          onClick={() => handlePieSliceClick(type)}
-                        />
-                      </g>
-                    );
-                    
-                    startAngle = endAngle;
-                    return slice;
-                  });
+                  return Object.entries(collectedData)
+                    .filter(([, count]) => count > 0)
+                    .map(([type, count]) => {
+                      const animalPercentage = count / totalAnimals * 100;
+                      const angle = animalPercentage / 100 * 360;
+                      const endAngle = startAngle + angle;
+                      
+                      const startAngleRad = startAngle * Math.PI / 180;
+                      const endAngleRad = endAngle * Math.PI / 180;
+                      
+                      const x1 = centerX + radius * Math.cos(startAngleRad);
+                      const y1 = centerY + radius * Math.sin(startAngleRad);
+                      const x2 = centerX + radius * Math.cos(endAngleRad);
+                      const y2 = centerY + radius * Math.sin(endAngleRad);
+                      const largeArcFlag = angle > 180 ? 1 : 0;
+                      const pathData = [`M ${centerX} ${centerY}`, `L ${x1} ${y1}`, `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`, 'Z'].join(' ');
+                      
+                      const typeConfig = animalConfig[type as keyof typeof animalConfig];
+                      const isTargetAnimal = type === animalType;
+                      const isClicked = selectedAnimals.includes(type);
+                      
+                      // Calculate label position
+                      const labelAngle = (startAngle + endAngle) / 2;
+                      const labelRadius = radius * 0.7;
+                      const labelX = centerX + labelRadius * Math.cos(labelAngle * Math.PI / 180);
+                      const labelY = centerY + labelRadius * Math.sin(labelAngle * Math.PI / 180);
+                      
+                      const slice = (
+                        <g key={type}>
+                          <path 
+                            d={pathData} 
+                            fill={typeConfig.color} 
+                            stroke="white" 
+                            strokeWidth="3" 
+                            className={`transition-all duration-500 cursor-pointer hover:brightness-110 ${
+                              isClicked && isTargetAnimal
+                                ? 'animate-pulse drop-shadow-lg' 
+                                : isClicked
+                                ? 'opacity-50'
+                                : 'opacity-100 hover:opacity-90'
+                            }`}
+                            style={{
+                              filter: isClicked && isTargetAnimal ? 'brightness(1.2)' : 'brightness(1.0)'
+                            }}
+                            onClick={() => handlePieSliceClick(type)}
+                          />
+                          {/* Animal count labels */}
+                          {animalPercentage > 5 && (
+                            <text 
+                              x={labelX} 
+                              y={labelY} 
+                              textAnchor="middle" 
+                              dy="0.3em" 
+                              className="text-sm font-bold fill-white pointer-events-none"
+                              style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}
+                            >
+                              {count}
+                            </text>
+                          )}
+                        </g>
+                      );
+                      
+                      startAngle = endAngle;
+                      return slice;
+                    });
                 })()}
               </svg>
             </div>
           </div>
           
-          {/* Current Animal Display */}
-          <div className="bg-white p-4 rounded-lg border-2 border-secondary/30">
-            <div className="text-4xl mb-2">{config.emoji}</div>
-            <div className="text-xl font-bold">{config.name}</div>
-            <div className="text-lg text-muted-foreground">{animalCount} animals</div>
-            <div className="text-sm text-muted-foreground mt-2">Click on the slice to see the calculation!</div>
+          {/* Animal Legend */}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {Object.entries(collectedData)
+              .filter(([, count]) => count > 0)
+              .map(([type, count]) => {
+                const typeConfig = animalConfig[type as keyof typeof animalConfig];
+                const isTarget = type === animalType;
+                const isClicked = selectedAnimals.includes(type);
+                const percentage = Math.round(count / totalAnimals * 100);
+                
+                return (
+                  <div 
+                    key={type}
+                    className={`p-3 rounded-lg border-2 transition-all duration-300 ${
+                      isClicked && isTarget
+                        ? 'border-green-500 bg-green-50'
+                        : isTarget
+                        ? 'border-accent bg-accent/10 animate-pulse'
+                        : 'border-gray-200 bg-white'
+                    }`}
+                  >
+                    <div className="text-2xl mb-1">{typeConfig.emoji}</div>
+                    <div className="text-sm font-bold">{typeConfig.name}</div>
+                    <div className="text-xs text-muted-foreground">{count} animals</div>
+                    <div className="text-xs font-bold" style={{ color: typeConfig.color }}>
+                      {percentage}%
+                    </div>
+                  </div>
+                );
+              })}
           </div>
           
-          {/* Progress */}
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Animal {currentAnimalIndex + 1} of {animalEntries.length}</span>
-            <Progress value={((currentAnimalIndex + 1) / animalEntries.length) * 100} className="flex-1" />
+          {/* Progress and Instructions */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Animal {currentAnimalIndex + 1} of {animalEntries.length}</span>
+              <Progress value={((currentAnimalIndex + 1) / animalEntries.length) * 100} className="flex-1" />
+            </div>
+            
+            {!isCorrectClicked && (
+              <div className="text-sm text-muted-foreground">
+                Click on the pie slice that represents {targetPercentage}% of your animals
+              </div>
+            )}
           </div>
         </div>
       </Card>
@@ -447,7 +530,17 @@ const Learning = () => {
       case 2:
         return (
           <div className="space-y-6">
-            <SingleAnimalFocus />
+            <InteractivePieChart />
+            {selectedAnimals.includes(currentAnimal?.[0] || '') && (
+              <div className="flex justify-center">
+                <Button 
+                  onClick={() => setCurrentStep(3)}
+                  className="bg-primary hover:bg-primary/90 text-white px-8 py-3"
+                >
+                  See Full Calculation <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </div>
+            )}
           </div>
         );
       
@@ -455,6 +548,23 @@ const Learning = () => {
         return (
           <div className="space-y-6">
             <AutoCalculationDisplay />
+            <div className="flex justify-center gap-4">
+              {!isLastAnimal ? (
+                <Button 
+                  onClick={handleNext}
+                  className="bg-primary hover:bg-primary/90 text-white px-8 py-3"
+                >
+                  Next Animal <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              ) : (
+                <Button 
+                  onClick={handleNext}
+                  className="bg-green-600 hover:bg-green-700 text-white px-8 py-3"
+                >
+                  Complete Learning <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              )}
+            </div>
           </div>
         );
       
