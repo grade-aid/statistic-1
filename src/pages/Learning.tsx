@@ -62,15 +62,15 @@ const Learning = () => {
   const getVisualWeight = (animalType: string, actualCount: number): number => {
     switch (animalType) {
       case 'insects':
-        return actualCount * 0.3; // Reduce insects to 30% visual weight
+        return actualCount * 0.2; // Drastically reduce insects visual weight
       case 'birds':
-        return actualCount * 0.7; // Reduce birds to 70% visual weight
+        return actualCount * 0.5; // Reduce birds significantly
       case 'reptiles':
-        return actualCount * 0.8; // Slightly reduce reptiles
+        return actualCount * 0.6; // Reduce reptiles
       case 'fish':
-        return actualCount * 0.9; // Slightly reduce fish
+        return actualCount * 0.7; // Reduce fish
       case 'mammals':
-        return actualCount * 1.2; // Boost mammals (elephants)
+        return actualCount * 2.5; // Dramatically boost mammals (elephants)
       default:
         return actualCount;
     }
