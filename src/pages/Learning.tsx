@@ -58,6 +58,33 @@ const Learning = () => {
   const collectedData = getStoredData();
   const totalAnimals = Object.values(collectedData).reduce((sum: number, count: number) => sum + count, 0);
   
+  // Visual weight adjustments to make elephants more prominent
+  const getVisualWeight = (animalType: string, actualCount: number): number => {
+    switch (animalType) {
+      case 'insects':
+        return actualCount * 0.3; // Reduce insects to 30% visual weight
+      case 'birds':
+        return actualCount * 0.7; // Reduce birds to 70% visual weight
+      case 'reptiles':
+        return actualCount * 0.8; // Slightly reduce reptiles
+      case 'fish':
+        return actualCount * 0.9; // Slightly reduce fish
+      case 'mammals':
+        return actualCount * 1.2; // Boost mammals (elephants)
+      default:
+        return actualCount;
+    }
+  };
+  
+  // Calculate visual data for pie charts
+  const visualData = Object.fromEntries(
+    Object.entries(collectedData).map(([type, count]) => [
+      type, 
+      getVisualWeight(type, count)
+    ])
+  );
+  const totalVisualWeight = Object.values(visualData).reduce((sum: number, weight: number) => sum + weight, 0);
+  
   // Consolidated animalConfig with all properties
   const animalConfig = {
     mammals: {
@@ -179,7 +206,8 @@ const Learning = () => {
                     const centerY = 100;
                     
                     return Object.entries(collectedData).map(([type, count]) => {
-                      const animalPercentage = count / totalAnimals * 100;
+                      const visualWeight = visualData[type];
+                      const animalPercentage = visualWeight / totalVisualWeight * 100;
                       const angle = animalPercentage / 100 * 360;
                       const endAngle = startAngle + angle;
                       
@@ -304,7 +332,8 @@ const Learning = () => {
                   return Object.entries(collectedData)
                     .filter(([, count]) => count > 0)
                     .map(([type, count]) => {
-                      const animalPercentage = count / totalAnimals * 100;
+                      const visualWeight = visualData[type];
+                      const animalPercentage = visualWeight / totalVisualWeight * 100;
                       const angle = animalPercentage / 100 * 360;
                       const endAngle = startAngle + angle;
                       
