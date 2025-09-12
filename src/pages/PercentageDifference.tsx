@@ -72,6 +72,7 @@ const PercentageDifference = () => {
   const [showAnswer, setShowAnswer] = useState(false);
   const [showAnswerDialog, setShowAnswerDialog] = useState(false);
   const [completedExercises, setCompletedExercises] = useState<string[]>([]);
+  const [canTryAgain, setCanTryAgain] = useState(true);
 
   // Intro animation
   const [introStep, setIntroStep] = useState(0);
@@ -279,6 +280,9 @@ const PercentageDifference = () => {
       setCompletedExercises(prev => [...prev, currentExercise.id]);
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 2000);
+      setCanTryAgain(false);
+    } else {
+      setCanTryAgain(false);
     }
   };
 
@@ -288,9 +292,17 @@ const PercentageDifference = () => {
       setCurrentExerciseIndex(prev => prev + 1);
       setSelectedAnswer(null);
       setShowAnswerDialog(false);
+      setCanTryAgain(true);
     } else {
       setPhase('complete');
     }
+  };
+
+  // Try again function
+  const handleTryAgain = () => {
+    setSelectedAnswer(null);
+    setShowAnswerDialog(false);
+    setCanTryAgain(true);
   };
 
   // Auto-complete for testing
@@ -560,7 +572,7 @@ const PercentageDifference = () => {
                   <Button
                     key={option}
                     onClick={() => handleAnswerSubmit(option)}
-                    disabled={showAnswerDialog}
+                    disabled={showAnswerDialog && (selectedAnswer === currentExercise.correctAnswer || !canTryAgain)}
                     className={`h-16 text-xl ${
                       showAnswerDialog && option === currentExercise.correctAnswer
                         ? 'bg-green-600 text-white'
@@ -642,13 +654,24 @@ const PercentageDifference = () => {
                     </div>
                   )}
                   
-                  <Button 
-                    onClick={handleNext}
-                    className="w-full bg-primary hover:bg-primary/90"
-                  >
-                    {currentExerciseIndex < exercises.length - 1 ? 'Next Question' : 'Complete'} 
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
+                  <div className="flex gap-3">
+                    {selectedAnswer !== currentExercise.correctAnswer && (
+                      <Button 
+                        onClick={handleTryAgain}
+                        variant="outline"
+                        className="flex-1"
+                      >
+                        Try Again
+                      </Button>
+                    )}
+                    <Button 
+                      onClick={handleNext}
+                      className={`${selectedAnswer === currentExercise.correctAnswer ? 'w-full' : 'flex-1'} bg-primary hover:bg-primary/90`}
+                    >
+                      {currentExerciseIndex < exercises.length - 1 ? 'Next Question' : 'Complete'} 
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </div>
                 </DialogContent>
               </Dialog>
             </div>
