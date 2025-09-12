@@ -75,6 +75,22 @@ const WholeFromPercentage = () => {
   const [showAnswer, setShowAnswer] = useState(false);
   const [animatingPie, setAnimatingPie] = useState(false);
 
+  // Intro animation states (always declared)
+  const [showPartial, setShowPartial] = useState(false);
+  const [showWhole, setShowWhole] = useState(false);
+  const [showCalculation, setShowCalculation] = useState(false);
+  const [showResult, setShowResult] = useState(false);
+
+  // Reset intro states when phase changes
+  useEffect(() => {
+    if (phase !== 'intro') {
+      setShowPartial(false);
+      setShowWhole(false);
+      setShowCalculation(false);
+      setShowResult(false);
+    }
+  }, [phase]);
+
   const animalConfig = {
     mammals: { emoji: '🐘', color: '#ef4444' },
     birds: { emoji: '🦅', color: '#3b82f6' },
@@ -524,12 +540,6 @@ const WholeFromPercentage = () => {
   }
 
   if (phase === 'intro') {
-    const [step, setStep] = useState(1);
-    const [showPartial, setShowPartial] = useState(false);
-    const [showWhole, setShowWhole] = useState(false);
-    const [showCalculation, setShowCalculation] = useState(false);
-    const [showResult, setShowResult] = useState(false);
-
     useEffect(() => {
       const timer1 = setTimeout(() => setShowPartial(true), 500);
       const timer2 = setTimeout(() => setShowCalculation(true), 2500);
