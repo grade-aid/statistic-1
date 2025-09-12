@@ -379,6 +379,28 @@ const WholeFromPercentage = () => {
     }
   }, [isCollectionComplete, generateExercises]);
 
+  const autoComplete = () => {
+    if (phase !== 'collection') return;
+    
+    // Collect all remaining animals
+    const remainingAnimals = [...animals];
+    remainingAnimals.forEach(animal => {
+      setCollected(prev => ({
+        ...prev,
+        [animal.type]: prev[animal.type] + 1
+      }));
+    });
+    
+    // Clear all animals from the board
+    setAnimals([]);
+    
+    toast({
+      title: "🎉 Auto Complete!",
+      description: "All animals collected automatically!",
+      duration: 3000
+    });
+  };
+
   const handleAnswerSubmit = () => {
     if (!currentExercise || !userInput) return;
     
@@ -518,6 +540,15 @@ const WholeFromPercentage = () => {
               <p className="text-lg">
                 {totalCollected} / {totalTarget} animals
               </p>
+              <Button 
+                onClick={autoComplete} 
+                variant="outline" 
+                size="sm"
+                className="text-sm"
+                disabled={animals.length === 0}
+              >
+                Auto Complete
+              </Button>
             </div>
           </div>
 
