@@ -62,15 +62,15 @@ const Learning = () => {
   const getVisualWeight = (animalType: string, actualCount: number): number => {
     switch (animalType) {
       case 'insects':
-        return actualCount * 0.15; // Drastically reduce insects 
+        return actualCount * 0.2; // Drastically reduce insects visual weight
       case 'birds':
-        return actualCount * 0.4; // Reduce birds significantly
+        return actualCount * 0.5; // Reduce birds significantly
       case 'reptiles':
-        return actualCount * 0.5; // Reduce reptiles
+        return actualCount * 0.6; // Reduce reptiles
       case 'fish':
-        return actualCount * 0.6; // Reduce fish
+        return actualCount * 0.7; // Reduce fish
       case 'mammals':
-        return actualCount * 4.0; // Dramatically boost mammals (elephants) - even more!
+        return actualCount * 2.5; // Dramatically boost mammals (elephants)
       default:
         return actualCount;
     }
@@ -206,9 +206,7 @@ const Learning = () => {
                     const centerY = 100;
                     
                     return Object.entries(collectedData).map(([type, count]) => {
-                      // Use visual weights to make elephants more visible
-                      const visualWeight = visualData[type];
-                      const animalPercentage = visualWeight / totalVisualWeight * 100;
+                      const animalPercentage = count / totalAnimals * 100;
                       const angle = animalPercentage / 100 * 360;
                       const endAngle = startAngle + angle;
                       
@@ -333,9 +331,7 @@ const Learning = () => {
                   return Object.entries(collectedData)
                     .filter(([, count]) => count > 0)
                     .map(([type, count]) => {
-                      // Use visual weights to make elephants more visible  
-                      const visualWeight = visualData[type];
-                      const animalPercentage = visualWeight / totalVisualWeight * 100;
+                      const animalPercentage = count / totalAnimals * 100;
                       const angle = animalPercentage / 100 * 360;
                       const endAngle = startAngle + angle;
                       
