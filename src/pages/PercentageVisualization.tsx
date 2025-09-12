@@ -42,7 +42,7 @@ const PercentageVisualization = () => {
         {/* Header */}
         <Card className="p-6 mb-6 bg-white/80 backdrop-blur-sm">
           <h1 className="text-2xl md:text-3xl font-bold text-center mb-4">
-            📊 Percentage Concepts Overview
+            Percentage Concepts
           </h1>
           <p className="text-center text-muted-foreground">
             Master three essential percentage calculation methods
