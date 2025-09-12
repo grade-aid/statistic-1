@@ -70,19 +70,8 @@ const WholeFromPercentage = () => {
   const [exercises, setExercises] = useState<WholeExercise[]>([]);
   const [currentExercise, setCurrentExercise] = useState<WholeExercise | null>(null);
   const [completedExercises, setCompletedExercises] = useState<string[]>([]);
-  const [userInput, setUserInput] = useState('');
   const [showConfetti, setShowConfetti] = useState(false);
   const [showAnswer, setShowAnswer] = useState(false);
-  const [animatingPie, setAnimatingPie] = useState(false);
-  
-  // Interactive equation state
-  const [selectedSlice, setSelectedSlice] = useState<keyof GameState | null>(null);
-  const [hoveredSlice, setHoveredSlice] = useState<keyof GameState | null>(null);
-  const [equationValues, setEquationValues] = useState({
-    partCount: null as number | null,
-    percentage: null as number | null,
-    wholeCount: null as number | null
-  });
 
   // Intro animation states (always declared)
   const [showPartial, setShowPartial] = useState(false);
@@ -445,26 +434,22 @@ const WholeFromPercentage = () => {
   const handleAnswerSubmit = () => {
     if (!currentExercise) return;
     
-    const isCorrect = equationValues.wholeCount === currentExercise.wholeCount;
+    const isCorrect = true; // Simplified since we're removing the interactive pie chart
     
     if (isCorrect) {
       setShowAnswer(true);
       setShowConfetti(true);
-      setAnimatingPie(true);
       setCompletedExercises(prev => [...prev, currentExercise.id]);
       
       toast({
         title: "🎉 Correct!",
-        description: `${currentExercise.partCount} is ${currentExercise.percentage}% of ${currentExercise.wholeCount}`,
+        description: `${currentExercise.partCount} ÷ ${currentExercise.percentage}% = ${currentExercise.wholeCount}`,
         duration: 3000
       });
       
       setTimeout(() => {
         setShowConfetti(false);
         setShowAnswer(false);
-        setAnimatingPie(false);
-        setSelectedSlice(null);
-        setEquationValues({ partCount: null, percentage: null, wholeCount: null });
         
         const nextExercise = exercises.find(ex => !completedExercises.includes(ex.id) && ex.id !== currentExercise.id);
         if (nextExercise) {
@@ -473,150 +458,9 @@ const WholeFromPercentage = () => {
           setPhase('complete');
         }
       }, 3000);
-    } else {
-      toast({
-        title: "Try again!",
-        description: "Click on the highlighted slice to solve",
-        duration: 2000
-      });
     }
   };
 
-  const renderInteractivePieChart = () => {
-    const animalTypes = Object.keys(collected) as Array<keyof GameState>;
-    const totalAnimals = Object.values(collected).reduce((sum, count) => sum + count, 0);
-    
-    if (totalAnimals === 0) return null;
-    
-    const radius = 90;
-    const centerX = 100;
-    const centerY = 100;
-    
-    let currentAngle = 0;
-    const slices = animalTypes.map(type => {
-      const count = collected[type];
-      if (count === 0) return null;
-      
-      const percentage = (count / totalAnimals) * 100;
-      const sliceAngle = (count / totalAnimals) * 360;
-      
-      const startAngle = currentAngle;
-      const endAngle = currentAngle + sliceAngle;
-      currentAngle = endAngle;
-      
-      const startX = centerX + radius * Math.cos((startAngle * Math.PI) / 180);
-      const startY = centerY + radius * Math.sin((startAngle * Math.PI) / 180);
-      const endX = centerX + radius * Math.cos((endAngle * Math.PI) / 180);
-      const endY = centerY + radius * Math.sin((endAngle * Math.PI) / 180);
-      
-      const largeArcFlag = sliceAngle > 180 ? 1 : 0;
-      const pathData = `M ${centerX} ${centerY} L ${startX} ${startY} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${endX} ${endY} Z`;
-      
-      const labelAngle = (startAngle + endAngle) / 2;
-      const labelRadius = radius * 0.7;
-      const labelX = centerX + labelRadius * Math.cos((labelAngle * Math.PI) / 180);
-      const labelY = centerY + labelRadius * Math.sin((labelAngle * Math.PI) / 180);
-      
-      const isHovered = hoveredSlice === type;
-      const isSelected = selectedSlice === type;
-      const isTarget = currentExercise && currentExercise.targetType === type;
-      
-      return (
-        <g key={type}>
-          <path
-            d={pathData}
-            fill={animalConfig[type].color}
-            stroke="white"
-            strokeWidth={isHovered || isSelected ? "6" : "4"}
-            className={`transition-all duration-300 cursor-pointer ${
-              isHovered ? 'brightness-110' : ''
-            } ${
-              isSelected ? 'drop-shadow-lg' : ''
-            }`}
-            style={{
-              filter: `brightness(${isHovered ? 1.2 : isSelected ? 1.1 : 1}) drop-shadow(0 4px 8px rgba(0,0,0,0.3))`,
-              transform: isHovered ? 'scale(1.05)' : 'scale(1)',
-              transformOrigin: `${centerX}px ${centerY}px`
-            }}
-            onMouseEnter={() => setHoveredSlice(type)}
-            onMouseLeave={() => setHoveredSlice(null)}
-            onClick={() => handleSliceClick(type, count, percentage)}
-          />
-          <text
-            x={labelX}
-            y={labelY - 8}
-            textAnchor="middle"
-            dy="0.3em"
-            className="text-2xl pointer-events-none"
-          >
-            {animalConfig[type].emoji}
-          </text>
-          <text
-            x={labelX}
-            y={labelY + 12}
-            textAnchor="middle"
-            dy="0.3em"
-            className="text-sm font-bold fill-white pointer-events-none"
-            style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}
-          >
-            {count}
-          </text>
-          {isTarget && (
-            <circle
-              cx={centerX}
-              cy={centerY}
-              r={radius + 10}
-              fill="none"
-              stroke="#fbbf24"
-              strokeWidth="3"
-              strokeDasharray="8,4"
-              className="pointer-events-none"
-            />
-          )}
-        </g>
-      );
-    }).filter(Boolean);
-    
-    return (
-      <svg className="w-full h-full" viewBox="0 0 200 200">
-        {slices}
-        
-        {/* Center instruction */}
-        <text
-          x={centerX}
-          y={centerY - 10}
-          textAnchor="middle"
-          className="text-xs font-bold fill-gray-600 pointer-events-none"
-        >
-          Click a slice
-        </text>
-        <text
-          x={centerX}
-          y={centerY + 5}
-          textAnchor="middle"
-          className="text-xs fill-gray-500 pointer-events-none"
-        >
-          to solve
-        </text>
-      </svg>
-    );
-  };
-  
-  const handleSliceClick = (type: keyof GameState, count: number, percentage: number) => {
-    if (!currentExercise || currentExercise.targetType !== type) return;
-    
-    setSelectedSlice(type);
-    setEquationValues({
-      partCount: currentExercise.partCount,
-      percentage: Math.round(percentage),
-      wholeCount: count
-    });
-    
-    // Auto-submit after a short delay
-    setTimeout(() => {
-      handleAnswerSubmit();
-    }, 1000);
-  };
 
   // Render different phases
   if (phase === 'start') {
@@ -812,75 +656,123 @@ const WholeFromPercentage = () => {
             <h1 className="text-3xl font-bold text-center mb-6">
               🔍 Find the Whole from Part
             </h1>
+            <div className="text-center text-lg text-gray-600">
+              Progress: {completedExercises.length} / {exercises.length} completed
+            </div>
           </Card>
 
           {currentExercise && (
             <Card className="p-8 text-center">
+              
+              {/* Current Animal Display */}
               <div className="mb-8">
-                <div className="text-4xl mb-4">
-                  Find the {animalConfig[currentExercise.targetType].emoji} total from this part:
+                <div className="text-6xl mb-4">
+                  {animalConfig[currentExercise.targetType].emoji}
+                </div>
+                <h2 className="text-3xl font-bold mb-6 text-gray-700">
+                  How many {animalConfig[currentExercise.targetType].emoji} total?
+                </h2>
+              </div>
+
+              {/* Problem Statement */}
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-8 rounded-xl mb-8">
+                <div className="text-xl text-gray-600 mb-4">
+                  You found <span className="font-bold text-blue-600">{currentExercise.partCount}</span> {animalConfig[currentExercise.targetType].emoji}
+                </div>
+                <div className="text-xl text-gray-600 mb-6">
+                  This is <span className="font-bold text-purple-600">{currentExercise.percentage}%</span> of all the {animalConfig[currentExercise.targetType].emoji}
                 </div>
                 
-                {/* Interactive Calculation Display */}
-                <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-xl mb-6">
-                  <div className="flex items-center justify-center gap-4 text-3xl font-bold">
-                    <div className={`px-4 py-2 rounded-lg transition-all ${
-                      equationValues.partCount !== null 
+                {/* Visual Representation */}
+                <div className="bg-white p-6 rounded-lg mb-6">
+                  <div className="flex items-center justify-center gap-2 mb-4">
+                    {Array.from({ length: currentExercise.partCount }, (_, i) => (
+                      <span key={i} className="text-4xl">{animalConfig[currentExercise.targetType].emoji}</span>
+                    ))}
+                    <span className="text-3xl text-gray-400 mx-4">= {currentExercise.percentage}%</span>
+                  </div>
+                  <div className="text-lg text-gray-600">
+                    What's the total number?
+                  </div>
+                </div>
+
+                {/* Calculation */}
+                <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-6 rounded-lg">
+                  <div className="text-2xl font-bold text-gray-700 mb-4">Calculation:</div>
+                  <div className="flex items-center justify-center gap-6 text-4xl font-bold">
+                    <div className="bg-blue-200 text-blue-800 px-6 py-3 rounded-lg">
+                      {currentExercise.partCount}
+                    </div>
+                    <span className="text-gray-600">÷</span>
+                    <div className="bg-purple-200 text-purple-800 px-6 py-3 rounded-lg">
+                      {currentExercise.percentage}%
+                    </div>
+                    <span className="text-gray-600">=</span>
+                    <div className={`px-6 py-3 rounded-lg transition-all ${
+                      showAnswer 
                         ? 'bg-green-200 text-green-800' 
                         : 'bg-gray-200 text-gray-500'
                     }`}>
-                      {equationValues.partCount !== null ? equationValues.partCount : currentExercise?.partCount || '?'}
+                      {showAnswer ? currentExercise.wholeCount : '?'}
                     </div>
-                    
-                    <span className="text-gray-600">÷</span>
-                    
-                    <div className={`px-4 py-2 rounded-lg transition-all ${
-                      equationValues.percentage !== null 
-                        ? 'bg-blue-200 text-blue-800' 
-                        : 'bg-gray-200 text-gray-500'
-                    }`}>
-                      {equationValues.percentage !== null ? `${equationValues.percentage}%` : `${currentExercise?.percentage || '?'}%`}
-                    </div>
-                    
-                    <span className="text-gray-600">=</span>
-                    
-                    <div className={`px-4 py-2 rounded-lg transition-all ${
-                      equationValues.wholeCount !== null 
-                        ? 'bg-yellow-200 text-yellow-800' 
-                        : 'bg-gray-200 text-gray-500'
-                    }`}>
-                      {equationValues.wholeCount !== null ? equationValues.wholeCount : '?'}
-                    </div>
-                  </div>
-                  
-                  <div className="text-lg text-gray-600 mt-4">
-                    Click on the <span className="font-bold text-yellow-600">golden highlighted</span> slice to solve!
                   </div>
                 </div>
               </div>
 
-              <div className="flex justify-center mb-8">
-                <div className="w-96 h-96">
-                  {renderInteractivePieChart()}
-                </div>
-              </div>
-
-              {showAnswer && (
-                <div className="bg-green-50 p-6 rounded-lg border-2 border-green-200">
-                  <div className="text-2xl font-bold text-green-700 mb-4">
-                    🎉 Correct! 
-                  </div>
-                  <div className="flex items-center justify-center gap-4 text-xl">
-                    <span>{currentExercise.partCount}</span>
-                    <span className="text-3xl">{animalConfig[currentExercise.targetType].emoji}</span>
-                    <span>is {currentExercise.percentage}% of {currentExercise.wholeCount} total</span>
-                  </div>
-                </div>
+              {/* Calculate Button */}
+              {!showAnswer && (
+                <Button 
+                  onClick={() => {
+                    setShowAnswer(true);
+                    setShowConfetti(true);
+                    setCompletedExercises(prev => [...prev, currentExercise.id]);
+                    
+                    toast({
+                      title: "🎉 Correct!",
+                      description: `${currentExercise.partCount} ÷ ${currentExercise.percentage}% = ${currentExercise.wholeCount}`,
+                      duration: 3000
+                    });
+                  }}
+                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white text-2xl py-6 px-12 rounded-xl"
+                >
+                  Calculate the Answer
+                </Button>
               )}
 
-              <div className="text-sm text-muted-foreground mt-4">
-                Progress: {completedExercises.length} / {exercises.length} completed
-              </div>
+              {/* Answer Display */}
+              {showAnswer && (
+                <div className="space-y-6">
+                  <div className="bg-green-50 p-6 rounded-lg border-2 border-green-200">
+                    <div className="text-3xl font-bold text-green-700 mb-4">
+                      🎉 Answer: {currentExercise.wholeCount} {animalConfig[currentExercise.targetType].emoji}!
+                    </div>
+                    <div className="text-xl text-green-600 mb-4">
+                      {currentExercise.partCount} ÷ {currentExercise.percentage}% = {currentExercise.wholeCount}
+                    </div>
+                    <div className="text-lg text-gray-600">
+                      So you collected <span className="font-bold">{currentExercise.partCount}</span> out of <span className="font-bold">{currentExercise.wholeCount}</span> total {animalConfig[currentExercise.targetType].emoji}
+                    </div>
+                  </div>
+
+                  <Button 
+                    onClick={() => {
+                      setShowAnswer(false);
+                      setShowConfetti(false);
+                      
+                      const nextExercise = exercises.find(ex => !completedExercises.includes(ex.id) && ex.id !== currentExercise.id);
+                      if (nextExercise) {
+                        setCurrentExercise(nextExercise);
+                      } else {
+                        setPhase('complete');
+                      }
+                    }}
+                    className="bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white text-xl py-4 px-8"
+                  >
+                    {exercises.find(ex => !completedExercises.includes(ex.id) && ex.id !== currentExercise.id) ? 
+                      'Next Animal →' : 'Complete! 🎊'}
+                  </Button>
+                </div>
+              )}
             </Card>
           )}
         </div>
