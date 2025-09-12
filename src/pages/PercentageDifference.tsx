@@ -575,20 +575,60 @@ const PercentageDifference = () => {
 
               {/* Answer Explanation */}
               {showAnswer && (
-                <div className="bg-green-50 p-6 rounded-lg border-2 border-green-200 max-w-md mx-auto">
-                  <div className="text-green-700 font-bold mb-2">
+                <div className="bg-green-50 p-6 rounded-lg border-2 border-green-200 max-w-lg mx-auto">
+                  <div className="text-green-700 font-bold mb-4 text-xl">
                     {selectedAnswer === currentExercise.correctAnswer ? '🎉 Correct!' : '❌ Incorrect'}
                   </div>
-                  <div className="text-green-600">
-                    Answer: {currentExercise.correctAnswer}%
+                  
+                  {/* Calculation Steps */}
+                  <div className="bg-white p-4 rounded-lg border mb-4">
+                    <div className="text-lg font-bold text-center mb-3">📊 How to Calculate:</div>
+                    
+                    {/* Step 1: Find the difference */}
+                    <div className="mb-3">
+                      <div className="text-sm font-semibold text-gray-700">1️⃣ Find the difference:</div>
+                      <div className="bg-blue-50 p-2 rounded text-center">
+                        <span className="font-mono">
+                          ${currentExercise.newPrice} - ${currentExercise.oldPrice} = ${Math.abs(currentExercise.newPrice - currentExercise.oldPrice)}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    {/* Step 2: Divide by original */}
+                    <div className="mb-3">
+                      <div className="text-sm font-semibold text-gray-700">2️⃣ Divide by {currentExercise.isIncrease ? 'original' : 'new'} price:</div>
+                      <div className="bg-purple-50 p-2 rounded text-center">
+                        <span className="font-mono">
+                          ${Math.abs(currentExercise.newPrice - currentExercise.oldPrice)} ÷ ${currentExercise.isIncrease ? currentExercise.oldPrice : currentExercise.newPrice} = {((Math.abs(currentExercise.newPrice - currentExercise.oldPrice) / (currentExercise.isIncrease ? currentExercise.oldPrice : currentExercise.newPrice))).toFixed(3)}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    {/* Step 3: Multiply by 100 */}
+                    <div className="mb-3">
+                      <div className="text-sm font-semibold text-gray-700">3️⃣ Multiply by 100:</div>
+                      <div className="bg-green-50 p-2 rounded text-center">
+                        <span className="font-mono">
+                          {((Math.abs(currentExercise.newPrice - currentExercise.oldPrice) / (currentExercise.isIncrease ? currentExercise.oldPrice : currentExercise.newPrice))).toFixed(3)} × 100 = <span className="font-bold text-green-600">{currentExercise.correctAnswer}%</span>
+                        </span>
+                      </div>
+                    </div>
+                    
+                    {/* Visual Formula */}
+                    <div className="mt-4 pt-3 border-t">
+                      <div className="text-xs text-gray-600 text-center">
+                        💡 Formula: (Difference ÷ {currentExercise.isIncrease ? 'Original' : 'New'}) × 100
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-sm text-green-600 mt-2">
-                    ${currentExercise.isIncrease ? currentExercise.oldPrice : currentExercise.newPrice} to ${currentExercise.isIncrease ? currentExercise.newPrice : currentExercise.oldPrice}
+                  
+                  <div className="text-green-600 font-bold text-center mb-4">
+                    Answer: {currentExercise.correctAnswer}% {currentExercise.isIncrease ? 'increase' : 'decrease'}
                   </div>
                   
                   <Button 
                     onClick={handleNext}
-                    className="mt-4 bg-green-600 hover:bg-green-700"
+                    className="w-full bg-green-600 hover:bg-green-700"
                   >
                     {currentExerciseIndex < exercises.length - 1 ? 'Next Question' : 'Complete'} 
                     <ArrowRight className="w-4 h-4 ml-2" />
