@@ -200,19 +200,30 @@ const Visualization = () => {
                             strokeWidth="2" 
                             className="transition-all duration-300 hover:opacity-80" 
                           />
-                          {percentage > 8 && (
-                            <text 
-                              x={labelX} 
-                              y={labelY} 
-                              textAnchor="middle" 
-                              dy="0.3em" 
-                              className="text-xs font-bold fill-white" 
-                              style={{
-                                textShadow: '1px 1px 1px rgba(0,0,0,0.5)'
-                              }}
-                            >
-                              {count}
-                            </text>
+                          {percentage > 5 && (
+                            <>
+                              <text 
+                                x={labelX} 
+                                y={labelY - 8} 
+                                textAnchor="middle" 
+                                dy="0.3em" 
+                                className="text-lg pointer-events-none"
+                              >
+                                {config.emoji}
+                              </text>
+                              <text 
+                                x={labelX} 
+                                y={labelY + 8} 
+                                textAnchor="middle" 
+                                dy="0.3em" 
+                                className="text-xs font-bold fill-white pointer-events-none" 
+                                style={{
+                                  textShadow: '1px 1px 1px rgba(0,0,0,0.5)'
+                                }}
+                              >
+                                {count}
+                              </text>
+                            </>
                           )}
                         </g>
                       );
