@@ -172,7 +172,7 @@ const Learning = () => {
       setCurrentTargetAnimal(remaining[0][0]);
     } else {
       // All completed
-      navigate('/percentage-of-number');
+      navigate('/whole-from-percentage');
     }
   };
 
@@ -509,10 +509,10 @@ const Learning = () => {
             You've successfully calculated the percentage for all {animalEntries.length} animal types!
           </p>
           <Button 
-            onClick={() => navigate('/percentage-of-number')}
+            onClick={() => navigate('/whole-from-percentage')}
             className="bg-green-600 hover:bg-green-700 text-white px-8 py-3"
           >
-            Next Challenge: Percentage Game <ArrowRight className="w-4 h-4 ml-2" />
+            Next Challenge: Find the Whole <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         </Card>
       );

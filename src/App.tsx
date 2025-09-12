@@ -6,7 +6,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Visualization from "./pages/Visualization";
 import Learning from "./pages/Learning";
-import PercentageOfNumber from "./pages/PercentageOfNumber";
 import WholeFromPercentage from "./pages/WholeFromPercentage";
 import PercentageDifference from "./pages/PercentageDifference";
 import PercentageVisualization from "./pages/PercentageVisualization";
@@ -24,7 +23,6 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/visualization" element={<Visualization />} />
           <Route path="/learning" element={<Learning />} />
-          <Route path="/percentage-of-number" element={<PercentageOfNumber />} />
           <Route path="/whole-from-percentage" element={<WholeFromPercentage />} />
           <Route path="/percentage-difference" element={<PercentageDifference />} />
           <Route path="/percentage-visualization" element={<PercentageVisualization />} />
