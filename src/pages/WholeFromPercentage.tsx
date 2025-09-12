@@ -529,8 +529,6 @@ const WholeFromPercentage = () => {
             stroke="white"
             strokeWidth={isHovered || isSelected ? "6" : "4"}
             className={`transition-all duration-300 cursor-pointer ${
-              isTarget ? 'animate-pulse' : ''
-            } ${
               isHovered ? 'brightness-110' : ''
             } ${
               isSelected ? 'drop-shadow-lg' : ''
@@ -572,8 +570,7 @@ const WholeFromPercentage = () => {
               stroke="#fbbf24"
               strokeWidth="3"
               strokeDasharray="8,4"
-              className="animate-spin pointer-events-none"
-              style={{ animationDuration: '3s' }}
+              className="pointer-events-none"
             />
           )}
         </g>
@@ -824,38 +821,36 @@ const WholeFromPercentage = () => {
                   Find the {animalConfig[currentExercise.targetType].emoji} total from this part:
                 </div>
                 
-                {/* Interactive Equation Display */}
+                {/* Interactive Calculation Display */}
                 <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-xl mb-6">
                   <div className="flex items-center justify-center gap-4 text-3xl font-bold">
                     <div className={`px-4 py-2 rounded-lg transition-all ${
                       equationValues.partCount !== null 
                         ? 'bg-green-200 text-green-800' 
-                        : 'bg-gray-200 text-gray-500 animate-pulse'
+                        : 'bg-gray-200 text-gray-500'
                     }`}>
-                      {equationValues.partCount !== null ? equationValues.partCount : '?'}
+                      {equationValues.partCount !== null ? equationValues.partCount : currentExercise?.partCount || '?'}
                     </div>
                     
-                    <span className="text-gray-600">animals =</span>
+                    <span className="text-gray-600">÷</span>
                     
                     <div className={`px-4 py-2 rounded-lg transition-all ${
                       equationValues.percentage !== null 
                         ? 'bg-blue-200 text-blue-800' 
-                        : 'bg-gray-200 text-gray-500 animate-pulse'
+                        : 'bg-gray-200 text-gray-500'
                     }`}>
-                      {equationValues.percentage !== null ? `${equationValues.percentage}%` : '?%'}
+                      {equationValues.percentage !== null ? `${equationValues.percentage}%` : `${currentExercise?.percentage || '?'}%`}
                     </div>
                     
-                    <span className="text-gray-600">of</span>
+                    <span className="text-gray-600">=</span>
                     
                     <div className={`px-4 py-2 rounded-lg transition-all ${
                       equationValues.wholeCount !== null 
                         ? 'bg-yellow-200 text-yellow-800' 
-                        : 'bg-gray-200 text-gray-500 animate-pulse'
+                        : 'bg-gray-200 text-gray-500'
                     }`}>
                       {equationValues.wholeCount !== null ? equationValues.wholeCount : '?'}
                     </div>
-                    
-                    <span className="text-gray-600">total</span>
                   </div>
                   
                   <div className="text-lg text-gray-600 mt-4">
