@@ -306,10 +306,6 @@ const Learning = () => {
     return (
       <Card className="p-6 border-2 border-secondary/20 bg-gradient-to-br from-secondary/5 to-accent/5">
         <div className="text-center space-y-6">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <Target className="h-6 w-6 text-secondary" />
-            <h3 className="text-xl font-bold">Click the Animal That Equals {targetPercentage}%</h3>
-          </div>
           
           {/* Current Target Display */}
           <div className="bg-white p-4 rounded-lg border-2 border-accent/30 mb-6">
