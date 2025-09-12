@@ -293,7 +293,7 @@ const Learning = () => {
           
           {/* Pie Chart - All Animals */}
           <div className="flex justify-center mb-6">
-            <div className="relative w-80 h-80">
+            <div className="relative w-96 h-96">
               <svg className="w-full h-full" viewBox="0 0 200 200">
                 {(() => {
                   let startAngle = 0;
@@ -351,7 +351,7 @@ const Learning = () => {
                               y={labelY} 
                               textAnchor="middle" 
                               dy="0.3em" 
-                              className="text-xl pointer-events-none"
+                              className="text-2xl pointer-events-none"
                             >
                               {typeConfig.emoji}
                             </text>
@@ -360,11 +360,11 @@ const Learning = () => {
                           {animalPercentage > 5 && (
                             <text 
                               x={labelX} 
-                              y={labelY + 15} 
+                              y={labelY + 18} 
                               textAnchor="middle" 
                               dy="0.3em" 
-                              className="text-xs font-bold fill-white pointer-events-none"
-                              style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}
+                              className="text-sm font-bold fill-white pointer-events-none"
+                              style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}
                             >
                               {count}
                             </text>
