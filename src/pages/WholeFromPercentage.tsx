@@ -214,32 +214,38 @@ const WholeFromPercentage = () => {
 
   const generateExercises = useCallback(() => {
     const animalTypes = Object.keys(collected) as Array<keyof GameState>;
-    const availableTypes = animalTypes.filter(type => collected[type] > 4); // Need enough for meaningful percentages
+    const availableTypes = animalTypes.filter(type => collected[type] > 0);
     
     if (availableTypes.length === 0) return [];
     
     const newExercises: WholeExercise[] = [];
-    const percentages = [25, 50, 75, 20, 40, 60, 80];
+    const targetPercentages = [25, 50, 33]; // Exactly 3 exercises with simple percentages
     
-    for (let i = 0; i < Math.min(5, availableTypes.length); i++) {
-      const type = availableTypes[i % availableTypes.length];
-      const percentage = percentages[i % percentages.length];
-      const wholeCount = collected[type];
-      const partCount = Math.round((percentage / 100) * wholeCount);
+    // Sort animal types by count (descending) to pick the most collected ones
+    const sortedTypes = availableTypes.sort((a, b) => collected[b] - collected[a]);
+    
+    for (let i = 0; i < Math.min(3, sortedTypes.length); i++) {
+      const type = sortedTypes[i];
+      const animalCount = collected[type];
+      const percentage = targetPercentages[i];
       
-      if (partCount > 0 && partCount < wholeCount) {
-        newExercises.push({
-          id: `exercise-${i}`,
-          targetType: type,
-          percentage,
-          partCount,
-          wholeCount
-        });
-      }
+      // Calculate what part count would give us this percentage of total animals
+      const expectedPartCount = Math.round((percentage / 100) * totalTarget);
+      
+      // Use the actual collected count if it's reasonable, otherwise use expected
+      const partCount = Math.abs(animalCount - expectedPartCount) <= 2 ? animalCount : expectedPartCount;
+      
+      newExercises.push({
+        id: `exercise-${i}`,
+        targetType: type,
+        percentage,
+        partCount,
+        wholeCount: totalTarget // The answer is always the total number of animals
+      });
     }
     
     return newExercises;
-  }, [collected]);
+  }, [collected, totalTarget]);
 
   const startGame = () => {
     setPhase('collection');
@@ -670,7 +676,7 @@ const WholeFromPercentage = () => {
                   {animalConfig[currentExercise.targetType].emoji}
                 </div>
                 <h2 className="text-3xl font-bold mb-6 text-gray-700">
-                  How many {animalConfig[currentExercise.targetType].emoji} total?
+                  How many animals total?
                 </h2>
               </div>
 
@@ -680,7 +686,7 @@ const WholeFromPercentage = () => {
                   You found <span className="font-bold text-blue-600">{currentExercise.partCount}</span> {animalConfig[currentExercise.targetType].emoji}
                 </div>
                 <div className="text-xl text-gray-600 mb-6">
-                  This is <span className="font-bold text-purple-600">{currentExercise.percentage}%</span> of all the {animalConfig[currentExercise.targetType].emoji}
+                  This is <span className="font-bold text-purple-600">{currentExercise.percentage}%</span> of all animals
                 </div>
                 
                 {/* Visual Representation */}
