@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import Confetti from "@/components/Confetti";
 
-type GamePhase = 'start' | 'collection' | 'learning' | 'complete';
+type GamePhase = 'start' | 'intro' | 'collection' | 'learning' | 'complete';
 
 interface GameState {
   mammals: number;
@@ -514,11 +514,115 @@ const WholeFromPercentage = () => {
           <div className="text-6xl mb-6">🔍</div>
           <h1 className="text-3xl font-bold mb-4">🐘 Find the Whole Game</h1>
           <p className="text-lg text-muted-foreground mb-6">Collect animals, then find the whole from parts!</p>
-          <Button onClick={startGame} className="w-full text-xl py-4">
+          <Button onClick={() => setPhase('intro')} className="w-full text-xl py-4">
             <Play className="mr-2 h-5 w-5" />
             Start Adventure
           </Button>
         </Card>
+      </div>
+    );
+  }
+
+  if (phase === 'intro') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 p-4">
+        <div className="max-w-4xl mx-auto">
+          <Card className="p-8 mb-6 bg-white/90 backdrop-blur-sm">
+            <div className="text-center mb-8">
+              <div className="text-6xl mb-4">🔍</div>
+              <h1 className="text-4xl font-bold mb-4">Learn: Find the Whole Number</h1>
+              <p className="text-xl text-muted-foreground mb-8">
+                Discover how to find the total when you know a part and its percentage!
+              </p>
+            </div>
+
+            {/* Visual Example */}
+            <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-8 rounded-xl border-2 border-purple-200 mb-8">
+              <h3 className="text-2xl font-bold text-center mb-6">Here's How It Works:</h3>
+              
+              {/* Example with visual pie chart */}
+              <div className="grid md:grid-cols-2 gap-8 items-center">
+                <div>
+                  <div className="bg-white p-6 rounded-lg border-2 border-purple-300 mb-4">
+                    <div className="text-center">
+                      <div className="text-3xl mb-2">🐘🐘🐘</div>
+                      <p className="text-lg font-bold">3 Elephants</p>
+                      <p className="text-sm text-muted-foreground mb-2">This represents</p>
+                      <div className="text-2xl font-bold text-purple-600">25%</div>
+                      <p className="text-sm text-muted-foreground">of all animals</p>
+                    </div>
+                  </div>
+                  
+                  <div className="text-center">
+                    <p className="text-lg font-bold text-purple-700 mb-2">Question:</p>
+                    <p className="text-lg">How many animals in total? 🤔</p>
+                  </div>
+                </div>
+                
+                <div>
+                  <div className="flex justify-center mb-4">
+                    <svg className="w-48 h-48" viewBox="0 0 200 200">
+                      {/* Known part - 25% */}
+                      <path
+                        d="M 100 100 L 100 10 A 90 90 0 0 1 190 100 Z"
+                        fill="#ef4444"
+                        stroke="white"
+                        strokeWidth="4"
+                      />
+                      {/* Unknown parts - 75% */}
+                      <path
+                        d="M 100 100 L 190 100 A 90 90 0 1 1 100 10 Z"
+                        fill="#e5e7eb"
+                        stroke="white"
+                        strokeWidth="4"
+                        strokeDasharray="5,5"
+                      />
+                      <text x="150" y="60" textAnchor="middle" className="text-2xl">🐘</text>
+                      <text x="100" y="110" textAnchor="middle" className="text-lg">?</text>
+                    </svg>
+                  </div>
+                  
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-purple-600 mb-2">
+                      3 ÷ 25% = 3 ÷ 0.25 = 12
+                    </div>
+                    <p className="text-lg">
+                      Total: <span className="font-bold text-purple-700">12 animals!</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Game Instructions */}
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-xl border-2 border-green-200 mb-8">
+              <h3 className="text-xl font-bold mb-4 text-center">🎮 Game Instructions:</h3>
+              <div className="grid md:grid-cols-3 gap-4">
+                <div className="text-center">
+                  <div className="text-3xl mb-2">🏃‍♂️</div>
+                  <h4 className="font-bold mb-2">Step 1: Collect</h4>
+                  <p className="text-sm">Move with WASD keys to collect animals while avoiding hunters</p>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl mb-2">🔍</div>
+                  <h4 className="font-bold mb-2">Step 2: Find Whole</h4>
+                  <p className="text-sm">Calculate the total from the given part and percentage</p>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl mb-2">✏️</div>
+                  <h4 className="font-bold mb-2">Step 3: Enter</h4>
+                  <p className="text-sm">Type your answer for the total number</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="text-center">
+              <Button onClick={startGame} className="text-xl py-4 px-8 bg-purple-600 hover:bg-purple-700">
+                Let's Start Collecting! 🚀
+              </Button>
+            </div>
+          </Card>
+        </div>
       </div>
     );
   }
