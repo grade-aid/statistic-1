@@ -649,8 +649,7 @@ const PercentageDifference = () => {
                     </div>
                   ) : (
                     <div className="text-orange-600 font-bold text-center mb-4">
-                      Try to calculate the final percentage yourself!<br/>
-                      <span className="text-sm">Correct answer: {currentExercise.correctAnswer}% {currentExercise.isIncrease ? 'increase' : 'decrease'}</span>
+                      Try to calculate the final percentage yourself!
                     </div>
                   )}
                   
