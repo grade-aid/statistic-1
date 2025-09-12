@@ -618,17 +618,15 @@ const PercentageOfNumber = () => {
               <div className={`transition-all duration-1000 mb-8 ${showCalculation ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
                 <div className="flex items-center justify-center gap-6 text-4xl mb-4">
                   <div className="bg-red-100 p-4 rounded-full animate-pulse">
-                    <span>🐘</span>
-                    <div className="text-lg font-bold">3</div>
+                    <div className="text-3xl font-bold">3</div>
                   </div>
                   <div className="text-6xl">÷</div>
                   <div className="bg-blue-100 p-4 rounded-full">
-                    <span>📊</span>
-                    <div className="text-lg font-bold">8</div>
+                    <div className="text-3xl font-bold">8</div>
                   </div>
                   <div className="text-6xl">×</div>
                   <div className="bg-green-100 p-4 rounded-full">
-                    <span>💯</span>
+                    <div className="text-3xl font-bold">100</div>
                   </div>
                   <div className="text-6xl">=</div>
                 </div>
