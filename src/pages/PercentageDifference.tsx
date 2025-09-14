@@ -654,22 +654,23 @@ const PercentageDifference = () => {
                   )}
                   
                   <div className="flex gap-3">
-                    {selectedAnswer !== currentExercise.correctAnswer && (
+                    {selectedAnswer === currentExercise.correctAnswer ? (
+                      <Button 
+                        onClick={handleNext}
+                        className="w-full bg-primary hover:bg-primary/90"
+                      >
+                        {currentExerciseIndex < exercises.length - 1 ? 'Next Question' : 'Complete'} 
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                      </Button>
+                    ) : (
                       <Button 
                         onClick={handleTryAgain}
                         variant="outline"
-                        className="flex-1"
+                        className="w-full"
                       >
                         Try Again
                       </Button>
                     )}
-                    <Button 
-                      onClick={handleNext}
-                      className={`${selectedAnswer === currentExercise.correctAnswer ? 'w-full' : 'flex-1'} bg-primary hover:bg-primary/90`}
-                    >
-                      {currentExerciseIndex < exercises.length - 1 ? 'Next Question' : 'Complete'} 
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
                   </div>
                 </DialogContent>
               </Dialog>
