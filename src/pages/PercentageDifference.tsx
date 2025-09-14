@@ -414,7 +414,7 @@ const PercentageDifference = () => {
   if (phase === 'collection') {
     return (
       <div className="tablet-container bg-gradient-to-br from-blue-50 to-purple-100 p-1 overflow-hidden">
-        <div className="tablet-content max-w-4xl mx-auto">
+        <div className="tablet-content max-w-4xl mx-auto h-full">
           {/* Header */}
           <Card className="game-card mb-1 flex-shrink-0">
             <div className="flex items-center justify-between">
@@ -437,45 +437,51 @@ const PercentageDifference = () => {
             </div>
           </Card>
 
-          <div className="flex gap-2 flex-1 min-h-0">
+          <div className="flex gap-2 flex-1 min-h-0 h-full max-h-[calc(100%-80px)] overflow-hidden">
             {/* Game Grid */}
-            <div className="flex-1">
-              <Card className="game-card tablet-game-grid mx-auto">
-                <div className="grid grid-cols-20 gap-0 w-full h-full">
-                  {Array.from({ length: GRID_HEIGHT }, (_, y) =>
-                    Array.from({ length: GRID_WIDTH }, (_, x) => renderGridCell(x, y))
-                  )}
+            <div className="flex-1 min-w-0 overflow-hidden">
+              <Card className="game-card h-full flex flex-col overflow-hidden">
+                <div className="flex-1 min-h-0 flex items-center justify-center p-2">
+                  <div className="tablet-game-grid w-full h-full max-w-[500px] max-h-[500px]">
+                    <div className="grid grid-cols-20 gap-0 w-full h-full border-2 border-gray-300 rounded-lg overflow-hidden">
+                      {Array.from({ length: GRID_HEIGHT }, (_, y) =>
+                        Array.from({ length: GRID_WIDTH }, (_, x) => renderGridCell(x, y))
+                      )}
+                    </div>
+                  </div>
                 </div>
                 
-                {/* Store Legend */}
-                <div className="mt-2 grid grid-cols-2 gap-1">
-                  {storeAreas.map(store => (
-                    <div key={store.name} className="flex items-center gap-1">
-                      <div className={`w-3 h-3 rounded ${store.color}`}></div>
-                      <span className="text-xs font-medium">{store.name}</span>
-                    </div>
-                  ))}
+                {/* Store Legend - Fixed at bottom */}
+                <div className="flex-shrink-0 mt-2 pt-2 border-t border-gray-200">
+                  <div className="grid grid-cols-2 gap-1 px-2 pb-2">
+                    {storeAreas.map(store => (
+                      <div key={store.name} className="flex items-center gap-1">
+                        <div className={`w-3 h-3 rounded ${store.color} flex-shrink-0`}></div>
+                        <span className="text-xs font-medium truncate">{store.name}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </Card>
             </div>
 
             {/* Collection Progress */}
-            <div className="w-64 flex-shrink-0">
-              <Card className="game-card h-full overflow-y-auto">
-                <h3 className="text-sm font-bold mb-2 flex items-center gap-1">
+            <div className="w-64 flex-shrink-0 min-w-0">
+              <Card className="game-card h-full flex flex-col overflow-hidden">
+                <h3 className="text-sm font-bold mb-2 flex items-center gap-1 flex-shrink-0">
                   <MapPin className="w-4 h-4" />
                   Collected Items
                 </h3>
-                <div className="space-y-2">
+                <div className="flex-1 min-h-0 overflow-y-auto space-y-2">
                   {Object.entries(gameState.collectedPrices).map(([itemType, data]) => {
                     const config = itemConfig[itemType as keyof typeof itemConfig];
                     return (
-                      <div key={itemType} className="bg-white p-2 rounded-lg border">
+                      <div key={itemType} className="bg-white p-2 rounded-lg border flex-shrink-0">
                         <div className="flex items-center gap-2">
-                          <div className="text-sm">{config.emoji}</div>
-                          <div className="flex-1">
-                            <div className="font-medium text-xs">{config.name}</div>
-                            <div className="text-xs text-muted-foreground">{data.store}</div>
+                          <div className="text-sm flex-shrink-0">{config.emoji}</div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-xs truncate">{config.name}</div>
+                            <div className="text-xs text-muted-foreground truncate">{data.store}</div>
                             <div className="flex gap-1 text-xs">
                               <span className="text-red-600">${data.oldPrice}</span>
                               <span>→</span>
@@ -488,7 +494,7 @@ const PercentageDifference = () => {
                   })}
                 </div>
                 
-                <div className="mt-2">
+                <div className="mt-2 flex-shrink-0">
                   <Progress value={(collectedCount / TARGET_ITEMS) * 100} />
                 </div>
               </Card>
