@@ -61,11 +61,11 @@ const Visualization = () => {
   const maxValue = Math.max(...dataEntries.map(([, value]) => value));
 
   return (
-    <div className="h-screen bg-background p-2 md:p-4 overflow-hidden">
-      <div className="max-w-6xl mx-auto h-full flex flex-col">
+    <div className="h-dvh bg-background p-2 md:p-3 overflow-hidden max-h-screen">
+      <div className="max-w-5xl mx-auto h-full flex flex-col">
         {/* Header */}
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-2 mb-3 flex-shrink-0">
-          <h1 className="text-lg md:text-xl lg:text-2xl font-space-grotesk font-bold text-center lg:text-left">📊 Understanding Your Collection</h1>
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-2 mb-2 flex-shrink-0">
+          <h1 className="text-base md:text-lg lg:text-xl font-space-grotesk font-bold text-center lg:text-left">📊 Understanding Your Collection</h1>
           <Button 
             onClick={() => navigate('/learning', {
               state: {
@@ -73,7 +73,7 @@ const Visualization = () => {
                 totalCollected: totalAnimals
               }
             })} 
-            className="game-button text-sm md:text-base px-4 md:px-6 py-2 md:py-3" 
+            className="game-button text-xs md:text-sm px-3 md:px-4 py-2" 
             size="sm"
           >
             Next: Learn Math 🧮
@@ -81,23 +81,23 @@ const Visualization = () => {
         </div>
 
         {/* Summary */}
-        <Card className="game-card mb-3 flex-shrink-0">
-          <div className="text-center p-3 md:p-4">
-            <h2 className="text-xl md:text-2xl font-space-grotesk font-bold mb-2">
+        <Card className="game-card mb-2 flex-shrink-0">
+          <div className="text-center p-2 md:p-3">
+            <h2 className="text-lg md:text-xl font-space-grotesk font-bold mb-1">
               🎉 Mission Complete!
             </h2>
-            <p className="text-sm md:text-base font-dm-sans mb-3">
+            <p className="text-xs md:text-sm font-dm-sans mb-2">
               You collected <span className="font-bold text-primary">{totalAnimals}</span> animals total!
             </p>
-            <div className="grid grid-cols-5 gap-2">
+            <div className="grid grid-cols-5 gap-1">
               {Object.entries(animalConfig).map(([type, config]) => 
                 <div key={type} className="text-center">
-                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center text-sm md:text-base mx-auto mb-1 border-2 border-brand-black" style={{
+                  <div className="w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm mx-auto mb-1 border-2 border-brand-black" style={{
                     backgroundColor: config.color
                   }}>
                     {config.emoji}
                   </div>
-                  <p className="font-dm-sans font-bold text-sm md:text-base">{collectedData[type as keyof typeof collectedData]}</p>
+                  <p className="font-dm-sans font-bold text-xs md:text-sm">{collectedData[type as keyof typeof collectedData]}</p>
                   <p className="font-dm-sans text-xs text-muted-foreground">{config.name}</p>
                 </div>
               )}
@@ -105,14 +105,14 @@ const Visualization = () => {
           </div>
         </Card>
 
-        <div className="grid gap-3 xl:grid-cols-2 flex-1 min-h-0 overflow-hidden">
+        <div className="grid gap-2 xl:grid-cols-2 flex-1 min-h-0 overflow-hidden">
           {/* Bar Chart */}
           <Card className="game-card overflow-hidden flex flex-col">
-            <div className="flex items-center gap-2 mb-2 p-3 flex-shrink-0">
-              <BarChart3 className="h-5 w-5 md:h-6 md:w-6 text-primary" />
-              <h3 className="text-base md:text-lg font-space-grotesk font-bold">Bar Chart View</h3>
+            <div className="flex items-center gap-2 mb-1 p-2 flex-shrink-0">
+              <BarChart3 className="h-4 w-4 md:h-5 md:w-5 text-primary" />
+              <h3 className="text-sm md:text-base font-space-grotesk font-bold">Bar Chart View</h3>
             </div>
-            <div className="space-y-2 p-3 pt-0 overflow-y-auto flex-1">
+            <div className="space-y-1 p-2 pt-0 overflow-y-auto flex-1">
               {dataEntries.map(([type, count]) => {
                 const config = animalConfig[type as keyof typeof animalConfig];
                 const percentage = count / maxValue * 100;
@@ -125,7 +125,7 @@ const Visualization = () => {
                       </div>
                       <span className="font-dm-sans font-bold text-sm md:text-base">{count}</span>
                     </div>
-                    <div className="w-full bg-muted rounded-full h-3 md:h-4 border-2 border-brand-black">
+                    <div className="w-full bg-muted rounded-full h-2 md:h-3 border border-brand-black">
                       <div 
                         className="h-full rounded-full transition-all duration-1000 ease-out flex items-center justify-end pr-1" 
                         style={{
@@ -144,14 +144,14 @@ const Visualization = () => {
 
           {/* Pie Chart Representation */}
           <Card className="game-card overflow-hidden flex flex-col">
-            <div className="flex items-center gap-2 mb-2 p-3 flex-shrink-0">
-              <PieChart className="h-5 w-5 md:h-6 md:w-6 text-primary" />
-              <h3 className="text-base md:text-lg font-space-grotesk font-bold">Pie Chart View</h3>
+            <div className="flex items-center gap-2 mb-1 p-2 flex-shrink-0">
+              <PieChart className="h-4 w-4 md:h-5 md:w-5 text-primary" />
+              <h3 className="text-sm md:text-base font-space-grotesk font-bold">Pie Chart View</h3>
             </div>
             
             {/* Pie Chart - Real SVG Implementation */}
-            <div className="p-3 pt-0 overflow-y-auto flex-1 flex flex-col">
-              <div className="relative w-32 h-32 md:w-40 md:h-40 mx-auto flex-shrink-0">
+            <div className="p-2 pt-0 overflow-y-auto flex-1 flex flex-col">
+              <div className="relative w-24 h-24 md:w-32 md:h-32 mx-auto flex-shrink-0">
                 <svg className="w-full h-full" viewBox="0 0 200 200">
                   {(() => {
                     let startAngle = 0;

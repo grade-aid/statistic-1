@@ -500,17 +500,17 @@ const Learning = () => {
     
     if (isAllCompleted) {
       return (
-        <Card className="p-8 text-center border-2 border-green-500/20 bg-gradient-to-br from-green-50 to-emerald-50">
-          <div className="text-4xl mb-4">🎊</div>
-          <h2 className="text-2xl font-bold text-green-700 mb-4">
+        <Card className="p-4 md:p-6 text-center border-2 border-green-500/20 bg-gradient-to-br from-green-50 to-emerald-50">
+          <div className="text-2xl md:text-3xl mb-2">🎊</div>
+          <h2 className="text-lg md:text-xl font-bold text-green-700 mb-2">
             Congratulations! All Animals Completed!
           </h2>
-          <p className="text-lg text-green-600 mb-6">
+          <p className="text-sm md:text-base text-green-600 mb-3">
             You've successfully calculated the percentage for all {animalEntries.length} animal types!
           </p>
           <Button 
             onClick={() => navigate('/whole-from-percentage')}
-            className="bg-green-600 hover:bg-green-700 text-white px-8 py-3"
+            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 text-sm"
           >
             Next Challenge: Find the Whole <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
@@ -523,13 +523,13 @@ const Learning = () => {
 
   if (totalAnimals === 0) {
     return (
-      <div className="h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8 flex items-center justify-center overflow-hidden">
-        <Card className="p-8 text-center">
-          <h2 className="text-2xl font-bold mb-4">🧮 Learn Percentages & Data Analysis</h2>
-          <p className="text-muted-foreground mb-4">
+      <div className="h-dvh bg-gradient-to-br from-blue-50 to-indigo-100 p-4 flex items-center justify-center overflow-hidden">
+        <Card className="p-4 md:p-6 text-center">
+          <h2 className="text-lg md:text-xl font-bold mb-3">🧮 Learn Percentages & Data Analysis</h2>
+          <p className="text-muted-foreground mb-3 text-sm md:text-base">
             First, collect some animals to start learning! 
           </p>
-          <Button onClick={() => navigate('/')}>
+          <Button onClick={() => navigate('/')} className="text-sm">
             Go Collect Animals
           </Button>
         </Card>
@@ -538,16 +538,16 @@ const Learning = () => {
   }
 
   return (
-    <div className="h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 overflow-hidden flex flex-col">
-      <div className="max-w-4xl mx-auto">
-        <Card className="p-6 mb-6 bg-white/80 backdrop-blur-sm">
-          <h1 className="text-2xl md:text-3xl font-bold text-center mb-6">
+    <div className="h-dvh bg-gradient-to-br from-blue-50 to-indigo-100 p-2 md:p-3 overflow-hidden flex flex-col max-h-screen">
+      <div className="max-w-3xl mx-auto h-full flex flex-col">
+        <Card className="p-3 md:p-4 mb-2 bg-white/80 backdrop-blur-sm flex-shrink-0">
+          <h1 className="text-lg md:text-xl font-bold text-center mb-2">
             🧮 Interactive Percentage Learning
           </h1>
         </Card>
 
         {/* Main Content */}
-        <div className="mb-6">
+        <div className="flex-1 min-h-0 overflow-y-auto">
           {renderContent()}
         </div>
       </div>

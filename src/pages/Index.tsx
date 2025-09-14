@@ -29,14 +29,17 @@ interface Hunter {
   emoji: string;
   direction: 'up' | 'down' | 'left' | 'right';
 }
-// Responsive grid configuration
-const GRID_SIZE = 20;
+// Responsive grid configuration optimized for tablet
+const GRID_SIZE = 18;
 const getResponsiveCellSize = () => {
   if (typeof window === 'undefined') return 20;
   const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
-  if (vw >= 1024) return 24; // Desktop
-  if (vw >= 768) return 18;  // Tablet
-  return 16; // Mobile fallback
+  const vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
+  
+  // Optimize for tablet viewports (768px-1024px width)
+  if (vw >= 1024) return Math.min(26, Math.floor(vh / 32)); // Desktop with height constraint
+  if (vw >= 768) return Math.min(22, Math.floor(vh / 34));  // Tablet with height constraint
+  return Math.min(18, Math.floor(vh / 36)); // Mobile with height constraint
 };
 
 const getCellSize = () => getResponsiveCellSize();
@@ -449,17 +452,17 @@ const Index = () => {
     });
   };
   if (phase === 'start') {
-    return <div className="h-screen bg-background flex items-center justify-center p-4 md:p-6 overflow-hidden">
+    return <div className="h-dvh bg-background flex items-center justify-center p-4 md:p-6 overflow-hidden">
         <Card className="game-card text-center w-full max-w-md mx-auto">
-          <div className="text-4xl md:text-6xl mb-4">🎮</div>
-          <h1 className="text-2xl md:text-3xl font-space-grotesk font-bold mb-3">
+          <div className="text-3xl md:text-4xl mb-3">🎮</div>
+          <h1 className="text-xl md:text-2xl font-space-grotesk font-bold mb-2">
             Animal Adventure
           </h1>
-          <p className="text-sm md:text-base font-dm-sans text-muted-foreground mb-4">
+          <p className="text-sm md:text-base font-dm-sans text-muted-foreground mb-3">
             Collect animals, see your data!
           </p>
-          <Button onClick={startGame} className="game-button w-full text-lg md:text-xl py-3 md:py-4">
-            <Play className="mr-2 h-4 w-4 md:h-5 md:w-5" />
+          <Button onClick={startGame} className="game-button w-full text-base md:text-lg py-2 md:py-3">
+            <Play className="mr-2 h-4 w-4" />
             Start
           </Button>
         </Card>
@@ -469,26 +472,26 @@ const Index = () => {
     const cellSize = getCellSize();
     const boardSize = GRID_SIZE * cellSize;
     
-    return <div className="h-screen bg-background p-2 overflow-hidden flex flex-col">
-        <div className="max-w-7xl mx-auto h-full flex flex-col">
-          <div className="text-center mb-2 flex-shrink-0">
-            <h2 className="text-lg md:text-xl font-space-grotesk font-bold mb-1">Collect Animals</h2>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-2 mb-1">
+    return <div className="h-dvh bg-background p-1 md:p-2 overflow-hidden flex flex-col max-h-screen">
+        <div className="max-w-6xl mx-auto h-full flex flex-col">
+          <div className="text-center mb-1 flex-shrink-0">
+            <h2 className="text-base md:text-lg font-space-grotesk font-bold mb-1">Collect Animals</h2>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-1 mb-1">
               <div className="flex items-center gap-1">
                 {Array.from({
                 length: 9
-              }, (_, i) => <span key={i} className="text-sm md:text-base">
+              }, (_, i) => <span key={i} className="text-xs md:text-sm">
                     {i < lives ? '❤️' : '🖤'}
                   </span>)}
               </div>
-              <p className="text-sm md:text-base font-dm-sans">
+              <p className="text-xs md:text-sm font-dm-sans">
                 {totalCollected} / {totalTarget} animals
               </p>
               <Button 
                 onClick={autoComplete} 
                 variant="outline" 
                 size="sm"
-                className="text-xs md:text-sm px-2 py-1"
+                className="text-xs px-2 py-1"
               >
                 Auto Complete
               </Button>
