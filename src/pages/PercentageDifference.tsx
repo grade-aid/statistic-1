@@ -910,18 +910,17 @@ const PercentageDifference = () => {
   return (
     <div className="tablet-container bg-gradient-to-br from-blue-50 to-purple-100 p-2 flex items-center justify-center overflow-hidden">
       <Card className="game-card max-w-lg mx-auto text-center">
-        <div className="space-y-3">
-          <div className="text-3xl">🎊</div>
-          <h1 className="text-2xl font-bold text-green-700">Shopping Complete!</h1>
-          <p className="text-sm text-muted-foreground">
-            You've mastered price comparisons and percentage differences!
+        <div className="space-y-4">
+          <div className="text-6xl">🎉</div>
+          <h1 className="text-3xl font-bold text-green-700">Congratulations!</h1>
+          <p className="text-lg text-muted-foreground">
+            You've mastered percentage differences!
           </p>
-          <Button 
-            onClick={() => navigate('/percentage-visualization')}
-            className="game-button"
-          >
-            View Your Results <ArrowRight className="w-4 h-4 ml-2" />
-          </Button>
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <p className="text-sm text-green-700 font-semibold">
+              ✅ Challenge Complete
+            </p>
+          </div>
         </div>
       </Card>
     </div>
