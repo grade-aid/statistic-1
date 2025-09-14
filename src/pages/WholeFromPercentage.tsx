@@ -584,26 +584,26 @@ const WholeFromPercentage = () => {
 
   if (phase === 'collection') {
     return (
-      <div className="h-screen bg-gradient-to-br from-purple-50 to-pink-100 p-4 overflow-hidden flex flex-col">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-4">
-            <h2 className="text-2xl font-bold mb-2">🔍 Collect Animals for Whole Number Learning</h2>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-2">
+      <div className="h-screen bg-gradient-to-br from-purple-50 to-pink-100 p-2 overflow-hidden flex flex-col">
+        <div className="max-w-4xl mx-auto h-full flex flex-col">
+          <div className="text-center mb-2 flex-shrink-0">
+            <h2 className="text-lg font-bold mb-2">🔍 Collect Animals for Whole Number Learning</h2>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-2 mb-2">
               <div className="flex items-center gap-1">
                 {Array.from({ length: 9 }, (_, i) => (
-                  <span key={i} className="text-lg">
+                  <span key={i} className="text-sm">
                     {i < lives ? '❤️' : '🖤'}
                   </span>
                 ))}
               </div>
-              <p className="text-lg">
+              <p className="text-sm">
                 {totalCollected} / {totalTarget} animals
               </p>
               <Button 
                 onClick={autoComplete} 
                 variant="outline" 
                 size="sm"
-                className="text-sm"
+                className="text-xs"
                 disabled={animals.length === 0}
               >
                 Auto Complete
@@ -611,9 +611,9 @@ const WholeFromPercentage = () => {
             </div>
           </div>
 
-          <div className="flex justify-center">
+          <div className="flex justify-center flex-1 min-h-0">
             <Card className="w-full max-w-2xl mx-auto">
-              <div className="relative bg-muted rounded-xl p-4 aspect-square">
+              <div className="relative bg-muted rounded-xl p-2 aspect-square">
                 <div 
                   className="grid gap-px relative w-full h-full"
                   style={{ gridTemplateColumns: 'repeat(20, minmax(0, 1fr))' }}
@@ -630,14 +630,14 @@ const WholeFromPercentage = () => {
                       <div
                         key={index}
                         className={`
-                          border border-border/20 flex items-center justify-center text-lg
+                          border border-border/20 flex items-center justify-center text-xs
                           ${isWallCell ? 'bg-stone-600' : 'bg-background/50'}
                         `}
                         style={{ aspectRatio: '1' }}
                       >
-                        {isPlayer && <span className="text-xl">🧑</span>}
-                        {animal && <span className="text-xl">{animal.emoji}</span>}
-                        {hunter && <span className="text-xl">{hunter.emoji}</span>}
+                        {isPlayer && <span className="text-sm">🧑</span>}
+                        {animal && <span className="text-sm">{animal.emoji}</span>}
+                        {hunter && <span className="text-sm">{hunter.emoji}</span>}
                       </div>
                     );
                   })}
@@ -646,8 +646,8 @@ const WholeFromPercentage = () => {
             </Card>
           </div>
 
-          <div className="text-center mt-4">
-            <p className="text-sm text-muted-foreground">Use WASD or arrow keys to move • Avoid hunters • Collect all animals!</p>
+          <div className="text-center mt-2 flex-shrink-0">
+            <p className="text-xs text-muted-foreground">Use WASD or arrow keys to move • Avoid hunters • Collect all animals!</p>
           </div>
         </div>
       </div>
@@ -656,13 +656,13 @@ const WholeFromPercentage = () => {
 
   if (phase === 'learning') {
     return (
-      <div className="h-screen bg-gradient-to-br from-purple-50 to-pink-100 p-4 overflow-hidden flex flex-col">
-        <div className="max-w-4xl mx-auto">
-          <Card className="p-6 mb-6 bg-white/80 backdrop-blur-sm">
-            <h1 className="text-3xl font-bold text-center mb-6">
+      <div className="h-screen bg-gradient-to-br from-purple-50 to-pink-100 p-2 overflow-hidden flex flex-col">
+        <div className="max-w-4xl mx-auto h-full flex flex-col">
+          <Card className="p-3 mb-2 bg-white/80 backdrop-blur-sm flex-shrink-0">
+            <h1 className="text-xl font-bold text-center mb-2">
               🔍 Find the Whole from Part
             </h1>
-            <div className="text-center text-lg text-gray-600">
+            <div className="text-center text-sm text-gray-600">
               Progress: {completedExercises.length} / {exercises.length} completed
             </div>
           </Card>
@@ -671,50 +671,51 @@ const WholeFromPercentage = () => {
             <Card className="p-8 text-center">
               
               {/* Current Animal Display */}
-              <div className="mb-8">
-                <div className="text-6xl mb-4">
+              <div className="mb-4">
+                <div className="text-4xl mb-2">
                   {animalConfig[currentExercise.targetType].emoji}
                 </div>
-                <h2 className="text-3xl font-bold mb-6 text-gray-700">
+                <h2 className="text-xl font-bold mb-3 text-gray-700">
                   How many animals total?
                 </h2>
               </div>
 
               {/* Problem Statement */}
-              <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-8 rounded-xl mb-8">
-                <div className="text-xl text-gray-600 mb-4">
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-xl mb-4">
+                <div className="text-base text-gray-600 mb-2">
                   You found <span className="font-bold text-blue-600">{currentExercise.partCount}</span> {animalConfig[currentExercise.targetType].emoji}
                 </div>
-                <div className="text-xl text-gray-600 mb-6">
+                <div className="text-base text-gray-600 mb-3">
                   This is <span className="font-bold text-purple-600">{currentExercise.percentage}%</span> of all animals
                 </div>
                 
                 {/* Visual Representation */}
-                <div className="bg-white p-6 rounded-lg mb-6">
-                  <div className="flex items-center justify-center gap-2 mb-4 flex-wrap">
-                    {Array.from({ length: currentExercise.partCount }, (_, i) => (
-                      <span key={i} className="text-4xl flex-shrink-0">{animalConfig[currentExercise.targetType].emoji}</span>
+                <div className="bg-white p-3 rounded-lg mb-3">
+                  <div className="flex items-center justify-center gap-1 mb-2 flex-wrap">
+                    {Array.from({ length: Math.min(currentExercise.partCount, 8) }, (_, i) => (
+                      <span key={i} className="text-2xl flex-shrink-0">{animalConfig[currentExercise.targetType].emoji}</span>
                     ))}
-                    <span className="text-3xl text-gray-400 mx-4 flex-shrink-0">= {currentExercise.percentage}%</span>
+                    {currentExercise.partCount > 8 && <span className="text-xl text-gray-500">+{currentExercise.partCount - 8}</span>}
+                    <span className="text-xl text-gray-400 mx-2 flex-shrink-0">= {currentExercise.percentage}%</span>
                   </div>
-                  <div className="text-lg text-gray-600">
+                  <div className="text-sm text-gray-600">
                     What's the total number?
                   </div>
                 </div>
 
                 {/* Calculation */}
-                <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-6 rounded-lg">
-                  <div className="text-2xl font-bold text-gray-700 mb-4">Calculation:</div>
-                  <div className="flex items-center justify-center gap-6 text-4xl font-bold">
-                    <div className="bg-blue-200 text-blue-800 px-6 py-3 rounded-lg">
+                <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-3 rounded-lg">
+                  <div className="text-base font-bold text-gray-700 mb-2">Calculation:</div>
+                  <div className="flex items-center justify-center gap-3 text-xl font-bold">
+                    <div className="bg-blue-200 text-blue-800 px-3 py-2 rounded-lg">
                       {currentExercise.partCount}
                     </div>
                     <span className="text-gray-600">÷</span>
-                    <div className="bg-purple-200 text-purple-800 px-6 py-3 rounded-lg">
+                    <div className="bg-purple-200 text-purple-800 px-3 py-2 rounded-lg">
                       {currentExercise.percentage}%
                     </div>
                     <span className="text-gray-600">=</span>
-                    <div className={`px-6 py-3 rounded-lg transition-all ${
+                    <div className={`px-3 py-2 rounded-lg transition-all ${
                       showAnswer 
                         ? 'bg-green-200 text-green-800' 
                         : 'bg-gray-200 text-gray-500'
@@ -739,7 +740,7 @@ const WholeFromPercentage = () => {
                       duration: 3000
                     });
                   }}
-                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white text-2xl py-6 px-12 rounded-xl"
+                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white text-lg py-3 px-6 rounded-xl"
                 >
                   Calculate the Answer
                 </Button>
@@ -747,15 +748,15 @@ const WholeFromPercentage = () => {
 
               {/* Answer Display */}
               {showAnswer && (
-                <div className="space-y-6">
-                  <div className="bg-green-50 p-6 rounded-lg border-2 border-green-200">
-                    <div className="text-3xl font-bold text-green-700 mb-4">
+                <div className="space-y-3">
+                  <div className="bg-green-50 p-4 rounded-lg border-2 border-green-200">
+                    <div className="text-xl font-bold text-green-700 mb-2">
                       🎉 Answer: {currentExercise.wholeCount} total animals!
                     </div>
-                    <div className="text-xl text-green-600 mb-4">
+                    <div className="text-base text-green-600 mb-2">
                       {currentExercise.partCount} ÷ {currentExercise.percentage}% = {currentExercise.wholeCount}
                     </div>
-                    <div className="text-lg text-gray-600">
+                    <div className="text-sm text-gray-600">
                       So you collected <span className="font-bold">{currentExercise.partCount}</span> out of <span className="font-bold">{currentExercise.wholeCount}</span> total animals
                     </div>
                   </div>
@@ -772,7 +773,7 @@ const WholeFromPercentage = () => {
                         setPhase('complete');
                       }
                     }}
-                    className="bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white text-xl py-4 px-8"
+                    className="bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white text-base py-3 px-6"
                   >
                     {exercises.find(ex => !completedExercises.includes(ex.id) && ex.id !== currentExercise.id) ? 
                       'Next Animal →' : 'Complete! 🎊'}
