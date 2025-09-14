@@ -274,7 +274,6 @@ const PercentageDifference = () => {
     if (showAnswer) return;
     
     setSelectedAnswer(answer);
-    setShowAnswerDialog(true);
     setCurrentStep(0); // Reset to first step when opening dialog
     
     const currentExercise = exercises[currentExerciseIndex];
@@ -283,8 +282,10 @@ const PercentageDifference = () => {
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 2000);
       setCanTryAgain(false);
+      // Don't show dialog for correct answers
     } else {
       setCanTryAgain(false);
+      setShowAnswerDialog(true); // Only show dialog for incorrect answers
     }
   };
 
@@ -294,6 +295,7 @@ const PercentageDifference = () => {
       setCurrentExerciseIndex(prev => prev + 1);
       setSelectedAnswer(null);
       setShowAnswerDialog(false);
+      setCurrentStep(0); // Reset step state for next question
       setCanTryAgain(true);
     } else {
       setPhase('complete');
