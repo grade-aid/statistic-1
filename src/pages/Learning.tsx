@@ -126,19 +126,15 @@ const Learning = () => {
   const animalEntries = Object.entries(collectedData).filter(([, count]) => count > 0);
   const isAllCompleted = completedAnimals.length === animalEntries.length;
 
-  // Auto-start visual animation and set first target
+  // Auto-start interactive exercise (skip visual animation)
   useEffect(() => {
-    setShowVisualAnimation(true);
-    const timer = setTimeout(() => {
-      setShowVisualAnimation(false);
-      // Set first target animal (highest count)
-      const firstTarget = animalEntries.reduce((max, current) => 
-        current[1] > max[1] ? current : max, animalEntries[0]
-      );
+    // Set first target animal immediately (highest count)
+    const firstTarget = animalEntries.reduce((max, current) => 
+      current[1] > max[1] ? current : max, animalEntries[0]
+    );
+    if (firstTarget) {
       setCurrentTargetAnimal(firstTarget[0]);
-    }, 6000);
-    
-    return () => clearTimeout(timer);
+    }
   }, []);
 
   // Handle animal click
@@ -492,12 +488,8 @@ const Learning = () => {
 
 
 
-  // Main render function
+  // Main render function - Skip visual animation, go straight to interactive
   const renderContent = () => {
-    if (showVisualAnimation) {
-      return <VisualIntroduction />;
-    }
-    
     if (isAllCompleted) {
       return (
         <Card className="p-8 text-center border-2 border-green-500/20 bg-gradient-to-br from-green-50 to-emerald-50">
@@ -529,8 +521,8 @@ const Learning = () => {
           <p className="text-muted-foreground mb-4">
             First, collect some animals to start learning! 
           </p>
-          <Button onClick={() => navigate('/')}>
-            Go Collect Animals
+          <Button onClick={() => navigate('/whole-from-percentage')}>
+            🎮 Start Animal Collection Game
           </Button>
         </Card>
       </div>

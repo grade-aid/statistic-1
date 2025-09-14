@@ -73,6 +73,7 @@ const PercentageDifference = () => {
   const [showAnswerDialog, setShowAnswerDialog] = useState(false);
   const [completedExercises, setCompletedExercises] = useState<string[]>([]);
   const [canTryAgain, setCanTryAgain] = useState(true);
+  const [currentStep, setCurrentStep] = useState(0); // 0: intro, 1: step1, 2: step2, 3: step3, 4: formula
 
   // Intro animation
   const [introStep, setIntroStep] = useState(0);
@@ -273,7 +274,7 @@ const PercentageDifference = () => {
     if (showAnswer) return;
     
     setSelectedAnswer(answer);
-    setShowAnswerDialog(true);
+    setCurrentStep(0); // Reset to first step when opening dialog
     
     const currentExercise = exercises[currentExerciseIndex];
     if (answer === currentExercise.correctAnswer) {
@@ -281,20 +282,25 @@ const PercentageDifference = () => {
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 2000);
       setCanTryAgain(false);
+      // Show answer as correct but don't auto-advance
+      setShowAnswer(true);
     } else {
       setCanTryAgain(false);
+      setShowAnswerDialog(true); // Only show dialog for incorrect answers
     }
   };
 
   // Move to next exercise
   const handleNext = () => {
-    if (currentExerciseIndex < exercises.length - 1) {
+    setShowAnswer(false); // Reset answer state
+    if (currentExerciseIndex < 2) { // Limit to 3 questions (indexes 0, 1, 2)
       setCurrentExerciseIndex(prev => prev + 1);
       setSelectedAnswer(null);
       setShowAnswerDialog(false);
+      setCurrentStep(0); // Reset step state for next question
       setCanTryAgain(true);
     } else {
-      setPhase('complete');
+      setPhase('complete'); // Finish after question 3
     }
   };
 
@@ -302,6 +308,7 @@ const PercentageDifference = () => {
   const handleTryAgain = () => {
     setSelectedAnswer(null);
     setShowAnswerDialog(false);
+    setCurrentStep(0);
     setCanTryAgain(true);
   };
 
@@ -414,7 +421,7 @@ const PercentageDifference = () => {
   if (phase === 'collection') {
     return (
       <div className="tablet-container bg-gradient-to-br from-blue-50 to-purple-100 p-1 overflow-hidden">
-        <div className="tablet-content max-w-4xl mx-auto">
+        <div className="tablet-content max-w-4xl mx-auto h-full">
           {/* Header */}
           <Card className="game-card mb-1 flex-shrink-0">
             <div className="flex items-center justify-between">
@@ -437,45 +444,51 @@ const PercentageDifference = () => {
             </div>
           </Card>
 
-          <div className="flex gap-2 flex-1 min-h-0">
+          <div className="flex gap-2 flex-1 min-h-0 h-full max-h-[calc(100%-80px)] overflow-hidden">
             {/* Game Grid */}
-            <div className="flex-1">
-              <Card className="game-card tablet-game-grid mx-auto">
-                <div className="grid grid-cols-20 gap-0 w-full h-full">
-                  {Array.from({ length: GRID_HEIGHT }, (_, y) =>
-                    Array.from({ length: GRID_WIDTH }, (_, x) => renderGridCell(x, y))
-                  )}
+            <div className="flex-1 min-w-0 overflow-hidden">
+              <Card className="game-card h-full flex flex-col overflow-hidden">
+                <div className="flex-1 min-h-0 flex items-center justify-center p-2">
+                  <div className="tablet-game-grid w-full h-full max-w-[500px] max-h-[500px]">
+                    <div className="grid grid-cols-20 gap-0 w-full h-full border-2 border-gray-300 rounded-lg overflow-hidden">
+                      {Array.from({ length: GRID_HEIGHT }, (_, y) =>
+                        Array.from({ length: GRID_WIDTH }, (_, x) => renderGridCell(x, y))
+                      )}
+                    </div>
+                  </div>
                 </div>
                 
-                {/* Store Legend */}
-                <div className="mt-2 grid grid-cols-2 gap-1">
-                  {storeAreas.map(store => (
-                    <div key={store.name} className="flex items-center gap-1">
-                      <div className={`w-3 h-3 rounded ${store.color}`}></div>
-                      <span className="text-xs font-medium">{store.name}</span>
-                    </div>
-                  ))}
+                {/* Store Legend - Fixed at bottom */}
+                <div className="flex-shrink-0 mt-2 pt-2 border-t border-gray-200">
+                  <div className="grid grid-cols-2 gap-1 px-2 pb-2">
+                    {storeAreas.map(store => (
+                      <div key={store.name} className="flex items-center gap-1">
+                        <div className={`w-3 h-3 rounded ${store.color} flex-shrink-0`}></div>
+                        <span className="text-xs font-medium truncate">{store.name}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </Card>
             </div>
 
             {/* Collection Progress */}
-            <div className="w-64 flex-shrink-0">
-              <Card className="game-card h-full overflow-y-auto">
-                <h3 className="text-sm font-bold mb-2 flex items-center gap-1">
+            <div className="w-64 flex-shrink-0 min-w-0">
+              <Card className="game-card h-full flex flex-col overflow-hidden">
+                <h3 className="text-sm font-bold mb-2 flex items-center gap-1 flex-shrink-0">
                   <MapPin className="w-4 h-4" />
                   Collected Items
                 </h3>
-                <div className="space-y-2">
+                <div className="flex-1 min-h-0 overflow-y-auto space-y-2">
                   {Object.entries(gameState.collectedPrices).map(([itemType, data]) => {
                     const config = itemConfig[itemType as keyof typeof itemConfig];
                     return (
-                      <div key={itemType} className="bg-white p-2 rounded-lg border">
+                      <div key={itemType} className="bg-white p-2 rounded-lg border flex-shrink-0">
                         <div className="flex items-center gap-2">
-                          <div className="text-sm">{config.emoji}</div>
-                          <div className="flex-1">
-                            <div className="font-medium text-xs">{config.name}</div>
-                            <div className="text-xs text-muted-foreground">{data.store}</div>
+                          <div className="text-sm flex-shrink-0">{config.emoji}</div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-xs truncate">{config.name}</div>
+                            <div className="text-xs text-muted-foreground truncate">{data.store}</div>
                             <div className="flex gap-1 text-xs">
                               <span className="text-red-600">${data.oldPrice}</span>
                               <span>→</span>
@@ -488,7 +501,7 @@ const PercentageDifference = () => {
                   })}
                 </div>
                 
-                <div className="mt-2">
+                <div className="mt-2 flex-shrink-0">
                   <Progress value={(collectedCount / TARGET_ITEMS) * 100} />
                 </div>
               </Card>
@@ -501,22 +514,62 @@ const PercentageDifference = () => {
     );
   }
 
+  // Generate smart answer options with realistic distractors
+  const generateAnswerOptions = (correctAnswer: number, exercise: PriceExercise): number[] => {
+    const options = new Set<number>();
+    options.add(correctAnswer);
+    
+    // Smart distractors based on common calculation mistakes
+    const { oldPrice, newPrice } = exercise;
+    const priceDiff = Math.abs(newPrice - oldPrice);
+    
+    // Distractor 1: Wrong base price (using new price instead of old for percentage decrease)
+    if (exercise.isIncrease) {
+      const wrongBase = Math.round((priceDiff / newPrice) * 100);
+      if (wrongBase > 0 && wrongBase <= 100 && wrongBase !== correctAnswer) {
+        options.add(wrongBase);
+      }
+    } else {
+      const wrongBase = Math.round((priceDiff / oldPrice) * 100);
+      if (wrongBase > 0 && wrongBase <= 100 && wrongBase !== correctAnswer) {
+        options.add(wrongBase);
+      }
+    }
+    
+    // Distractor 2: Forgetting to multiply by 100 (decimal percentage)
+    const decimal = Math.round(correctAnswer / 10);
+    if (decimal > 0 && decimal <= 100 && decimal !== correctAnswer) {
+      options.add(decimal);
+    }
+    
+    // Distractor 3: Simple arithmetic error (±5-15%)
+    let arithmeticError = correctAnswer + (Math.random() > 0.5 ? 1 : -1) * (5 + Math.floor(Math.random() * 10));
+    arithmeticError = Math.max(1, Math.min(100, arithmeticError));
+    if (arithmeticError !== correctAnswer) {
+      options.add(arithmeticError);
+    }
+    
+    // Fill remaining slots with reasonable alternatives if needed
+    while (options.size < 4) {
+      let alternative = correctAnswer + (Math.random() > 0.5 ? 1 : -1) * (2 + Math.floor(Math.random() * 8));
+      alternative = Math.max(1, Math.min(100, alternative));
+      if (!options.has(alternative)) {
+        options.add(alternative);
+      }
+    }
+    
+    // Convert to array and shuffle
+    const optionsArray = Array.from(options).slice(0, 4);
+    return optionsArray.sort(() => Math.random() - 0.5);
+  };
+
   // Render learning phase
   if (phase === 'learning') {
     const currentExercise = exercises[currentExerciseIndex];
     if (!currentExercise) return null;
 
-    // Generate answer options
-    const correctAnswer = currentExercise.correctAnswer;
-    const options = [
-      correctAnswer,
-      correctAnswer + Math.floor(Math.random() * 10) + 5,
-      correctAnswer - Math.floor(Math.random() * 10) - 5,
-      correctAnswer + Math.floor(Math.random() * 15) - 7
-    ].filter(opt => opt > 0 && opt <= 100).slice(0, 4);
-    
-    // Shuffle options
-    const shuffledOptions = [...options].sort(() => Math.random() - 0.5);
+    // Generate answer options with smart distractors
+    const shuffledOptions = generateAnswerOptions(currentExercise.correctAnswer, currentExercise);
 
     return (
       <div className="tablet-container bg-gradient-to-br from-blue-50 to-purple-100 p-1 overflow-hidden">
@@ -587,91 +640,261 @@ const PercentageDifference = () => {
                 ))}
               </div>
 
+              {/* Next Button for Correct Answers */}
+              {showAnswer && selectedAnswer === currentExercise.correctAnswer && (
+                <div className="animate-fade-in">
+                  <Button 
+                    onClick={handleNext}
+                    className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6"
+                  >
+                    {currentExerciseIndex < 2 ? 'Next Question →' : 'Complete Challenge! 🎉'}
+                  </Button>
+                </div>
+              )}
+
               {/* Answer Explanation Dialog */}
               <Dialog open={showAnswerDialog} onOpenChange={setShowAnswerDialog}>
-                <DialogContent className="max-w-lg">
+                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
-                    <DialogTitle className="text-center">
-                      {selectedAnswer === currentExercise.correctAnswer ? '🎉 Correct!' : '❌ Incorrect'}
+                    <DialogTitle className="text-center text-xl">
+                      {selectedAnswer === currentExercise.correctAnswer ? '🎉 Excellent Work!' : '🤔 Let\'s Learn Together!'}
                     </DialogTitle>
                   </DialogHeader>
                   
-                  {/* Calculation Steps */}
-                  <div className="bg-white p-4 rounded-lg border mb-4">
-                    <div className="text-lg font-bold text-center mb-3">📊 How to Calculate:</div>
-                    
-                    {/* Step 1: Find the difference */}
-                    <div className="mb-3">
-                      <div className="text-sm font-semibold text-gray-700">1️⃣ Find the difference:</div>
-                      <div className="bg-blue-50 p-2 rounded text-center">
-                        <span className="font-mono">
-                          ${currentExercise.newPrice} - ${currentExercise.oldPrice} = ${Math.abs(currentExercise.newPrice - currentExercise.oldPrice)}
-                        </span>
+                  {/* Step 0: Visual Price Comparison */}
+                  {currentStep === 0 && (
+                    <div className="space-y-4 animate-fade-in">
+                      <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-xl">
+                        <div className="text-center mb-4">
+                          <div className="text-2xl mb-2">{currentExercise.emoji}</div>
+                          <div className="font-bold text-lg">{currentExercise.item} at {currentExercise.store}</div>
+                        </div>
+                        
+                        <div className="flex items-center justify-center gap-8 mb-4">
+                          <div className="text-center">
+                            <div className="bg-red-100 border-2 border-red-300 rounded-lg p-4 mb-2">
+                              <div className="text-2xl font-bold text-red-700">${currentExercise.oldPrice}</div>
+                              <div className="text-sm text-red-600">Before</div>
+                            </div>
+                            <div className="w-16 h-2 bg-red-400 rounded mx-auto"></div>
+                          </div>
+                          
+                          <div className="text-3xl animate-pulse">→</div>
+                          
+                          <div className="text-center">
+                            <div className="bg-green-100 border-2 border-green-300 rounded-lg p-4 mb-2">
+                              <div className="text-2xl font-bold text-green-700">${currentExercise.newPrice}</div>
+                              <div className="text-sm text-green-600">After</div>
+                            </div>
+                            <div className="w-16 h-2 bg-green-400 rounded mx-auto"></div>
+                          </div>
+                        </div>
+                        
+                        <div className="text-center">
+                          <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full border-2 border-gray-200">
+                            <span className="text-lg">Price {currentExercise.isIncrease ? '📈 Increased' : '📉 Decreased'}</span>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                    
-                    {/* Step 2: Divide by original */}
-                    <div className="mb-3">
-                      <div className="text-sm font-semibold text-gray-700">2️⃣ Divide by {currentExercise.isIncrease ? 'original' : 'new'} price:</div>
-                      <div className="bg-purple-50 p-2 rounded text-center">
-                        <span className="font-mono">
-                          ${Math.abs(currentExercise.newPrice - currentExercise.oldPrice)} ÷ ${currentExercise.isIncrease ? currentExercise.oldPrice : currentExercise.newPrice} = {((Math.abs(currentExercise.newPrice - currentExercise.oldPrice) / (currentExercise.isIncrease ? currentExercise.oldPrice : currentExercise.newPrice))).toFixed(3)}
-                        </span>
+                      
+                      <div className="text-center">
+                        <p className="text-gray-600 mb-4">Let's calculate the percentage step by step!</p>
+                        <Button 
+                          onClick={() => setCurrentStep(1)}
+                          className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2"
+                        >
+                          Start Calculation →
+                        </Button>
                       </div>
-                    </div>
-                    
-                    {/* Step 3: Multiply by 100 */}
-                    <div className="mb-3">
-                      <div className="text-sm font-semibold text-gray-700">3️⃣ Multiply by 100:</div>
-                      <div className="bg-green-50 p-2 rounded text-center">
-                        <span className="font-mono">
-                          {((Math.abs(currentExercise.newPrice - currentExercise.oldPrice) / (currentExercise.isIncrease ? currentExercise.oldPrice : currentExercise.newPrice))).toFixed(3)} × 100 = 
-                          {selectedAnswer === currentExercise.correctAnswer ? (
-                            <span className="font-bold text-green-600"> {currentExercise.correctAnswer}%</span>
-                          ) : (
-                            <span className="font-bold text-orange-600"> ?%</span>
-                          )}
-                        </span>
-                      </div>
-                    </div>
-                    
-                    {/* Visual Formula */}
-                    <div className="mt-4 pt-3 border-t">
-                      <div className="text-xs text-gray-600 text-center">
-                        💡 Formula: (Difference ÷ {currentExercise.isIncrease ? 'Original' : 'New'}) × 100
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {selectedAnswer === currentExercise.correctAnswer ? (
-                    <div className="text-green-600 font-bold text-center mb-4">
-                      Answer: {currentExercise.correctAnswer}% {currentExercise.isIncrease ? 'increase' : 'decrease'}
-                    </div>
-                  ) : (
-                    <div className="text-orange-600 font-bold text-center mb-4">
-                      Try to calculate the final percentage yourself!
                     </div>
                   )}
-                  
-                  <div className="flex gap-3">
-                    {selectedAnswer === currentExercise.correctAnswer ? (
-                      <Button 
-                        onClick={handleNext}
-                        className="w-full bg-primary hover:bg-primary/90"
-                      >
-                        {currentExerciseIndex < exercises.length - 1 ? 'Next Question' : 'Complete'} 
-                        <ArrowRight className="w-4 h-4 ml-2" />
-                      </Button>
-                    ) : (
-                      <Button 
-                        onClick={handleTryAgain}
-                        variant="outline"
-                        className="w-full"
-                      >
-                        Try Again
-                      </Button>
-                    )}
-                  </div>
+
+                  {/* Step 1: Find the difference */}
+                  {currentStep === 1 && (
+                    <div className="space-y-4 animate-fade-in">
+                      <div className="bg-white border-2 border-blue-200 rounded-xl p-4">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold">1</div>
+                          <div className="text-lg font-semibold text-blue-700">Find the difference</div>
+                        </div>
+                        <div className="bg-blue-50 p-3 rounded-lg">
+                          <div className="flex items-center justify-center gap-3 text-lg">
+                            <div className="bg-green-200 px-3 py-2 rounded font-bold">${currentExercise.newPrice}</div>
+                            <span className="text-2xl">−</span>
+                            <div className="bg-red-200 px-3 py-2 rounded font-bold">${currentExercise.oldPrice}</div>
+                            <span className="text-2xl">=</span>
+                            <div className="bg-yellow-200 px-3 py-2 rounded font-bold animate-bounce">
+                              ${Math.abs(currentExercise.newPrice - currentExercise.oldPrice)}
+                            </div>
+                          </div>
+                          <div className="text-center text-sm text-blue-600 mt-2">
+                            💡 This tells us how much the price changed
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex justify-between">
+                        <Button 
+                          onClick={() => setCurrentStep(0)}
+                          variant="outline"
+                          className="px-4 py-2"
+                        >
+                          ← Back
+                        </Button>
+                        <Button 
+                          onClick={() => setCurrentStep(2)}
+                          className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2"
+                        >
+                          Next Step →
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Step 2: Divide by base price */}
+                  {currentStep === 2 && (
+                    <div className="space-y-4 animate-fade-in">
+                      <div className="bg-white border-2 border-purple-200 rounded-xl p-4">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-8 h-8 bg-purple-500 text-white rounded-full flex items-center justify-center font-bold">2</div>
+                          <div className="text-lg font-semibold text-purple-700">
+                            Divide by the {currentExercise.isIncrease ? 'original' : 'new'} price
+                          </div>
+                        </div>
+                        <div className="bg-purple-50 p-3 rounded-lg">
+                          <div className="flex items-center justify-center gap-3 text-lg">
+                            <div className="bg-yellow-200 px-3 py-2 rounded font-bold">${Math.abs(currentExercise.newPrice - currentExercise.oldPrice)}</div>
+                            <span className="text-2xl">÷</span>
+                            <div className="bg-blue-200 px-3 py-2 rounded font-bold">
+                              ${currentExercise.isIncrease ? currentExercise.oldPrice : currentExercise.newPrice}
+                            </div>
+                            <span className="text-2xl">=</span>
+                            <div className="bg-orange-200 px-3 py-2 rounded font-bold animate-bounce">
+                              {((Math.abs(currentExercise.newPrice - currentExercise.oldPrice) / (currentExercise.isIncrease ? currentExercise.oldPrice : currentExercise.newPrice))).toFixed(3)}
+                            </div>
+                          </div>
+                          <div className="text-center text-sm text-purple-600 mt-2">
+                            💡 This gives us the decimal change
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex justify-between">
+                        <Button 
+                          onClick={() => setCurrentStep(1)}
+                          variant="outline"
+                          className="px-4 py-2"
+                        >
+                          ← Back
+                        </Button>
+                        <Button 
+                          onClick={() => setCurrentStep(3)}
+                          className="bg-green-500 hover:bg-green-600 text-white px-6 py-2"
+                        >
+                          Next Step →
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Step 3: Convert to percentage */}
+                  {currentStep === 3 && (
+                    <div className="space-y-4 animate-fade-in">
+                      <div className="bg-white border-2 border-green-200 rounded-xl p-4">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center font-bold">3</div>
+                          <div className="text-lg font-semibold text-green-700">Convert to percentage</div>
+                        </div>
+                        <div className="bg-green-50 p-3 rounded-lg">
+                          <div className="flex items-center justify-center gap-3 text-lg">
+                            <div className="bg-orange-200 px-3 py-2 rounded font-bold">
+                              {((Math.abs(currentExercise.newPrice - currentExercise.oldPrice) / (currentExercise.isIncrease ? currentExercise.oldPrice : currentExercise.newPrice))).toFixed(3)}
+                            </div>
+                            <span className="text-2xl">×</span>
+                            <div className="bg-gray-200 px-3 py-2 rounded font-bold">100</div>
+                            <span className="text-2xl">=</span>
+                            <div className="bg-gradient-to-r from-green-400 to-emerald-400 text-white px-4 py-2 rounded-lg font-bold text-xl animate-pulse">
+                              {currentExercise.correctAnswer}%
+                            </div>
+                          </div>
+                          <div className="text-center text-sm text-green-600 mt-2">
+                            🎯 Final answer: {currentExercise.correctAnswer}% {currentExercise.isIncrease ? 'increase' : 'decrease'}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex justify-between">
+                        <Button 
+                          onClick={() => setCurrentStep(2)}
+                          variant="outline"
+                          className="px-4 py-2"
+                        >
+                          ← Back
+                        </Button>
+                        <Button 
+                          onClick={() => setCurrentStep(4)}
+                          className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2"
+                        >
+                          See Formula →
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Step 4: Formula Summary & Action */}
+                  {currentStep === 4 && (
+                    <div className="space-y-4 animate-fade-in">
+                      <div className="bg-gradient-to-r from-gray-50 to-blue-50 border-2 border-gray-200 rounded-xl p-4">
+                        <div className="text-center">
+                          <div className="text-lg font-bold mb-2">📝 Remember the Formula:</div>
+                          <div className="bg-white p-3 rounded-lg border inline-block">
+                            <div className="text-lg font-mono">
+                              <span className="text-blue-600">Difference</span> ÷ 
+                              <span className="text-purple-600"> Base Price</span> × 
+                              <span className="text-green-600"> 100</span> = 
+                              <span className="text-orange-600"> Percentage</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {selectedAnswer === currentExercise.correctAnswer ? (
+                        <div className="text-center">
+                          <div className="text-green-600 font-bold mb-4">
+                            🎉 Perfect! You got {currentExercise.correctAnswer}% {currentExercise.isIncrease ? 'increase' : 'decrease'}
+                          </div>
+                          <Button 
+                            onClick={handleNext}
+                            className="bg-primary hover:bg-primary/90 px-8 py-3"
+                          >
+                            {currentExerciseIndex < exercises.length - 1 ? 'Next Question' : 'Complete'} 
+                            <ArrowRight className="w-4 h-4 ml-2" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="text-center">
+                          <div className="text-orange-600 font-bold mb-4">
+                            🤔 The correct answer was {currentExercise.correctAnswer}%. Let's try the next question!
+                          </div>
+                          <div className="flex gap-3 justify-center">
+                            <Button 
+                              onClick={() => setCurrentStep(0)}
+                              variant="outline"
+                              className="px-4 py-2"
+                            >
+                              Review Steps
+                            </Button>
+                            <Button 
+                              onClick={handleTryAgain}
+                              className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2"
+                            >
+                              Try Again
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </DialogContent>
               </Dialog>
             </div>
@@ -687,18 +910,17 @@ const PercentageDifference = () => {
   return (
     <div className="tablet-container bg-gradient-to-br from-blue-50 to-purple-100 p-2 flex items-center justify-center overflow-hidden">
       <Card className="game-card max-w-lg mx-auto text-center">
-        <div className="space-y-3">
-          <div className="text-3xl">🎊</div>
-          <h1 className="text-2xl font-bold text-green-700">Shopping Complete!</h1>
-          <p className="text-sm text-muted-foreground">
-            You've mastered price comparisons and percentage differences!
+        <div className="space-y-4">
+          <div className="text-6xl">🎉</div>
+          <h1 className="text-3xl font-bold text-green-700">Congratulations!</h1>
+          <p className="text-lg text-muted-foreground">
+            You've mastered percentage differences!
           </p>
-          <Button 
-            onClick={() => navigate('/percentage-visualization')}
-            className="game-button"
-          >
-            View Your Results <ArrowRight className="w-4 h-4 ml-2" />
-          </Button>
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <p className="text-sm text-green-700 font-semibold">
+              ✅ Challenge Complete
+            </p>
+          </div>
         </div>
       </Card>
     </div>
