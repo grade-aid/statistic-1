@@ -512,22 +512,62 @@ const PercentageDifference = () => {
     );
   }
 
+  // Generate smart answer options with realistic distractors
+  const generateAnswerOptions = (correctAnswer: number, exercise: PriceExercise): number[] => {
+    const options = new Set<number>();
+    options.add(correctAnswer);
+    
+    // Smart distractors based on common calculation mistakes
+    const { oldPrice, newPrice } = exercise;
+    const priceDiff = Math.abs(newPrice - oldPrice);
+    
+    // Distractor 1: Wrong base price (using new price instead of old for percentage decrease)
+    if (exercise.isIncrease) {
+      const wrongBase = Math.round((priceDiff / newPrice) * 100);
+      if (wrongBase > 0 && wrongBase <= 100 && wrongBase !== correctAnswer) {
+        options.add(wrongBase);
+      }
+    } else {
+      const wrongBase = Math.round((priceDiff / oldPrice) * 100);
+      if (wrongBase > 0 && wrongBase <= 100 && wrongBase !== correctAnswer) {
+        options.add(wrongBase);
+      }
+    }
+    
+    // Distractor 2: Forgetting to multiply by 100 (decimal percentage)
+    const decimal = Math.round(correctAnswer / 10);
+    if (decimal > 0 && decimal <= 100 && decimal !== correctAnswer) {
+      options.add(decimal);
+    }
+    
+    // Distractor 3: Simple arithmetic error (±5-15%)
+    let arithmeticError = correctAnswer + (Math.random() > 0.5 ? 1 : -1) * (5 + Math.floor(Math.random() * 10));
+    arithmeticError = Math.max(1, Math.min(100, arithmeticError));
+    if (arithmeticError !== correctAnswer) {
+      options.add(arithmeticError);
+    }
+    
+    // Fill remaining slots with reasonable alternatives if needed
+    while (options.size < 4) {
+      let alternative = correctAnswer + (Math.random() > 0.5 ? 1 : -1) * (2 + Math.floor(Math.random() * 8));
+      alternative = Math.max(1, Math.min(100, alternative));
+      if (!options.has(alternative)) {
+        options.add(alternative);
+      }
+    }
+    
+    // Convert to array and shuffle
+    const optionsArray = Array.from(options).slice(0, 4);
+    return optionsArray.sort(() => Math.random() - 0.5);
+  };
+
   // Render learning phase
   if (phase === 'learning') {
     const currentExercise = exercises[currentExerciseIndex];
     if (!currentExercise) return null;
 
-    // Generate answer options
-    const correctAnswer = currentExercise.correctAnswer;
-    const options = [
-      correctAnswer,
-      correctAnswer + Math.floor(Math.random() * 10) + 5,
-      correctAnswer - Math.floor(Math.random() * 10) - 5,
-      correctAnswer + Math.floor(Math.random() * 15) - 7
-    ].filter(opt => opt > 0 && opt <= 100).slice(0, 4);
-    
-    // Shuffle options
-    const shuffledOptions = [...options].sort(() => Math.random() - 0.5);
+    // Generate answer options with smart distractors
+    const shuffledOptions = generateAnswerOptions(currentExercise.correctAnswer, currentExercise);
 
     return (
       <div className="tablet-container bg-gradient-to-br from-blue-50 to-purple-100 p-1 overflow-hidden">
