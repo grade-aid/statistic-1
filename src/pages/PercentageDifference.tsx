@@ -282,10 +282,8 @@ const PercentageDifference = () => {
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 2000);
       setCanTryAgain(false);
-      // Automatically advance to next question after showing confetti
-      setTimeout(() => {
-        handleNext();
-      }, 2000);
+      // Show answer as correct but don't auto-advance
+      setShowAnswer(true);
     } else {
       setCanTryAgain(false);
       setShowAnswerDialog(true); // Only show dialog for incorrect answers
@@ -294,6 +292,7 @@ const PercentageDifference = () => {
 
   // Move to next exercise
   const handleNext = () => {
+    setShowAnswer(false); // Reset answer state
     if (currentExerciseIndex < 2) { // Limit to 3 questions (indexes 0, 1, 2)
       setCurrentExerciseIndex(prev => prev + 1);
       setSelectedAnswer(null);
@@ -640,6 +639,18 @@ const PercentageDifference = () => {
                   </Button>
                 ))}
               </div>
+
+              {/* Next Button for Correct Answers */}
+              {showAnswer && selectedAnswer === currentExercise.correctAnswer && (
+                <div className="animate-fade-in">
+                  <Button 
+                    onClick={handleNext}
+                    className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6"
+                  >
+                    {currentExerciseIndex < 2 ? 'Next Question →' : 'Complete Challenge! 🎉'}
+                  </Button>
+                </div>
+              )}
 
               {/* Answer Explanation Dialog */}
               <Dialog open={showAnswerDialog} onOpenChange={setShowAnswerDialog}>
