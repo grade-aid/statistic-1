@@ -353,7 +353,7 @@ const PercentageDifference = () => {
   // Render start phase
   if (phase === 'start') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 p-4 flex items-center justify-center">
+      <div className="h-screen bg-gradient-to-br from-blue-50 to-purple-100 p-4 flex items-center justify-center overflow-hidden">
         <Card className="game-card max-w-2xl mx-auto text-center">
           <div className="space-y-6">
             <div className="text-6xl mb-4">🛒</div>
@@ -376,7 +376,7 @@ const PercentageDifference = () => {
   // Render intro animation
   if (phase === 'intro') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 p-4 flex items-center justify-center">
+      <div className="h-screen bg-gradient-to-br from-blue-50 to-purple-100 p-4 flex items-center justify-center overflow-hidden">
         <Card className="game-card max-w-4xl mx-auto text-center">
           <div className="space-y-8">
             <div className={`transition-all duration-1000 ${introStep >= 1 ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
@@ -413,7 +413,7 @@ const PercentageDifference = () => {
   // Render collection phase
   if (phase === 'collection') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 p-4">
+      <div className="h-screen bg-gradient-to-br from-blue-50 to-purple-100 p-4 overflow-hidden flex flex-col">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
           <Card className="game-card mb-6">
@@ -519,7 +519,7 @@ const PercentageDifference = () => {
     const shuffledOptions = [...options].sort(() => Math.random() - 0.5);
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 p-4">
+      <div className="h-screen bg-gradient-to-br from-blue-50 to-purple-100 p-4 overflow-hidden flex flex-col">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <Card className="game-card mb-6 text-center">
@@ -685,7 +685,7 @@ const PercentageDifference = () => {
 
   // Render complete phase
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 p-4 flex items-center justify-center">
+    <div className="h-screen bg-gradient-to-br from-blue-50 to-purple-100 p-4 flex items-center justify-center overflow-hidden">
       <Card className="game-card max-w-2xl mx-auto text-center">
         <div className="space-y-6">
           <div className="text-6xl">🎊</div>

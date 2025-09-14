@@ -523,7 +523,7 @@ const Learning = () => {
 
   if (totalAnimals === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8 flex items-center justify-center">
+      <div className="h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8 flex items-center justify-center overflow-hidden">
         <Card className="p-8 text-center">
           <h2 className="text-2xl font-bold mb-4">🧮 Learn Percentages & Data Analysis</h2>
           <p className="text-muted-foreground mb-4">
@@ -538,7 +538,7 @@ const Learning = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+    <div className="h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 overflow-hidden flex flex-col">
       <div className="max-w-4xl mx-auto">
         <Card className="p-6 mb-6 bg-white/80 backdrop-blur-sm">
           <h1 className="text-2xl md:text-3xl font-bold text-center mb-6">

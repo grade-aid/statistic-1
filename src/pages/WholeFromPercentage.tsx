@@ -471,13 +471,13 @@ const WholeFromPercentage = () => {
   // Render different phases
   if (phase === 'start') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 flex items-center justify-center p-4">
-        <Card className="p-8 text-center w-full max-w-md">
-          <div className="text-6xl mb-6">🔍</div>
-          <h1 className="text-3xl font-bold mb-4">🐘 Find the Whole Game</h1>
-          <p className="text-lg text-muted-foreground mb-6">Collect animals, then find the whole from parts!</p>
-          <Button onClick={() => setPhase('intro')} className="w-full text-xl py-4">
-            <Play className="mr-2 h-5 w-5" />
+      <div className="h-screen bg-gradient-to-br from-purple-50 to-pink-100 flex items-center justify-center p-4 overflow-hidden">
+        <Card className="p-6 text-center w-full max-w-md">
+          <div className="text-4xl mb-4">🔍</div>
+          <h1 className="text-2xl font-bold mb-3">🐘 Find the Whole Game</h1>
+          <p className="text-base text-muted-foreground mb-4">Collect animals, then find the whole from parts!</p>
+          <Button onClick={() => setPhase('intro')} className="w-full text-lg py-3">
+            <Play className="mr-2 h-4 w-4" />
             Start Adventure
           </Button>
         </Card>
@@ -487,7 +487,7 @@ const WholeFromPercentage = () => {
 
   if (phase === 'intro') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 p-4">
+      <div className="h-screen bg-gradient-to-br from-purple-50 to-pink-100 p-4 overflow-hidden">
         <div className="max-w-4xl mx-auto flex items-center justify-center min-h-screen">
           <Card className="p-12 bg-white/90 backdrop-blur-sm">
             <div className="text-center">
@@ -584,7 +584,7 @@ const WholeFromPercentage = () => {
 
   if (phase === 'collection') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 p-4">
+      <div className="h-screen bg-gradient-to-br from-purple-50 to-pink-100 p-4 overflow-hidden flex flex-col">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-4">
             <h2 className="text-2xl font-bold mb-2">🔍 Collect Animals for Whole Number Learning</h2>
@@ -656,7 +656,7 @@ const WholeFromPercentage = () => {
 
   if (phase === 'learning') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 p-4">
+      <div className="h-screen bg-gradient-to-br from-purple-50 to-pink-100 p-4 overflow-hidden flex flex-col">
         <div className="max-w-4xl mx-auto">
           <Card className="p-6 mb-6 bg-white/80 backdrop-blur-sm">
             <h1 className="text-3xl font-bold text-center mb-6">
@@ -790,7 +790,7 @@ const WholeFromPercentage = () => {
 
   if (phase === 'complete') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 flex items-center justify-center p-4">
+      <div className="h-screen bg-gradient-to-br from-purple-50 to-pink-100 flex items-center justify-center p-4 overflow-hidden">
         <Card className="p-8 text-center w-full max-w-md">
           <div className="text-6xl mb-6">🎊</div>
           <h2 className="text-2xl font-bold text-green-700 mb-4">

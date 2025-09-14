@@ -255,19 +255,19 @@ const PercentageVisualization = () => {
   };
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br ${currentConcept.bgColor} p-4 transition-all duration-500`}>
-      <div className="max-w-4xl mx-auto">
+    <div className={`h-screen bg-gradient-to-br ${currentConcept.bgColor} p-2 transition-all duration-500 overflow-hidden flex flex-col`}>
+      <div className="max-w-4xl mx-auto h-full flex flex-col">
         {/* Header with Progress */}
-        <Card className="p-6 mb-8 bg-white/90 backdrop-blur-sm animate-fade-in">
-          <div className="text-center mb-4">
-            <h1 className="text-3xl font-bold mb-2">Percentage Concepts</h1>
-            <p className="text-muted-foreground">
+        <Card className="p-3 mb-3 bg-white/90 backdrop-blur-sm animate-fade-in flex-shrink-0">
+          <div className="text-center mb-2">
+            <h1 className="text-xl font-bold mb-1">Percentage Concepts</h1>
+            <p className="text-muted-foreground text-sm">
               Master essential percentage calculation methods
             </p>
           </div>
           
           {/* Progress Indicators */}
-          <div className="flex justify-center gap-3 mt-6">
+          <div className="flex justify-center gap-2 mt-3">
             {concepts.map((_, index) => (
               <button
                 key={index}
@@ -278,7 +278,7 @@ const PercentageVisualization = () => {
                     setIsAnimating(false);
                   }, 150);
                 }}
-                className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                className={`w-2 h-2 rounded-full transition-all duration-300 ${
                   index === currentIndex 
                     ? 'scale-125' 
                     : 'hover:scale-110'
@@ -292,20 +292,20 @@ const PercentageVisualization = () => {
         </Card>
 
         {/* Main Concept Display */}
-        <Card className={`p-8 mb-8 bg-white/95 backdrop-blur-sm transition-all duration-300 ${
+        <Card className={`p-3 mb-3 bg-white/95 backdrop-blur-sm transition-all duration-300 flex-1 min-h-0 overflow-hidden flex flex-col ${
           isAnimating ? 'opacity-50 scale-95' : 'opacity-100 scale-100 animate-fade-in'
         }`}>
-          <div className="text-center mb-8">
-            <h2 className="text-4xl font-bold mb-4" style={{ color: currentConcept.color }}>
+          <div className="text-center mb-3 flex-shrink-0">
+            <h2 className="text-2xl font-bold mb-2" style={{ color: currentConcept.color }}>
               {currentConcept.title}
             </h2>
-            <p className="text-xl text-muted-foreground mb-6">
+            <p className="text-sm text-muted-foreground mb-3">
               {currentConcept.description}
             </p>
             
             {/* Example Badge */}
             <div 
-              className="inline-block px-6 py-3 rounded-full text-white font-bold text-lg mb-8 animate-scale-in"
+              className="inline-block px-3 py-1 rounded-full text-white font-bold text-sm mb-3 animate-scale-in"
               style={{ backgroundColor: currentConcept.color }}
             >
               {currentConcept.example}
@@ -313,68 +313,70 @@ const PercentageVisualization = () => {
           </div>
 
           {/* Visual Representation */}
-          {renderVisual(currentConcept)}
+          <div className="flex-1 min-h-0 overflow-y-auto">
+            {renderVisual(currentConcept)}
+          </div>
 
           {/* Formula */}
-          <div className="max-w-md mx-auto mt-8">
-            <div className="bg-gray-50 p-4 rounded-lg text-center animate-fade-in">
-              <div className="text-sm text-muted-foreground mb-2">Formula:</div>
-              <div className="font-mono text-lg font-semibold">{currentConcept.formula}</div>
+          <div className="max-w-md mx-auto mt-3 flex-shrink-0">
+            <div className="bg-gray-50 p-2 rounded-lg text-center animate-fade-in">
+              <div className="text-xs text-muted-foreground mb-1">Formula:</div>
+              <div className="font-mono text-sm font-semibold">{currentConcept.formula}</div>
             </div>
           </div>
         </Card>
 
         {/* Navigation and Action */}
-        <div className="flex items-center justify-between gap-4 mb-8">
+        <div className="flex items-center justify-between gap-2 mb-2 flex-shrink-0">
           <Button
             onClick={prevConcept}
             variant="outline"
-            size="lg"
-            className="hover-scale"
+            size="sm"
+            className="hover-scale text-xs px-2"
           >
-            <ChevronLeft className="w-5 h-5 mr-2" />
+            <ChevronLeft className="w-3 h-3 mr-1" />
             Previous
           </Button>
 
           <Button
             onClick={() => navigate(currentConcept.route)}
-            size="lg"
-            className="px-8 hover-scale"
+            size="sm"
+            className="px-3 hover-scale text-xs"
             style={{ backgroundColor: currentConcept.color }}
           >
-            <Play className="w-5 h-5 mr-2" />
-            Practice This Concept
+            <Play className="w-3 h-3 mr-1" />
+            Practice
           </Button>
 
           <Button
             onClick={nextConcept}
             variant="outline"
-            size="lg"
-            className="hover-scale"
+            size="sm"
+            className="hover-scale text-xs px-2"
           >
             Next
-            <ChevronRight className="w-5 h-5 ml-2" />
+            <ChevronRight className="w-3 h-3 ml-1" />
           </Button>
         </div>
 
         {/* Summary */}
-        <Card className="p-6 bg-white/90 backdrop-blur-sm text-center animate-fade-in">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <PieChart className="h-6 w-6 text-primary" />
-            <h3 className="text-xl font-bold">Learning Progress</h3>
+        <Card className="p-2 bg-white/90 backdrop-blur-sm text-center animate-fade-in flex-shrink-0">
+          <div className="flex items-center justify-center gap-1 mb-2">
+            <PieChart className="h-4 w-4 text-primary" />
+            <h3 className="text-sm font-bold">Learning Progress</h3>
           </div>
-          <div className="grid grid-cols-3 gap-4 max-w-sm mx-auto">
+          <div className="grid grid-cols-3 gap-2 max-w-sm mx-auto">
             <div className="text-center">
-              <div className="text-2xl font-bold text-primary">{currentIndex + 1}/3</div>
-              <div className="text-sm text-muted-foreground">Concepts</div>
+              <div className="text-lg font-bold text-primary">{currentIndex + 1}/3</div>
+              <div className="text-xs text-muted-foreground">Concepts</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-primary">∞</div>
-              <div className="text-sm text-muted-foreground">Practice</div>
+              <div className="text-lg font-bold text-primary">∞</div>
+              <div className="text-xs text-muted-foreground">Practice</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-primary">🎯</div>
-              <div className="text-sm text-muted-foreground">Mastery</div>
+              <div className="text-lg font-bold text-primary">🎯</div>
+              <div className="text-xs text-muted-foreground">Mastery</div>
             </div>
           </div>
         </Card>

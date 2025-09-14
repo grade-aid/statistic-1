@@ -443,7 +443,7 @@ const Index = () => {
     });
   };
   if (phase === 'start') {
-    return <div className="min-h-screen bg-background flex items-center justify-center p-4 md:p-6">
+    return <div className="h-screen bg-background flex items-center justify-center p-4 md:p-6 overflow-hidden">
         <Card className="game-card text-center w-full max-w-md mx-auto">
           <div className="text-4xl md:text-6xl mb-4">🎮</div>
           <h1 className="text-2xl md:text-3xl font-space-grotesk font-bold mb-3">
@@ -461,82 +461,90 @@ const Index = () => {
   }
   if (phase === 'game') {
     const cellSize = getCellSize();
-    const boardSize = GRID_SIZE * cellSize + 32;
+    const boardSize = GRID_SIZE * cellSize;
     
-    return <div className="min-h-screen bg-background p-3 md:p-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-4">
-            <h2 className="text-xl md:text-2xl font-space-grotesk font-bold mb-2">Collect Animals</h2>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-2 md:gap-4 mb-2">
+    return <div className="h-screen bg-background p-2 overflow-hidden flex flex-col">
+        <div className="max-w-7xl mx-auto h-full flex flex-col">
+          <div className="text-center mb-2 flex-shrink-0">
+            <h2 className="text-lg md:text-xl font-space-grotesk font-bold mb-1">Collect Animals</h2>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-2 mb-1">
               <div className="flex items-center gap-1">
                 {Array.from({
                 length: 9
-              }, (_, i) => <span key={i} className="text-base md:text-lg">
+              }, (_, i) => <span key={i} className="text-sm md:text-base">
                     {i < lives ? '❤️' : '🖤'}
                   </span>)}
               </div>
-              <p className="text-base md:text-lg font-dm-sans">
+              <p className="text-sm md:text-base font-dm-sans">
                 {totalCollected} / {totalTarget} animals
               </p>
               <Button 
                 onClick={autoComplete} 
                 variant="outline" 
                 size="sm"
-                className="text-xs md:text-sm"
+                className="text-xs md:text-sm px-2 py-1"
               >
                 Auto Complete
               </Button>
             </div>
           </div>
 
-          <div className="flex flex-col xl:flex-row gap-4">
-            <div className="flex-1 flex justify-center">
-              <Card className="game-card w-full max-w-none">
-                <div className="relative bg-muted rounded-xl p-4 mx-auto overflow-hidden" style={{
-                width: Math.min(boardSize, window.innerWidth - 64),
-                height: Math.min(boardSize, window.innerHeight - 200),
+          <div className="flex flex-col xl:flex-row gap-2 flex-1 min-h-0 overflow-hidden">
+            <div className="flex-1 flex justify-center min-h-0">
+              <Card className="game-card w-full max-w-none overflow-hidden flex flex-col">
+                <div className="relative bg-muted rounded-xl p-2 mx-auto overflow-hidden flex-1 flex items-center justify-center" style={{
                 maxWidth: '100%',
-                aspectRatio: '1'
+                maxHeight: '100%'
               }}>
-                  <div className="absolute bg-brand-purple rounded-full border-2 border-brand-black transition-all duration-150 flex items-center justify-center z-10" style={{
-                  left: playerPosition.x * cellSize + 16,
-                  top: playerPosition.y * cellSize + 16,
-                  width: cellSize - 2,
-                  height: cellSize - 2,
-                  fontSize: `${cellSize * 0.6}px`
-                }}>
-                    🐱
+                  <div 
+                    className="grid gap-0 overflow-hidden relative"
+                    style={{
+                      gridTemplateColumns: `repeat(${GRID_SIZE}, ${cellSize}px)`,
+                      gridTemplateRows: `repeat(${GRID_SIZE}, ${cellSize}px)`,
+                      width: `${boardSize}px`,
+                      height: `${boardSize}px`
+                    }}
+                  >
+                    <div className="absolute bg-brand-purple rounded-full border-2 border-brand-black transition-all duration-150 flex items-center justify-center z-10" style={{
+                    left: playerPosition.x * cellSize,
+                    top: playerPosition.y * cellSize,
+                    width: cellSize - 2,
+                    height: cellSize - 2,
+                    fontSize: `${cellSize * 0.6}px`
+                  }}>
+                      🐱
+                    </div>
+                    
+                    {/* Walls */}
+                    {walls.map((wall, index) => <div key={`wall-${index}`} className="absolute bg-brand-blue border border-brand-black" style={{
+                    left: wall.x * cellSize,
+                    top: wall.y * cellSize,
+                    width: cellSize - 2,
+                    height: cellSize - 2
+                  }} />)}
+                    
+                    {/* Animals */}
+                    {animals.map(animal => <div key={animal.id} className={`absolute rounded-full border border-brand-black flex items-center justify-center bg-${animal.color}`} style={{
+                    left: animal.position.x * cellSize,
+                    top: animal.position.y * cellSize,
+                    width: cellSize - 2,
+                    height: cellSize - 2,
+                    fontSize: `${cellSize * 0.6}px`
+                  }}>
+                        {animal.emoji}
+                      </div>)}
+                    
+                    {/* Hunters */}
+                    {hunters.map(hunter => <div key={hunter.id} className="absolute rounded-full border-2 border-red-500 bg-red-600 flex items-center justify-center transition-all duration-300" style={{
+                    left: hunter.position.x * cellSize,
+                    top: hunter.position.y * cellSize,
+                    width: cellSize - 2,
+                    height: cellSize - 2,
+                    fontSize: `${cellSize * 0.6}px`
+                  }}>
+                        {hunter.emoji}
+                      </div>)}
                   </div>
-                  
-                  {/* Walls */}
-                  {walls.map((wall, index) => <div key={`wall-${index}`} className="absolute bg-brand-blue border border-brand-black" style={{
-                  left: wall.x * cellSize + 16,
-                  top: wall.y * cellSize + 16,
-                  width: cellSize - 2,
-                  height: cellSize - 2
-                }} />)}
-                  
-                  {/* Animals */}
-                  {animals.map(animal => <div key={animal.id} className={`absolute rounded-full border border-brand-black flex items-center justify-center bg-${animal.color}`} style={{
-                  left: animal.position.x * cellSize + 16,
-                  top: animal.position.y * cellSize + 16,
-                  width: cellSize - 2,
-                  height: cellSize - 2,
-                  fontSize: `${cellSize * 0.6}px`
-                }}>
-                      {animal.emoji}
-                    </div>)}
-                  
-                  {/* Hunters */}
-                  {hunters.map(hunter => <div key={hunter.id} className="absolute rounded-full border-2 border-red-500 bg-red-600 flex items-center justify-center transition-all duration-300" style={{
-                  left: hunter.position.x * cellSize + 16,
-                  top: hunter.position.y * cellSize + 16,
-                  width: cellSize - 2,
-                  height: cellSize - 2,
-                  fontSize: `${cellSize * 0.6}px`
-                }}>
-                      {hunter.emoji}
-                    </div>)}
                 </div>
                 <p className="text-center text-xs md:text-sm text-muted-foreground mt-3">
                   Use arrow keys or WASD to move
@@ -544,29 +552,20 @@ const Index = () => {
               </Card>
             </div>
 
-            <div className="xl:w-72">
-              <Card className="game-card">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-base md:text-lg font-space-grotesk font-bold">Collection</h3>
-                  <Button
-                    onClick={autoComplete}
-                    variant="outline"
-                    size="sm"
-                    className="text-xs"
-                    disabled={animals.length === 0}
-                  >
-                    Auto Complete
-                  </Button>
+            <div className="xl:w-72 min-h-0">
+              <Card className="game-card h-full overflow-hidden flex flex-col">
+                <div className="flex items-center justify-between mb-2 flex-shrink-0">
+                  <h3 className="text-sm font-space-grotesk font-bold">Collection</h3>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1 overflow-y-auto flex-1">
                   {Object.entries(animalConfig).map(([type, config]) => <div key={type} className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className={`w-4 h-4 md:w-5 md:h-5 rounded-full bg-${config.color} flex items-center justify-center text-xs border border-brand-black`}>
+                      <div className="flex items-center gap-1">
+                        <div className={`w-3 h-3 rounded-full bg-${config.color} flex items-center justify-center text-xs border border-brand-black`}>
                           {config.emoji}
                         </div>
-                        <span className="font-dm-sans text-xs md:text-sm capitalize">{type}</span>
+                        <span className="font-dm-sans text-xs capitalize">{type}</span>
                       </div>
-                      <span className="font-dm-sans font-bold text-sm md:text-base">
+                      <span className="font-dm-sans font-bold text-xs">
                         {collected[type as keyof GameState]}
                       </span>
                     </div>)}
@@ -580,33 +579,33 @@ const Index = () => {
   if (phase === 'results') {
     const dataEntries = Object.entries(collected);
     const maxValue = Math.max(...Object.values(collected));
-    return <div className="min-h-screen bg-background p-4 md:p-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-6">
-            <div className="text-3xl md:text-4xl mb-3">🎉</div>
-            <h2 className="text-2xl md:text-3xl font-space-grotesk font-bold mb-3">
+    return <div className="h-screen bg-background p-2 overflow-hidden flex flex-col">
+        <div className="max-w-4xl mx-auto h-full flex flex-col">
+          <div className="text-center mb-3 flex-shrink-0">
+            <div className="text-2xl md:text-3xl mb-2">🎉</div>
+            <h2 className="text-xl md:text-2xl font-space-grotesk font-bold mb-2">
               Mission Complete!
             </h2>
-            <p className="text-base md:text-lg font-dm-sans">
+            <p className="text-sm md:text-base font-dm-sans">
               You collected {totalCollected} animals
             </p>
           </div>
 
-          <Card className="game-card mb-6">
-            <h3 className="text-lg md:text-xl font-space-grotesk font-bold mb-4 text-center">Your Data</h3>
-            <div className="space-y-3">
+          <Card className="game-card mb-3 flex-1 min-h-0 overflow-hidden flex flex-col">
+            <h3 className="text-base md:text-lg font-space-grotesk font-bold mb-2 text-center flex-shrink-0">Your Data</h3>
+            <div className="space-y-2 overflow-y-auto flex-1">
               {dataEntries.map(([type, count]) => {
               const config = animalConfig[type as keyof typeof animalConfig];
               const percentage = maxValue > 0 ? count / maxValue * 100 : 0;
-              return <div key={type} className="space-y-2">
+              return <div key={type} className="space-y-1">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="text-base md:text-lg">{config.emoji}</span>
-                        <span className="font-dm-sans font-semibold capitalize text-sm md:text-base">{type}</span>
+                        <span className="text-sm md:text-base">{config.emoji}</span>
+                        <span className="font-dm-sans font-semibold capitalize text-xs md:text-sm">{type}</span>
                       </div>
-                      <span className="font-dm-sans font-bold text-sm md:text-base">{count}</span>
+                      <span className="font-dm-sans font-bold text-xs md:text-sm">{count}</span>
                     </div>
-                    <div className="w-full bg-muted rounded-full h-3 md:h-4 border-2 border-brand-black">
+                    <div className="w-full bg-muted rounded-full h-2 md:h-3 border border-brand-black">
                       <div className="h-full rounded-full transition-all duration-1000 ease-out flex items-center justify-end pr-1" style={{
                     width: count > 0 ? `${percentage}%` : '0%',
                     backgroundColor: count > 0 ? type === 'mammals' ? '#ef4444' : type === 'birds' ? '#3b82f6' : type === 'reptiles' ? '#22c55e' : type === 'fish' ? '#06b6d4' : type === 'insects' ? '#eab308' : '#6b7280' : '#6b7280'
@@ -619,7 +618,7 @@ const Index = () => {
             </div>
           </Card>
 
-          <div className="text-center">
+          <div className="text-center flex-shrink-0">
             <Button onClick={() => {
             // Save data to localStorage so other pages can access it
             localStorage.setItem('animalData', JSON.stringify(collected));
@@ -630,8 +629,8 @@ const Index = () => {
                 animalConfig: animalConfig
               }
             });
-          }} className="game-button text-base md:text-lg px-4 md:px-6 py-3">
-              <ArrowRight className="mr-2 h-4 w-4" />
+          }} className="game-button text-sm md:text-base px-3 md:px-4 py-2">
+              <ArrowRight className="mr-2 h-3 w-3" />
               Continue to Learning
             </Button>
           </div>
