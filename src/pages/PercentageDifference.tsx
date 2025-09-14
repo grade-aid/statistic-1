@@ -589,56 +589,138 @@ const PercentageDifference = () => {
 
               {/* Answer Explanation Dialog */}
               <Dialog open={showAnswerDialog} onOpenChange={setShowAnswerDialog}>
-                <DialogContent className="max-w-lg">
+                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
-                    <DialogTitle className="text-center">
-                      {selectedAnswer === currentExercise.correctAnswer ? '🎉 Correct!' : '❌ Incorrect'}
+                    <DialogTitle className="text-center text-xl">
+                      {selectedAnswer === currentExercise.correctAnswer ? '🎉 Excellent Work!' : '🤔 Let\'s Learn Together!'}
                     </DialogTitle>
                   </DialogHeader>
                   
-                  {/* Calculation Steps */}
-                  <div className="bg-white p-4 rounded-lg border mb-4">
-                    <div className="text-lg font-bold text-center mb-3">📊 How to Calculate:</div>
+                  {/* Visual Price Comparison */}
+                  <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-xl mb-4">
+                    <div className="text-center mb-4">
+                      <div className="text-2xl mb-2">{currentExercise.emoji}</div>
+                      <div className="font-bold text-lg">{currentExercise.item} at {currentExercise.store}</div>
+                    </div>
+                    
+                    <div className="flex items-center justify-center gap-8 mb-4">
+                      <div className="text-center animate-fade-in">
+                        <div className="bg-red-100 border-2 border-red-300 rounded-lg p-4 mb-2">
+                          <div className="text-2xl font-bold text-red-700">${currentExercise.oldPrice}</div>
+                          <div className="text-sm text-red-600">Before</div>
+                        </div>
+                        <div className="w-16 h-2 bg-red-400 rounded mx-auto"></div>
+                      </div>
+                      
+                      <div className="text-3xl animate-pulse">→</div>
+                      
+                      <div className="text-center animate-fade-in animation-delay-300">
+                        <div className="bg-green-100 border-2 border-green-300 rounded-lg p-4 mb-2">
+                          <div className="text-2xl font-bold text-green-700">${currentExercise.newPrice}</div>
+                          <div className="text-sm text-green-600">After</div>
+                        </div>
+                        <div className="w-16 h-2 bg-green-400 rounded mx-auto"></div>
+                      </div>
+                    </div>
+                    
+                    <div className="text-center">
+                      <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full border-2 border-gray-200">
+                        <span className="text-lg">Price {currentExercise.isIncrease ? '📈 Increased' : '📉 Decreased'}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Step-by-Step Calculation */}
+                  <div className="space-y-4">
+                    <div className="text-center">
+                      <h3 className="text-xl font-bold mb-2">📚 Step-by-Step Solution</h3>
+                      <div className="text-sm text-gray-600">Follow along to learn the percentage formula!</div>
+                    </div>
                     
                     {/* Step 1: Find the difference */}
-                    <div className="mb-3">
-                      <div className="text-sm font-semibold text-gray-700">1️⃣ Find the difference:</div>
-                      <div className="bg-blue-50 p-2 rounded text-center">
-                        <span className="font-mono">
-                          ${currentExercise.newPrice} - ${currentExercise.oldPrice} = ${Math.abs(currentExercise.newPrice - currentExercise.oldPrice)}
-                        </span>
+                    <div className="bg-white border-2 border-blue-200 rounded-xl p-4 animate-scale-in">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold">1</div>
+                        <div className="text-lg font-semibold text-blue-700">Find the difference</div>
+                      </div>
+                      <div className="bg-blue-50 p-3 rounded-lg">
+                        <div className="flex items-center justify-center gap-3 text-lg">
+                          <div className="bg-green-200 px-3 py-2 rounded font-bold">${currentExercise.newPrice}</div>
+                          <span className="text-2xl">−</span>
+                          <div className="bg-red-200 px-3 py-2 rounded font-bold">${currentExercise.oldPrice}</div>
+                          <span className="text-2xl">=</span>
+                          <div className="bg-yellow-200 px-3 py-2 rounded font-bold animate-bounce">
+                            ${Math.abs(currentExercise.newPrice - currentExercise.oldPrice)}
+                          </div>
+                        </div>
+                        <div className="text-center text-sm text-blue-600 mt-2">
+                          💡 This tells us how much the price changed
+                        </div>
                       </div>
                     </div>
                     
-                    {/* Step 2: Divide by original */}
-                    <div className="mb-3">
-                      <div className="text-sm font-semibold text-gray-700">2️⃣ Divide by {currentExercise.isIncrease ? 'original' : 'new'} price:</div>
-                      <div className="bg-purple-50 p-2 rounded text-center">
-                        <span className="font-mono">
-                          ${Math.abs(currentExercise.newPrice - currentExercise.oldPrice)} ÷ ${currentExercise.isIncrease ? currentExercise.oldPrice : currentExercise.newPrice} = {((Math.abs(currentExercise.newPrice - currentExercise.oldPrice) / (currentExercise.isIncrease ? currentExercise.oldPrice : currentExercise.newPrice))).toFixed(3)}
-                        </span>
+                    {/* Step 2: Divide by base price */}
+                    <div className="bg-white border-2 border-purple-200 rounded-xl p-4 animate-scale-in animation-delay-200">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-8 h-8 bg-purple-500 text-white rounded-full flex items-center justify-center font-bold">2</div>
+                        <div className="text-lg font-semibold text-purple-700">
+                          Divide by the {currentExercise.isIncrease ? 'original' : 'new'} price
+                        </div>
+                      </div>
+                      <div className="bg-purple-50 p-3 rounded-lg">
+                        <div className="flex items-center justify-center gap-3 text-lg">
+                          <div className="bg-yellow-200 px-3 py-2 rounded font-bold">${Math.abs(currentExercise.newPrice - currentExercise.oldPrice)}</div>
+                          <span className="text-2xl">÷</span>
+                          <div className="bg-blue-200 px-3 py-2 rounded font-bold">
+                            ${currentExercise.isIncrease ? currentExercise.oldPrice : currentExercise.newPrice}
+                          </div>
+                          <span className="text-2xl">=</span>
+                          <div className="bg-orange-200 px-3 py-2 rounded font-bold animate-bounce">
+                            {((Math.abs(currentExercise.newPrice - currentExercise.oldPrice) / (currentExercise.isIncrease ? currentExercise.oldPrice : currentExercise.newPrice))).toFixed(3)}
+                          </div>
+                        </div>
+                        <div className="text-center text-sm text-purple-600 mt-2">
+                          💡 This gives us the decimal change
+                        </div>
                       </div>
                     </div>
                     
-                    {/* Step 3: Multiply by 100 */}
-                    <div className="mb-3">
-                      <div className="text-sm font-semibold text-gray-700">3️⃣ Multiply by 100:</div>
-                      <div className="bg-green-50 p-2 rounded text-center">
-                        <span className="font-mono">
-                          {((Math.abs(currentExercise.newPrice - currentExercise.oldPrice) / (currentExercise.isIncrease ? currentExercise.oldPrice : currentExercise.newPrice))).toFixed(3)} × 100 = 
-                          {selectedAnswer === currentExercise.correctAnswer ? (
-                            <span className="font-bold text-green-600"> {currentExercise.correctAnswer}%</span>
-                          ) : (
-                            <span className="font-bold text-orange-600"> ?%</span>
-                          )}
-                        </span>
+                    {/* Step 3: Convert to percentage */}
+                    <div className="bg-white border-2 border-green-200 rounded-xl p-4 animate-scale-in animation-delay-400">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center font-bold">3</div>
+                        <div className="text-lg font-semibold text-green-700">Convert to percentage</div>
+                      </div>
+                      <div className="bg-green-50 p-3 rounded-lg">
+                        <div className="flex items-center justify-center gap-3 text-lg">
+                          <div className="bg-orange-200 px-3 py-2 rounded font-bold">
+                            {((Math.abs(currentExercise.newPrice - currentExercise.oldPrice) / (currentExercise.isIncrease ? currentExercise.oldPrice : currentExercise.newPrice))).toFixed(3)}
+                          </div>
+                          <span className="text-2xl">×</span>
+                          <div className="bg-gray-200 px-3 py-2 rounded font-bold">100</div>
+                          <span className="text-2xl">=</span>
+                          <div className="bg-gradient-to-r from-green-400 to-emerald-400 text-white px-4 py-2 rounded-lg font-bold text-xl animate-pulse">
+                            {currentExercise.correctAnswer}%
+                          </div>
+                        </div>
+                        <div className="text-center text-sm text-green-600 mt-2">
+                          🎯 Final answer: {currentExercise.correctAnswer}% {currentExercise.isIncrease ? 'increase' : 'decrease'}
+                        </div>
                       </div>
                     </div>
                     
-                    {/* Visual Formula */}
-                    <div className="mt-4 pt-3 border-t">
-                      <div className="text-xs text-gray-600 text-center">
-                        💡 Formula: (Difference ÷ {currentExercise.isIncrease ? 'Original' : 'New'}) × 100
+                    {/* Formula Summary */}
+                    <div className="bg-gradient-to-r from-gray-50 to-blue-50 border-2 border-gray-200 rounded-xl p-4">
+                      <div className="text-center">
+                        <div className="text-lg font-bold mb-2">📝 Remember the Formula:</div>
+                        <div className="bg-white p-3 rounded-lg border inline-block">
+                          <div className="text-lg font-mono">
+                            <span className="text-blue-600">Difference</span> ÷ 
+                            <span className="text-purple-600"> Base Price</span> × 
+                            <span className="text-green-600"> 100</span> = 
+                            <span className="text-orange-600"> Percentage</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
