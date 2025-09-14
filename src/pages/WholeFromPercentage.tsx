@@ -800,10 +800,10 @@ const WholeFromPercentage = () => {
             You've mastered finding the whole from percentages using your collected animals!
           </p>
           <Button 
-            onClick={() => navigate('/percentage-visualization')}
+            onClick={() => navigate('/percentage-difference')}
             className="w-full text-xl py-4 bg-green-600 hover:bg-green-700"
           >
-            Final Visualization <ArrowRight className="w-5 h-5 ml-2" />
+            Next Challenge <ArrowRight className="w-5 h-5 ml-2" />
           </Button>
         </Card>
       </div>
