@@ -691,11 +691,11 @@ const WholeFromPercentage = () => {
                 
                 {/* Visual Representation */}
                 <div className="bg-white p-6 rounded-lg mb-6">
-                  <div className="flex items-center justify-center gap-2 mb-4">
+                  <div className="flex items-center justify-center gap-2 mb-4 flex-wrap">
                     {Array.from({ length: currentExercise.partCount }, (_, i) => (
-                      <span key={i} className="text-4xl">{animalConfig[currentExercise.targetType].emoji}</span>
+                      <span key={i} className="text-4xl flex-shrink-0">{animalConfig[currentExercise.targetType].emoji}</span>
                     ))}
-                    <span className="text-3xl text-gray-400 mx-4">= {currentExercise.percentage}%</span>
+                    <span className="text-3xl text-gray-400 mx-4 flex-shrink-0">= {currentExercise.percentage}%</span>
                   </div>
                   <div className="text-lg text-gray-600">
                     What's the total number?
