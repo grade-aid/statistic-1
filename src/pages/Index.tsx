@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Play, ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-type GamePhase = 'start' | 'game';
+type GamePhase = 'start' | 'game' | 'results';
 interface GameState {
   mammals: number;
   birds: number;
@@ -407,19 +407,9 @@ const Index = () => {
   const isComplete = totalCollected === totalTarget && phase === 'game';
   useEffect(() => {
     if (isComplete) {
-      // Save data to localStorage and navigate directly to the next page
-      setTimeout(() => {
-        localStorage.setItem('animalData', JSON.stringify(collected));
-        navigate('/visualization', {
-          state: {
-            collected: collected,
-            totalCollected: totalCollected,
-            animalConfig: animalConfig
-          }
-        });
-      }, 1000);
+      setTimeout(() => setPhase('results'), 1000);
     }
-  }, [isComplete, collected, totalCollected, navigate]);
+  }, [isComplete]);
   const autoComplete = () => {
     if (phase !== 'game') return;
     
@@ -582,6 +572,67 @@ const Index = () => {
                 </div>
               </Card>
             </div>
+          </div>
+        </div>
+      </div>;
+  }
+  if (phase === 'results') {
+    const dataEntries = Object.entries(collected);
+    const maxValue = Math.max(...Object.values(collected));
+    return <div className="h-screen bg-background p-2 overflow-hidden flex flex-col">
+        <div className="max-w-4xl mx-auto h-full flex flex-col">
+          <div className="text-center mb-3 flex-shrink-0">
+            <div className="text-2xl md:text-3xl mb-2">🎉</div>
+            <h2 className="text-xl md:text-2xl font-space-grotesk font-bold mb-2">
+              Mission Complete!
+            </h2>
+            <p className="text-sm md:text-base font-dm-sans">
+              You collected {totalCollected} animals
+            </p>
+          </div>
+
+          <Card className="game-card mb-3 flex-1 min-h-0 overflow-hidden flex flex-col">
+            <h3 className="text-base md:text-lg font-space-grotesk font-bold mb-2 text-center flex-shrink-0">Your Data</h3>
+            <div className="space-y-2 overflow-y-auto flex-1">
+              {dataEntries.map(([type, count]) => {
+              const config = animalConfig[type as keyof typeof animalConfig];
+              const percentage = maxValue > 0 ? count / maxValue * 100 : 0;
+              return <div key={type} className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm md:text-base">{config.emoji}</span>
+                        <span className="font-dm-sans font-semibold capitalize text-xs md:text-sm">{type}</span>
+                      </div>
+                      <span className="font-dm-sans font-bold text-xs md:text-sm">{count}</span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-2 md:h-3 border border-brand-black">
+                      <div className="h-full rounded-full transition-all duration-1000 ease-out flex items-center justify-end pr-1" style={{
+                    width: count > 0 ? `${percentage}%` : '0%',
+                    backgroundColor: count > 0 ? type === 'mammals' ? '#ef4444' : type === 'birds' ? '#3b82f6' : type === 'reptiles' ? '#22c55e' : type === 'fish' ? '#06b6d4' : type === 'insects' ? '#eab308' : '#6b7280' : '#6b7280'
+                  }}>
+                        {count > 0 && <span className="text-xs font-bold text-white">{count}</span>}
+                      </div>
+                    </div>
+                  </div>;
+            })}
+            </div>
+          </Card>
+
+          <div className="text-center flex-shrink-0">
+            <Button onClick={() => {
+            // Save data to localStorage so other pages can access it
+            localStorage.setItem('animalData', JSON.stringify(collected));
+            navigate('/visualization', {
+              state: {
+                collected: collected,
+                totalCollected: totalCollected,
+                animalConfig: animalConfig
+              }
+            });
+          }} className="game-button text-sm md:text-base px-3 md:px-4 py-2">
+              <ArrowRight className="mr-2 h-3 w-3" />
+              Continue to Learning
+            </Button>
           </div>
         </div>
       </div>;

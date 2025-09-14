@@ -332,7 +332,7 @@ const PercentageDifference = () => {
       y >= store.y && y < store.y + store.height
     );
     
-    let cellClass = "border border-gray-200 flex items-center justify-center text-xs relative ";
+    let cellClass = "w-6 h-6 border border-gray-200 flex items-center justify-center text-xs relative ";
     
     if (store) {
       cellClass += store.color + " ";
@@ -341,10 +341,10 @@ const PercentageDifference = () => {
     }
     
     return (
-      <div key={`${x}-${y}`} className={cellClass} style={{ aspectRatio: '1' }}>
-        {isPlayer && <div className="text-sm">🛒</div>}
+      <div key={`${x}-${y}`} className={cellClass}>
+        {isPlayer && <div className="text-lg">🛒</div>}
         {item && !isPlayer && (
-          <div className="text-xs animate-bounce">{item.emoji}</div>
+          <div className="text-sm animate-bounce">{item.emoji}</div>
         )}
       </div>
     );
@@ -353,19 +353,19 @@ const PercentageDifference = () => {
   // Render start phase
   if (phase === 'start') {
     return (
-      <div className="tablet-container bg-gradient-to-br from-blue-50 to-purple-100 p-2 flex items-center justify-center overflow-hidden">
-        <Card className="game-card max-w-lg mx-auto text-center">
-          <div className="space-y-3">
-            <div className="text-3xl mb-2">🛒</div>
-            <h1 className="text-2xl font-bold mb-2">Price Comparison Adventure!</h1>
-            <p className="text-sm text-muted-foreground mb-3">
+      <div className="h-screen bg-gradient-to-br from-blue-50 to-purple-100 p-4 flex items-center justify-center overflow-hidden">
+        <Card className="game-card max-w-2xl mx-auto text-center">
+          <div className="space-y-6">
+            <div className="text-6xl mb-4">🛒</div>
+            <h1 className="text-4xl font-bold mb-4">Price Comparison Adventure!</h1>
+            <p className="text-xl text-muted-foreground mb-6">
               Visit different stores and collect items with different prices
             </p>
             <Button 
               onClick={startGame}
-              className="game-button"
+              className="game-button text-xl px-8 py-4"
             >
-              Start Shopping! <ShoppingCart className="w-4 h-4 ml-2" />
+              Start Shopping! <ShoppingCart className="w-6 h-6 ml-2" />
             </Button>
           </div>
         </Card>
@@ -376,31 +376,31 @@ const PercentageDifference = () => {
   // Render intro animation
   if (phase === 'intro') {
     return (
-      <div className="tablet-container bg-gradient-to-br from-blue-50 to-purple-100 p-2 flex items-center justify-center overflow-hidden">
-        <Card className="game-card max-w-2xl mx-auto text-center">
-          <div className="space-y-4">
+      <div className="h-screen bg-gradient-to-br from-blue-50 to-purple-100 p-4 flex items-center justify-center overflow-hidden">
+        <Card className="game-card max-w-4xl mx-auto text-center">
+          <div className="space-y-8">
             <div className={`transition-all duration-1000 ${introStep >= 1 ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
-              <div className="text-3xl mb-2">🏪</div>
-              <h2 className="text-xl font-bold mb-2">Visit Different Stores</h2>
+              <div className="text-6xl mb-4">🏪</div>
+              <h2 className="text-3xl font-bold mb-4">Visit Different Stores</h2>
             </div>
             
             <div className={`transition-all duration-1000 ${introStep >= 2 ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
-              <div className="grid grid-cols-2 gap-2 max-w-sm mx-auto">
-                <div className="bg-blue-200 p-2 rounded-lg">
-                  <div className="text-lg mb-1">📱</div>
-                  <div className="font-bold text-sm">TechMart</div>
-                  <div className="text-xs">$800</div>
+              <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
+                <div className="bg-blue-200 p-4 rounded-lg">
+                  <div className="text-2xl mb-2">📱</div>
+                  <div className="font-bold">TechMart</div>
+                  <div className="text-sm">$800</div>
                 </div>
-                <div className="bg-green-200 p-2 rounded-lg">
-                  <div className="text-lg mb-1">📱</div>
-                  <div className="font-bold text-sm">ElectroShop</div>
-                  <div className="text-xs">$1000</div>
+                <div className="bg-green-200 p-4 rounded-lg">
+                  <div className="text-2xl mb-2">📱</div>
+                  <div className="font-bold">ElectroShop</div>
+                  <div className="text-sm">$1000</div>
                 </div>
               </div>
             </div>
             
             <div className={`transition-all duration-1000 ${introStep >= 3 ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
-              <div className="text-sm text-muted-foreground">
+              <div className="text-xl text-muted-foreground">
                 Compare prices and learn percentage differences! 📊
               </div>
             </div>
@@ -413,46 +413,46 @@ const PercentageDifference = () => {
   // Render collection phase
   if (phase === 'collection') {
     return (
-      <div className="tablet-container bg-gradient-to-br from-blue-50 to-purple-100 p-1 overflow-hidden">
-        <div className="tablet-content max-w-4xl mx-auto">
+      <div className="h-screen bg-gradient-to-br from-blue-50 to-purple-100 p-4 overflow-hidden flex flex-col">
+        <div className="max-w-6xl mx-auto">
           {/* Header */}
-          <Card className="game-card mb-1 flex-shrink-0">
+          <Card className="game-card mb-6">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <ShoppingCart className="w-5 h-5 text-primary" />
+              <div className="flex items-center gap-4">
+                <ShoppingCart className="w-8 h-8 text-primary" />
                 <div>
-                  <h1 className="text-lg font-bold">Price Collection</h1>
-                  <p className="text-xs text-muted-foreground">Use arrow keys to move 🛒</p>
+                  <h1 className="text-2xl font-bold">Price Collection</h1>
+                  <p className="text-muted-foreground">Use arrow keys to move 🛒</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-4">
                 <div className="text-right">
-                  <div className="text-lg font-bold">{collectedCount}/{TARGET_ITEMS}</div>
-                  <div className="text-xs text-muted-foreground">Items Collected</div>
+                  <div className="text-2xl font-bold">{collectedCount}/{TARGET_ITEMS}</div>
+                  <div className="text-sm text-muted-foreground">Items Collected</div>
                 </div>
-                <Button onClick={autoComplete} size="sm" variant="outline" className="text-xs">
+                <Button onClick={autoComplete} size="sm" variant="outline">
                   Auto Complete
                 </Button>
               </div>
             </div>
           </Card>
 
-          <div className="flex gap-2 flex-1 min-h-0">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Game Grid */}
-            <div className="flex-1">
-              <Card className="game-card tablet-game-grid mx-auto">
-                <div className="grid grid-cols-20 gap-0 w-full h-full">
+            <div className="lg:col-span-2">
+              <Card className="game-card">
+                <div className="grid grid-cols-20 gap-0 w-full max-w-3xl mx-auto">
                   {Array.from({ length: GRID_HEIGHT }, (_, y) =>
                     Array.from({ length: GRID_WIDTH }, (_, x) => renderGridCell(x, y))
                   )}
                 </div>
                 
                 {/* Store Legend */}
-                <div className="mt-2 grid grid-cols-2 gap-1">
+                <div className="mt-4 grid grid-cols-2 gap-2">
                   {storeAreas.map(store => (
-                    <div key={store.name} className="flex items-center gap-1">
-                      <div className={`w-3 h-3 rounded ${store.color}`}></div>
-                      <span className="text-xs font-medium">{store.name}</span>
+                    <div key={store.name} className="flex items-center gap-2">
+                      <div className={`w-4 h-4 rounded ${store.color}`}></div>
+                      <span className="text-sm font-medium">{store.name}</span>
                     </div>
                   ))}
                 </div>
@@ -460,23 +460,23 @@ const PercentageDifference = () => {
             </div>
 
             {/* Collection Progress */}
-            <div className="w-64 flex-shrink-0">
-              <Card className="game-card h-full overflow-y-auto">
-                <h3 className="text-sm font-bold mb-2 flex items-center gap-1">
-                  <MapPin className="w-4 h-4" />
+            <div className="space-y-4">
+              <Card className="game-card">
+                <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                  <MapPin className="w-5 h-5" />
                   Collected Items
                 </h3>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {Object.entries(gameState.collectedPrices).map(([itemType, data]) => {
                     const config = itemConfig[itemType as keyof typeof itemConfig];
                     return (
-                      <div key={itemType} className="bg-white p-2 rounded-lg border">
-                        <div className="flex items-center gap-2">
-                          <div className="text-sm">{config.emoji}</div>
+                      <div key={itemType} className="bg-white p-3 rounded-lg border">
+                        <div className="flex items-center gap-3">
+                          <div className="text-xl">{config.emoji}</div>
                           <div className="flex-1">
-                            <div className="font-medium text-xs">{config.name}</div>
-                            <div className="text-xs text-muted-foreground">{data.store}</div>
-                            <div className="flex gap-1 text-xs">
+                            <div className="font-medium">{config.name}</div>
+                            <div className="text-sm text-muted-foreground">{data.store}</div>
+                            <div className="flex gap-2 text-sm">
                               <span className="text-red-600">${data.oldPrice}</span>
                               <span>→</span>
                               <span className="text-green-600">${data.newPrice}</span>
@@ -488,7 +488,7 @@ const PercentageDifference = () => {
                   })}
                 </div>
                 
-                <div className="mt-2">
+                <div className="mt-4">
                   <Progress value={(collectedCount / TARGET_ITEMS) * 100} />
                 </div>
               </Card>
@@ -519,61 +519,61 @@ const PercentageDifference = () => {
     const shuffledOptions = [...options].sort(() => Math.random() - 0.5);
 
     return (
-      <div className="tablet-container bg-gradient-to-br from-blue-50 to-purple-100 p-1 overflow-hidden">
-        <div className="tablet-content max-w-3xl mx-auto">
+      <div className="h-screen bg-gradient-to-br from-blue-50 to-purple-100 p-4 overflow-hidden flex flex-col">
+        <div className="max-w-4xl mx-auto">
           {/* Header */}
-          <Card className="game-card mb-1 text-center flex-shrink-0">
-            <h1 className="text-lg font-bold mb-1">Price Comparison Challenge</h1>
-            <Progress value={((currentExerciseIndex + 1) / exercises.length) * 100} className="max-w-sm mx-auto" />
-            <p className="text-xs text-muted-foreground mt-1">
+          <Card className="game-card mb-6 text-center">
+            <h1 className="text-3xl font-bold mb-2">Price Comparison Challenge</h1>
+            <Progress value={((currentExerciseIndex + 1) / exercises.length) * 100} className="max-w-md mx-auto" />
+            <p className="text-muted-foreground mt-2">
               Question {currentExerciseIndex + 1} of {exercises.length}
             </p>
           </Card>
 
           {/* Exercise */}
-          <Card className="game-card text-center flex-1 min-h-0 overflow-y-auto">
-            <div className="space-y-3">
-              <div className="text-3xl">{currentExercise.emoji}</div>
-              <h2 className="text-lg font-bold">{currentExercise.item}</h2>
-              <p className="text-sm text-muted-foreground">at {currentExercise.store}</p>
+          <Card className="game-card text-center">
+            <div className="space-y-6">
+              <div className="text-6xl">{currentExercise.emoji}</div>
+              <h2 className="text-2xl font-bold">{currentExercise.item}</h2>
+              <p className="text-lg text-muted-foreground">at {currentExercise.store}</p>
               
               {/* Visual Price Comparison */}
-              <div className="bg-white p-3 rounded-lg border max-w-xs mx-auto">
-                <div className="flex items-center justify-center gap-4">
+              <div className="bg-white p-6 rounded-lg border max-w-md mx-auto">
+                <div className="flex items-center justify-center gap-8">
                   <div className="text-center">
                     <div 
-                      className="bg-red-400 w-8 mx-auto mb-1 transition-all duration-1000"
-                      style={{ height: `${(currentExercise.oldPrice / Math.max(currentExercise.oldPrice, currentExercise.newPrice)) * 60}px` }}
+                      className="bg-red-400 w-16 mx-auto mb-2 transition-all duration-1000"
+                      style={{ height: `${(currentExercise.oldPrice / Math.max(currentExercise.oldPrice, currentExercise.newPrice)) * 100}px` }}
                     ></div>
-                    <div className="font-bold text-sm">${currentExercise.oldPrice}</div>
-                    <div className="text-xs text-muted-foreground">Before</div>
+                    <div className="font-bold">${currentExercise.oldPrice}</div>
+                    <div className="text-sm text-muted-foreground">Before</div>
                   </div>
                   
-                  <div className="text-lg">→</div>
+                  <div className="text-2xl">→</div>
                   
                   <div className="text-center">
                     <div 
-                      className="bg-green-400 w-8 mx-auto mb-1 transition-all duration-1000"
-                      style={{ height: `${(currentExercise.newPrice / Math.max(currentExercise.oldPrice, currentExercise.newPrice)) * 60}px` }}
+                      className="bg-green-400 w-16 mx-auto mb-2 transition-all duration-1000"
+                      style={{ height: `${(currentExercise.newPrice / Math.max(currentExercise.oldPrice, currentExercise.newPrice)) * 100}px` }}
                     ></div>
-                    <div className="font-bold text-sm">${currentExercise.newPrice}</div>
-                    <div className="text-xs text-muted-foreground">After</div>
+                    <div className="font-bold">${currentExercise.newPrice}</div>
+                    <div className="text-sm text-muted-foreground">After</div>
                   </div>
                 </div>
               </div>
 
-              <div className="text-lg font-bold">
+              <div className="text-xl font-bold">
                 What is the percentage {currentExercise.isIncrease ? 'increase' : 'decrease'}?
               </div>
 
               {/* Answer Options */}
-              <div className="grid grid-cols-2 gap-2 max-w-xs mx-auto">
+              <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
                 {shuffledOptions.map((option) => (
                   <Button
                     key={option}
                     onClick={() => handleAnswerSubmit(option)}
                     disabled={showAnswerDialog && (selectedAnswer === currentExercise.correctAnswer || !canTryAgain)}
-                    className={`h-12 text-lg ${
+                    className={`h-16 text-xl ${
                       showAnswerDialog && selectedAnswer !== null && option === currentExercise.correctAnswer
                         ? 'bg-green-600 text-white'
                         : showAnswerDialog && selectedAnswer !== null && option === selectedAnswer && option !== currentExercise.correctAnswer
@@ -685,19 +685,19 @@ const PercentageDifference = () => {
 
   // Render complete phase
   return (
-    <div className="tablet-container bg-gradient-to-br from-blue-50 to-purple-100 p-2 flex items-center justify-center overflow-hidden">
-      <Card className="game-card max-w-lg mx-auto text-center">
-        <div className="space-y-3">
-          <div className="text-3xl">🎊</div>
-          <h1 className="text-2xl font-bold text-green-700">Shopping Complete!</h1>
-          <p className="text-sm text-muted-foreground">
+    <div className="h-screen bg-gradient-to-br from-blue-50 to-purple-100 p-4 flex items-center justify-center overflow-hidden">
+      <Card className="game-card max-w-2xl mx-auto text-center">
+        <div className="space-y-6">
+          <div className="text-6xl">🎊</div>
+          <h1 className="text-4xl font-bold text-green-700">Shopping Complete!</h1>
+          <p className="text-xl text-muted-foreground">
             You've mastered price comparisons and percentage differences!
           </p>
           <Button 
             onClick={() => navigate('/percentage-visualization')}
-            className="game-button"
+            className="game-button bg-green-600 hover:bg-green-700"
           >
-            View Your Results <ArrowRight className="w-4 h-4 ml-2" />
+            View Your Results <ArrowRight className="w-6 h-6 ml-2" />
           </Button>
         </div>
       </Card>
