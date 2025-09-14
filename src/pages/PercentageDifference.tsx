@@ -294,14 +294,14 @@ const PercentageDifference = () => {
 
   // Move to next exercise
   const handleNext = () => {
-    if (currentExerciseIndex < exercises.length - 1) {
+    if (currentExerciseIndex < 2) { // Limit to 3 questions (indexes 0, 1, 2)
       setCurrentExerciseIndex(prev => prev + 1);
       setSelectedAnswer(null);
       setShowAnswerDialog(false);
       setCurrentStep(0); // Reset step state for next question
       setCanTryAgain(true);
     } else {
-      setPhase('complete');
+      setPhase('complete'); // Finish after question 3
     }
   };
 
