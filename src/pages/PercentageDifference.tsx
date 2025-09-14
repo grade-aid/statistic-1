@@ -282,7 +282,10 @@ const PercentageDifference = () => {
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 2000);
       setCanTryAgain(false);
-      // Don't show dialog for correct answers
+      // Automatically advance to next question after showing confetti
+      setTimeout(() => {
+        handleNext();
+      }, 2000);
     } else {
       setCanTryAgain(false);
       setShowAnswerDialog(true); // Only show dialog for incorrect answers
