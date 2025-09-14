@@ -582,9 +582,8 @@ const Index = () => {
     return <div className="h-screen bg-background p-2 overflow-hidden flex flex-col">
         <div className="max-w-4xl mx-auto h-full flex flex-col">
           <div className="text-center mb-3 flex-shrink-0">
-            <div className="text-2xl md:text-3xl mb-2">🎉</div>
             <h2 className="text-xl md:text-2xl font-space-grotesk font-bold mb-2">
-              Mission Complete!
+              Collection Results
             </h2>
             <p className="text-sm md:text-base font-dm-sans">
               You collected {totalCollected} animals
