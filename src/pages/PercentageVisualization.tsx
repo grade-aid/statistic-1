@@ -359,6 +359,27 @@ const PercentageVisualization = () => {
           </Button>
         </div>
 
+        {/* Summary */}
+        <Card className="p-2 bg-white/90 backdrop-blur-sm text-center animate-fade-in flex-shrink-0">
+          <div className="flex items-center justify-center gap-1 mb-2">
+            <PieChart className="h-4 w-4 text-primary" />
+            <h3 className="text-sm font-bold">Learning Progress</h3>
+          </div>
+          <div className="grid grid-cols-3 gap-2 max-w-sm mx-auto">
+            <div className="text-center">
+              <div className="text-lg font-bold text-primary">{currentIndex + 1}/3</div>
+              <div className="text-xs text-muted-foreground">Concepts</div>
+            </div>
+            <div className="text-center">
+              <div className="text-lg font-bold text-primary">∞</div>
+              <div className="text-xs text-muted-foreground">Practice</div>
+            </div>
+            <div className="text-center">
+              <div className="text-lg font-bold text-primary">🎯</div>
+              <div className="text-xs text-muted-foreground">Mastery</div>
+            </div>
+          </div>
+        </Card>
       </div>
     </div>
   );

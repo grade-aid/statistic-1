@@ -521,8 +521,8 @@ const Learning = () => {
           <p className="text-muted-foreground mb-4">
             First, collect some animals to start learning! 
           </p>
-          <Button onClick={() => navigate('/whole-from-percentage')}>
-            🎮 Start Animal Collection Game
+          <Button onClick={() => navigate('/')}>
+            Go Collect Animals
           </Button>
         </Card>
       </div>
