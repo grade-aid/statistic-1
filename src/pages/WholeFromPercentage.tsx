@@ -48,11 +48,6 @@ interface DragDropQuestion {
   id: string;
   animalType: keyof GameState;
   equation: string;
-  correctDrops: {
-    animal: string;
-    total: string;
-    hundred: string;
-  };
 }
 
 interface DroppedItem {
@@ -269,19 +264,13 @@ const WholeFromPercentage = () => {
     const animalTypes = Object.keys(collected) as Array<keyof GameState>;
     const availableTypes = animalTypes.filter(type => collected[type] > 0);
     const questions: DragDropQuestion[] = [];
-    const totalCollected = Object.values(collected).reduce((sum, count) => sum + count, 0);
     
     for (let i = 0; i < Math.min(5, availableTypes.length); i++) {
       const animalType = availableTypes[i % availableTypes.length];
       questions.push({
         id: `dragdrop-${i}`,
         animalType,
-        equation: `? ÷ ? × ? = ${collected[animalType]}`,
-        correctDrops: {
-          animal: `${totalCollected}`,
-          total: `${Math.round((collected[animalType] / totalCollected) * 100)}%`,
-          hundred: "100"
-        }
+        equation: `? × ? = ?`
       });
     }
     return questions;
@@ -310,13 +299,16 @@ const WholeFromPercentage = () => {
     const currentQuestion = dragDropQuestions[currentDragDropIndex];
     if (!currentQuestion) return false;
 
-    const animalDrop = droppedItems.find(item => item.zone === 'animal');
     const totalDrop = droppedItems.find(item => item.zone === 'total');
-    const hundredDrop = droppedItems.find(item => item.zone === 'hundred');
+    const percentageDrop = droppedItems.find(item => item.zone === 'percentage');
+    const resultDrop = droppedItems.find(item => item.zone === 'result');
 
-    return animalDrop?.item === currentQuestion.correctDrops.animal &&
-           totalDrop?.item === currentQuestion.correctDrops.total &&
-           hundredDrop?.item === currentQuestion.correctDrops.hundred;
+    const percentageValue = Math.round((collected[currentQuestion.animalType] / totalCollected) * 100);
+    const animalCount = collected[currentQuestion.animalType];
+
+    return totalDrop?.item === totalCollected.toString() &&
+           percentageDrop?.item === `${percentageValue}% ${animalConfig[currentQuestion.animalType].emoji}` &&
+           resultDrop?.item === `${animalCount} ${animalConfig[currentQuestion.animalType].emoji}`;
   };
 
   const handleDragDropSubmit = () => {
@@ -615,12 +607,12 @@ const WholeFromPercentage = () => {
                   <div className="grid grid-cols-5 gap-4 items-center justify-items-center mb-4">
                     <div className="bg-purple-100 px-4 py-3 rounded-2xl border-2 border-purple-300 text-center min-w-[120px] shadow-sm">
                       <div className="text-sm font-semibold text-purple-600 mb-1">Total Animals</div>
-                      <div className="text-3xl font-bold text-purple-800">20</div>
+                      <div className="text-3xl font-bold text-purple-800">{totalCollected || 20}</div>
                     </div>
                     <div className="text-3xl text-gray-500 font-bold">×</div>
                     <div className="bg-purple-100 px-4 py-3 rounded-2xl border-2 border-purple-300 text-center min-w-[120px] shadow-sm">
                       <div className="text-sm font-semibold text-purple-600 mb-1">Percentage</div>
-                      <div className="text-3xl font-bold text-purple-800">40%</div>
+                      <div className="text-3xl font-bold text-purple-800">{examplePercentage}%</div>
                     </div>
                     <div className="text-3xl text-gray-500 font-bold">=</div>
                     <div className="bg-pink-100 px-4 py-3 rounded-2xl border-2 border-pink-300 text-center min-w-[120px] shadow-sm">
@@ -629,7 +621,7 @@ const WholeFromPercentage = () => {
                     </div>
                   </div>
                   <div className="text-lg text-gray-700 font-medium">
-                    If 40% of 20 animals are 🐘, how many 🐘?
+                    If {examplePercentage}% of {totalCollected || 20} animals are 🐘, how many 🐘?
                   </div>
                 </div>
               </div>
@@ -938,10 +930,11 @@ const WholeFromPercentage = () => {
                       {(() => {
                         const percentageValue = Math.round((collected[dragDropQuestions[currentDragDropIndex].animalType] / totalCollected) * 100);
                         const currentAnimal = dragDropQuestions[currentDragDropIndex].animalType;
+                        const animalCount = collected[currentAnimal];
                         return [
                           { id: totalCollected.toString(), label: `${totalCollected}`, color: 'bg-purple-200 border-purple-400' },
                           { id: `${percentageValue}%`, label: `${percentageValue}% ${animalConfig[currentAnimal].emoji}`, color: 'bg-pink-200 border-pink-400' },
-                          { id: '100', label: '100', color: 'bg-purple-200 border-purple-400' }
+                          { id: animalCount.toString(), label: `${animalCount} ${animalConfig[currentAnimal].emoji}`, color: 'bg-green-200 border-green-400' }
                         ];
                       })().map((item) => (
                         <div
@@ -960,29 +953,14 @@ const WholeFromPercentage = () => {
                   <div className="mb-6">
                     <h3 className="text-lg font-bold text-gray-700 mb-4">Complete the equation:</h3>
                     <div className="flex items-center justify-center gap-4 flex-wrap text-2xl font-bold">
-                      {/* Drop Zone 1 */}
-                      <div
-                        onDragOver={handleDragOver}
-                        onDrop={(e) => handleDrop(e, 'animal')}
-                        className={`w-20 h-16 border-4 border-dashed rounded-2xl flex items-center justify-center text-lg font-bold transition-all ${
-                          droppedItems.find(item => item.zone === 'animal') 
-                            ? 'bg-purple-100 border-purple-400 text-purple-700' 
-                            : 'border-gray-400 text-gray-400 hover:border-purple-400'
-                        }`}
-                      >
-                        {droppedItems.find(item => item.zone === 'animal')?.item || '?'}
-                      </div>
-                      
-                      <span className="text-gray-500">÷</span>
-                      
-                      {/* Drop Zone 2 */}
+                      {/* Total Drop Zone */}
                       <div
                         onDragOver={handleDragOver}
                         onDrop={(e) => handleDrop(e, 'total')}
                         className={`w-20 h-16 border-4 border-dashed rounded-2xl flex items-center justify-center text-lg font-bold transition-all ${
                           droppedItems.find(item => item.zone === 'total') 
-                            ? 'bg-pink-100 border-pink-400 text-pink-700' 
-                            : 'border-gray-400 text-gray-400 hover:border-pink-400'
+                            ? 'bg-purple-100 border-purple-400 text-purple-700' 
+                            : 'border-gray-400 text-gray-400 hover:border-purple-400'
                         }`}
                       >
                         {droppedItems.find(item => item.zone === 'total')?.item || '?'}
@@ -990,23 +968,32 @@ const WholeFromPercentage = () => {
                       
                       <span className="text-gray-500">×</span>
                       
-                      {/* Drop Zone 3 */}
+                      {/* Percentage Drop Zone */}
                       <div
                         onDragOver={handleDragOver}
-                        onDrop={(e) => handleDrop(e, 'hundred')}
-                        className={`w-20 h-16 border-4 border-dashed rounded-2xl flex items-center justify-center text-lg font-bold transition-all ${
-                          droppedItems.find(item => item.zone === 'hundred') 
-                            ? 'bg-purple-100 border-purple-400 text-purple-700' 
-                            : 'border-gray-400 text-gray-400 hover:border-purple-400'
+                        onDrop={(e) => handleDrop(e, 'percentage')}
+                        className={`w-24 h-16 border-4 border-dashed rounded-2xl flex items-center justify-center text-lg font-bold transition-all ${
+                          droppedItems.find(item => item.zone === 'percentage') 
+                            ? 'bg-pink-100 border-pink-400 text-pink-700' 
+                            : 'border-gray-400 text-gray-400 hover:border-pink-400'
                         }`}
                       >
-                        {droppedItems.find(item => item.zone === 'hundred')?.item || '?'}
+                        {droppedItems.find(item => item.zone === 'percentage')?.item || '?'}
                       </div>
                       
                       <span className="text-gray-500">=</span>
                       
-                      <div className="bg-pink-100 px-4 py-3 rounded-2xl border-2 border-pink-300">
-                        {collected[dragDropQuestions[currentDragDropIndex].animalType]} {animalConfig[dragDropQuestions[currentDragDropIndex].animalType].emoji}
+                      {/* Result Drop Zone */}
+                      <div
+                        onDragOver={handleDragOver}
+                        onDrop={(e) => handleDrop(e, 'result')}
+                        className={`w-24 h-16 border-4 border-dashed rounded-2xl flex items-center justify-center text-lg font-bold transition-all ${
+                          droppedItems.find(item => item.zone === 'result') 
+                            ? 'bg-green-100 border-green-400 text-green-700' 
+                            : 'border-gray-400 text-gray-400 hover:border-green-400'
+                        }`}
+                      >
+                        {droppedItems.find(item => item.zone === 'result')?.item || '?'}
                       </div>
                     </div>
                   </div>
