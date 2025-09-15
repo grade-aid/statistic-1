@@ -702,7 +702,6 @@ const WholeFromPercentage = () => {
                 {/* Tablet-Optimized Problem Layout */}
                 <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-2xl mb-6 flex-1 flex flex-col justify-center border-2 border-purple-100">
                   
-                  {/* Visual Problem Statement */}
                   <div className="grid grid-cols-5 gap-4 items-center justify-items-center mb-6">
                     <div className="bg-blue-100 px-4 py-4 rounded-2xl border-2 border-blue-300 text-center min-w-[100px] shadow-sm">
                       <div className="text-sm font-bold text-blue-600 mb-1">Total Animals</div>
@@ -726,10 +725,6 @@ const WholeFromPercentage = () => {
                         {showAnswer ? currentExercise.partCount : '?'}
                       </div>
                     </div>
-                  </div>
-                  
-                  <div className="text-xl font-medium text-gray-700 bg-white/80 px-6 py-3 rounded-2xl border shadow-sm">
-                    {currentExercise.wholeCount} total animals × {currentExercise.percentage}% = ? {animalConfig[currentExercise.targetType].emoji}
                   </div>
                 </div>
 
