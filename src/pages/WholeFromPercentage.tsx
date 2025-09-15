@@ -666,7 +666,7 @@ const WholeFromPercentage = () => {
 
   if (phase === 'learning') {
     return (
-      <div className="h-screen bg-gradient-to-br from-purple-50 to-pink-100 p-4 overflow-hidden flex flex-col">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 p-2 md:p-4 flex flex-col">
         <div className="max-w-4xl mx-auto">
           <Card className="p-6 mb-6 bg-white/80 backdrop-blur-sm">
             <h1 className="text-3xl font-bold text-center mb-6">
