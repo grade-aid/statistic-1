@@ -295,30 +295,27 @@ const WholeFromPercentage = () => {
       setDroppedItems(updatedDroppedItems);
       setDraggedItem(null);
 
-      // Auto-check answer when all 3 zones are filled
-      if (updatedDroppedItems.length === 3) {
+      // Auto-check answer when both total and percentage zones are filled
+      if (updatedDroppedItems.length === 2) {
         setTimeout(() => {
           const currentQuestion = dragDropQuestions[currentDragDropIndex];
           if (!currentQuestion) return;
 
           const totalDrop = updatedDroppedItems.find(item => item.zone === 'total');
           const percentageDrop = updatedDroppedItems.find(item => item.zone === 'percentage');
-          const resultDrop = updatedDroppedItems.find(item => item.zone === 'result');
 
           const percentageValue = Math.round((collected[currentQuestion.animalType] / totalCollected) * 100);
-          const animalCount = collected[currentQuestion.animalType];
 
           const isCorrect = totalDrop?.item === totalCollected.toString() &&
-                 percentageDrop?.item === `${percentageValue}% ${animalConfig[currentQuestion.animalType].emoji}` &&
-                 resultDrop?.item === `${animalCount} ${animalConfig[currentQuestion.animalType].emoji}`;
+                 percentageDrop?.item === `${percentageValue}% ${animalConfig[currentQuestion.animalType].emoji}`;
 
           if (isCorrect) {
             setCompletedDragDropQuestions(prev => [...prev, currentQuestion.id]);
             setShowConfetti(true);
             toast({
               title: "🎉 Perfect!",
-              description: "Correct equation!",
-              duration: 2000
+              description: `${totalCollected} × ${percentageValue}% = ${collected[currentQuestion.animalType]} ${animalConfig[currentQuestion.animalType].emoji}`,
+              duration: 3000
             });
 
             setTimeout(() => {
@@ -979,11 +976,9 @@ const WholeFromPercentage = () => {
                       {(() => {
                         const percentageValue = Math.round((collected[dragDropQuestions[currentDragDropIndex].animalType] / totalCollected) * 100);
                         const currentAnimal = dragDropQuestions[currentDragDropIndex].animalType;
-                        const animalCount = collected[currentAnimal];
                         return [
                           { id: totalCollected.toString(), label: `${totalCollected}`, color: 'bg-purple-200 border-purple-400' },
-                          { id: `${percentageValue}%`, label: `${percentageValue}% ${animalConfig[currentAnimal].emoji}`, color: 'bg-pink-200 border-pink-400' },
-                          { id: animalCount.toString(), label: `${animalCount} ${animalConfig[currentAnimal].emoji}`, color: 'bg-green-200 border-green-400' }
+                          { id: `${percentageValue}%`, label: `${percentageValue}% ${animalConfig[currentAnimal].emoji}`, color: 'bg-pink-200 border-pink-400' }
                         ];
                       })().map((item) => (
                         <div
@@ -1033,16 +1028,16 @@ const WholeFromPercentage = () => {
                       <span className="text-gray-500">=</span>
                       
                       {/* Result Drop Zone */}
-                      <div
-                        onDragOver={handleDragOver}
-                        onDrop={(e) => handleDrop(e, 'result')}
-                        className={`w-24 h-16 border-4 border-dashed rounded-2xl flex items-center justify-center text-lg font-bold transition-all ${
-                          droppedItems.find(item => item.zone === 'result') 
-                            ? 'bg-green-100 border-green-400 text-green-700' 
-                            : 'border-gray-400 text-gray-400 hover:border-green-400'
-                        }`}
-                      >
-                        {droppedItems.find(item => item.zone === 'result')?.item || '?'}
+                      <div className="bg-green-100 px-4 py-3 rounded-2xl border-2 border-green-300 text-center min-w-[120px]">
+                        <div className="text-sm font-semibold text-green-600 mb-1">Result</div>
+                        <div className="text-3xl font-bold text-green-800">
+                          {(droppedItems.length >= 2 && 
+                            droppedItems.find(item => item.zone === 'total') && 
+                            droppedItems.find(item => item.zone === 'percentage')) ? 
+                            `${collected[dragDropQuestions[currentDragDropIndex].animalType]} ${animalConfig[dragDropQuestions[currentDragDropIndex].animalType].emoji}` : 
+                            '?'
+                          }
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1050,26 +1045,26 @@ const WholeFromPercentage = () => {
 
                 {/* Result Display or Submit Button */}
                 <div className="space-y-4">
-                  {completedDragDropQuestions.includes(dragDropQuestions[currentDragDropIndex]?.id) ? (
-                    <div className="bg-gradient-to-r from-green-100 to-emerald-100 p-6 rounded-2xl border-2 border-green-200">
-                      <div className="text-3xl mb-2">🎉</div>
-                      <div className="text-xl font-bold text-green-700 mb-2">
-                        Excellent! Moving to next question...
-                      </div>
-                      <div className="text-sm text-green-600">
-                        {totalCollected} × {Math.round((collected[dragDropQuestions[currentDragDropIndex].animalType] / totalCollected) * 100)}% = {collected[dragDropQuestions[currentDragDropIndex].animalType]} {animalConfig[dragDropQuestions[currentDragDropIndex].animalType].emoji}
-                      </div>
+                {completedDragDropQuestions.includes(dragDropQuestions[currentDragDropIndex]?.id) ? (
+                  <div className="bg-gradient-to-r from-green-100 to-emerald-100 p-6 rounded-2xl border-2 border-green-200">
+                    <div className="text-3xl mb-2">🎉</div>
+                    <div className="text-xl font-bold text-green-700 mb-2">
+                      Excellent! Moving to next question...
                     </div>
-                  ) : droppedItems.length < 3 ? (
-                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-2xl border-2 border-blue-200">
-                      <div className="text-lg font-semibold text-blue-700">
-                        Drop all items to see the result!
-                      </div>
-                      <div className="text-sm text-blue-600 mt-1">
-                        {3 - droppedItems.length} more item{3 - droppedItems.length !== 1 ? 's' : ''} needed
-                      </div>
+                    <div className="text-sm text-green-600">
+                      {totalCollected} × {Math.round((collected[dragDropQuestions[currentDragDropIndex].animalType] / totalCollected) * 100)}% = {collected[dragDropQuestions[currentDragDropIndex].animalType]} {animalConfig[dragDropQuestions[currentDragDropIndex].animalType].emoji}
                     </div>
-                  ) : null}
+                  </div>
+                ) : droppedItems.length < 2 ? (
+                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-2xl border-2 border-blue-200">
+                    <div className="text-lg font-semibold text-blue-700">
+                      Drop both items to see the result!
+                    </div>
+                    <div className="text-sm text-blue-600 mt-1">
+                      {2 - droppedItems.length} more item{2 - droppedItems.length !== 1 ? 's' : ''} needed
+                    </div>
+                  </div>
+                ) : null}
                 </div>
               </div>
             </Card>
