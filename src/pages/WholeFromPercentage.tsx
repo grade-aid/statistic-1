@@ -483,6 +483,14 @@ const WholeFromPercentage = () => {
   }
 
   if (phase === 'intro') {
+    // Use actual collected data for the example
+    const animalTypes = Object.keys(collected) as Array<keyof GameState>;
+    const availableTypes = animalTypes.filter(type => collected[type] > 0);
+    const exampleType = availableTypes.sort((a, b) => collected[b] - collected[a])[0]; // Highest count
+    const exampleCount = collected[exampleType];
+    const examplePercentage = Math.round((exampleCount / totalCollected) * 100);
+    const exampleConfig = animalConfig[exampleType];
+    
     return (
       <div className="h-dvh bg-gradient-to-br from-purple-50 to-pink-100 p-2 md:p-4 overflow-hidden flex flex-col max-h-screen">
         <div className="max-w-4xl mx-auto flex-1 flex items-center justify-center min-h-0">
@@ -493,8 +501,12 @@ const WholeFromPercentage = () => {
               <div className={`transition-all duration-1000 ${showPartial ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
                 <div className="text-4xl md:text-6xl mb-2 md:mb-4">🔍</div>
                 <div className="bg-purple-100 p-3 md:p-4 rounded-xl mb-3 md:mb-4">
-                  <div className="text-2xl md:text-3xl mb-1 md:mb-2">🐘🐘🐘</div>
-                  <div className="text-3xl md:text-5xl font-bold text-purple-600">25%</div>
+                  <div className="text-2xl md:text-3xl mb-1 md:mb-2">
+                    {Array.from({ length: Math.min(exampleCount, 6) }, (_, i) => exampleConfig.emoji).join('')}
+                    {exampleCount > 6 && '...'}
+                  </div>
+                  <div className="text-3xl md:text-5xl font-bold text-purple-600">{examplePercentage}%</div>
+                  <div className="text-sm md:text-base text-purple-500">of your animals</div>
                 </div>
               </div>
 
@@ -502,13 +514,13 @@ const WholeFromPercentage = () => {
               <div className={`transition-all duration-1000 ${showCalculation ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
                 <div className="flex items-center justify-center gap-2 md:gap-4 text-2xl md:text-3xl mb-2 md:mb-4">
                   <div className="bg-purple-100 p-2 md:p-3 rounded-full animate-pulse">
-                    <span>🐘</span>
-                    <div className="text-sm md:text-base font-bold">3</div>
+                    <span>{exampleConfig.emoji}</span>
+                    <div className="text-sm md:text-base font-bold">{exampleCount}</div>
                   </div>
                   <div className="text-3xl md:text-4xl">÷</div>
                   <div className="bg-pink-100 p-2 md:p-3 rounded-full animate-pulse">
                     <span>📊</span>
-                    <div className="text-sm md:text-base font-bold">25%</div>
+                    <div className="text-sm md:text-base font-bold">{examplePercentage}%</div>
                   </div>
                   <div className="text-3xl md:text-4xl">=</div>
                   <div className="bg-yellow-100 p-2 md:p-3 rounded-full animate-bounce">
@@ -521,28 +533,61 @@ const WholeFromPercentage = () => {
               <div className={`transition-all duration-1000 ${showWhole ? 'opacity-100' : 'opacity-0'}`}>
                 <div className="flex justify-center mb-2 md:mb-4">
                   <svg className="w-40 h-40 md:w-48 md:h-48" viewBox="0 0 200 200">
-                    {/* Known part - 25% (elephants) */}
-                    <path
-                      d="M 100 100 L 100 10 A 90 90 0 0 1 190 100 Z"
-                      fill="#ef4444"
-                      stroke="white"
-                      strokeWidth="6"
-                      className="animate-pulse"
-                    />
-                    {/* Unknown parts expanding */}
-                    <path
-                      d="M 100 100 L 190 100 A 90 90 0 1 1 100 10 Z"
-                      fill="#06b6d4"
-                      stroke="white"
-                      strokeWidth="6"
-                      style={{
-                        strokeDasharray: showWhole ? 'none' : '400',
-                        strokeDashoffset: showWhole ? '0' : '400',
-                        transition: 'all 2s ease-in-out'
-                      }}
-                    />
-                    <text x="150" y="60" textAnchor="middle" className="text-2xl md:text-3xl">🐘</text>
-                    <text x="60" y="130" textAnchor="middle" className="text-2xl md:text-3xl">🐟</text>
+                    {(() => {
+                      let startAngle = 0;
+                      const radius = 90;
+                      const centerX = 100;
+                      const centerY = 100;
+                      
+                      return availableTypes.map((type, index) => {
+                        const count = collected[type];
+                        const percentage = (count / totalCollected) * 100;
+                        const angle = percentage / 100 * 360;
+                        const endAngle = startAngle + angle;
+                        
+                        const startAngleRad = startAngle * Math.PI / 180;
+                        const endAngleRad = endAngle * Math.PI / 180;
+                        
+                        const x1 = centerX + radius * Math.cos(startAngleRad);
+                        const y1 = centerY + radius * Math.sin(startAngleRad);
+                        const x2 = centerX + radius * Math.cos(endAngleRad);
+                        const y2 = centerY + radius * Math.sin(endAngleRad);
+                        const largeArcFlag = angle > 180 ? 1 : 0;
+                        const pathData = [`M ${centerX} ${centerY}`, `L ${x1} ${y1}`, `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`, 'Z'].join(' ');
+                        
+                        const config = animalConfig[type];
+                        const isExample = type === exampleType;
+                        
+                        // Calculate label position
+                        const labelAngle = (startAngle + endAngle) / 2;
+                        const labelRadius = radius * 0.7;
+                        const labelX = centerX + labelRadius * Math.cos(labelAngle * Math.PI / 180);
+                        const labelY = centerY + labelRadius * Math.sin(labelAngle * Math.PI / 180);
+                        
+                        const slice = (
+                          <g key={type}>
+                            <path 
+                              d={pathData} 
+                              fill={config.color} 
+                              stroke="white" 
+                              strokeWidth="6" 
+                              className={isExample ? 'animate-pulse' : ''}
+                              style={{
+                                strokeDasharray: showWhole ? 'none' : '400',
+                                strokeDashoffset: showWhole ? '0' : '400',
+                                transition: 'all 2s ease-in-out'
+                              }}
+                            />
+                            <text x={labelX} y={labelY} textAnchor="middle" className="text-2xl md:text-3xl pointer-events-none">
+                              {config.emoji}
+                            </text>
+                          </g>
+                        );
+                        
+                        startAngle = endAngle;
+                        return slice;
+                      });
+                    })()}
                   </svg>
                 </div>
               </div>
@@ -550,10 +595,18 @@ const WholeFromPercentage = () => {
               {/* Step 4: Show result */}
               <div className={`transition-all duration-1000 ${showResult ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
                 <div className="bg-gradient-to-r from-green-200 to-emerald-200 p-3 md:p-4 rounded-full inline-block animate-bounce">
-                  <div className="text-3xl md:text-5xl font-bold text-green-700">12</div>
+                  <div className="text-3xl md:text-5xl font-bold text-green-700">{totalCollected}</div>
                 </div>
                 <div className="text-2xl md:text-4xl mt-2">🎉</div>
-                <div className="text-lg md:text-2xl mt-1 overflow-hidden">🐘🐘🐘🐟🐟🐟🐟🐟🐟🐟🐟🐟</div>
+                <div className="text-lg md:text-2xl mt-1 overflow-hidden">
+                  {availableTypes.map(type => 
+                    Array.from({ length: Math.min(collected[type], 4) }, () => animalConfig[type].emoji).join('')
+                  ).join('')}
+                  {totalCollected > 20 && '...'}
+                </div>
+                <div className="text-sm md:text-base text-green-600 mt-2">
+                  Total animals you collected!
+                </div>
               </div>
 
               {/* Navigation */}
