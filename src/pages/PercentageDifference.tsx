@@ -45,13 +45,34 @@ interface DragDropQuestion {
   correctAnswer: number;
 }
 
+interface Hunter {
+  id: string;
+  position: { x: number; y: number };
+  emoji: string;
+  direction: 'up' | 'down' | 'left' | 'right';
+}
+
 interface DroppedItem {
   zone: string;
   item: string;
 }
 
-const GRID_SIZE = 12;
+const GRID_SIZE = 18;
 const TARGET_ITEMS = 9;
+
+// Responsive grid configuration optimized for tablet
+const getResponsiveCellSize = () => {
+  if (typeof window === 'undefined') return 20;
+  const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+  const vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
+  
+  // Optimize for tablet viewports (768px-1024px width)
+  if (vw >= 1024) return Math.min(26, Math.floor(vh / 32)); // Desktop with height constraint
+  if (vw >= 768) return Math.min(22, Math.floor(vh / 34));  // Tablet with height constraint
+  return Math.min(18, Math.floor(vh / 36)); // Mobile with height constraint
+};
+
+const getCellSize = () => getResponsiveCellSize();
 
 const PercentageDifference = () => {
   const navigate = useNavigate();
@@ -66,6 +87,8 @@ const PercentageDifference = () => {
   const [collectedPrices, setCollectedPrices] = useState<CollectedPrices>({});
   const [walls, setWalls] = useState<{ x: number; y: number }[]>([]);
   const [collectedCount, setCollectedCount] = useState(0);
+  const [lives, setLives] = useState(9);
+  const [hunters, setHunters] = useState<Hunter[]>([]);
 
   // Examples state
   const [currentExampleIndex, setCurrentExampleIndex] = useState(0);
@@ -109,17 +132,25 @@ const PercentageDifference = () => {
   // Generate walls for game grid
   const generateWalls = useCallback(() => {
     const newWalls: { x: number; y: number }[] = [];
+    // Generate maze-like walls
     for (let x = 0; x < GRID_SIZE; x++) {
       for (let y = 0; y < GRID_SIZE; y++) {
+        // Border walls
         if (x === 0 || x === GRID_SIZE - 1 || y === 0 || y === GRID_SIZE - 1) {
           newWalls.push({ x, y });
-        } else if (x % 3 === 0 && y % 3 === 0 && Math.random() > 0.5) {
+        }
+        // Internal maze walls
+        else if (x % 3 === 0 && y % 3 === 0 && Math.random() > 0.5) {
           newWalls.push({ x, y });
         }
       }
     }
     return newWalls;
   }, []);
+
+  const isWall = useCallback((pos: { x: number; y: number }) => {
+    return walls.some(wall => wall.x === pos.x && wall.y === pos.y);
+  }, [walls]);
 
   // Generate price items for collection
   const generatePriceItems = useCallback(() => {
@@ -166,61 +197,245 @@ const PercentageDifference = () => {
     return items;
   }, [walls]);
 
-  // Check if position is a wall
-  const isWall = (pos: { x: number; y: number }) => {
-    return walls.some(wall => wall.x === pos.x && wall.y === pos.y);
-  };
+  const generateHunters = useCallback((wallPositions: { x: number; y: number }[]) => {
+    const newHunters: Hunter[] = [];
+    const hunterEmojis = ['🐺', '🦖'];
+    
+    const isWallPosition = (pos: { x: number; y: number }) => {
+      return wallPositions.some(wall => wall.x === pos.x && wall.y === pos.y);
+    };
+    
+    for (let i = 0; i < 2; i++) {
+      let position: { x: number; y: number };
+      let attempts = 0;
+      do {
+        position = {
+          x: Math.floor(Math.random() * (GRID_SIZE - 2)) + 1,
+          y: Math.floor(Math.random() * (GRID_SIZE - 2)) + 1
+        };
+        attempts++;
+      } while ((position.x === 1 && position.y === 1 || isWallPosition(position) || 
+                newHunters.some(hunter => hunter.position.x === position.x && hunter.position.y === position.y)) 
+                && attempts < 50);
+      
+      newHunters.push({
+        id: `hunter-${i}`,
+        position,
+        emoji: hunterEmojis[i],
+        direction: ['up', 'down', 'left', 'right'][Math.floor(Math.random() * 4)] as any
+      });
+    }
+    setHunters(newHunters);
+  }, []);
 
   // Start game
   const startGame = () => {
+    setPlayerPosition({ x: 1, y: 1 });
+    setLives(9);
+    setCollectedPrices({});
+    setCollectedCount(0);
+    
+    // Generate walls first
     const newWalls = generateWalls();
     setWalls(newWalls);
     
-    // Generate items after walls are set
+    // Then generate items and hunters using the wall positions
     setTimeout(() => {
       const items = generatePriceItems();
       setPriceItems(items);
+      generateHunters(newWalls);
     }, 100);
     
-    setPlayerPosition({ x: 1, y: 1 });
-    setCollectedPrices({});
-    setCollectedCount(0);
     setPhase('collection');
   };
 
-  // Player movement
-  const movePlayer = useCallback((dx: number, dy: number) => {
+  // Player movement - updated to match Index.tsx
+  const movePlayer = useCallback((direction: string) => {
     if (phase !== 'collection') return;
     
     setPlayerPosition(prev => {
-      const newPos = {
-        x: Math.max(0, Math.min(GRID_SIZE - 1, prev.x + dx)),
-        y: Math.max(0, Math.min(GRID_SIZE - 1, prev.y + dy))
-      };
+      let newX = prev.x;
+      let newY = prev.y;
       
-      // Check if new position is a wall
-      if (isWall(newPos)) {
-        return prev; // Don't move if hitting a wall
+      switch (direction) {
+        case 'up':
+        case 'w':
+          newY = Math.max(0, prev.y - 1);
+          break;
+        case 'down':
+        case 's':
+          newY = Math.min(GRID_SIZE - 1, prev.y + 1);
+          break;
+        case 'left':
+        case 'a':
+          newX = Math.max(0, prev.x - 1);
+          break;
+        case 'right':
+        case 'd':
+          newX = Math.min(GRID_SIZE - 1, prev.x + 1);
+          break;
       }
       
+      const newPos = { x: newX, y: newY };
+
+      // Check for wall collision
+      if (isWall(newPos)) {
+        return prev;
+      }
       return newPos;
     });
-  }, [phase, walls]);
+  }, [phase, isWall]);
 
-  // Handle keyboard input
+  // Handle keyboard input - updated to match Index.tsx
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
-      switch(e.key) {
-        case 'ArrowUp': movePlayer(0, -1); break;
-        case 'ArrowDown': movePlayer(0, 1); break;
-        case 'ArrowLeft': movePlayer(-1, 0); break;
-        case 'ArrowRight': movePlayer(1, 0); break;
+      const key = e.key.toLowerCase();
+      if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'w', 'a', 's', 'd'].includes(key)) {
+        e.preventDefault();
+        const direction = key.replace('arrow', '');
+        movePlayer(direction);
       }
     };
-
+    
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [movePlayer]);
+
+  // Hunter movement AI - from Index.tsx
+  useEffect(() => {
+    if (phase !== 'collection' || hunters.length === 0) return;
+    
+    const interval = setInterval(() => {
+      setHunters(prevHunters => prevHunters.map(hunter => {
+        const directions = ['up', 'down', 'left', 'right'] as const;
+        let newPosition = { ...hunter.position };
+        let newDirection = hunter.direction;
+
+        // 60% chance to hunt player, 40% chance random movement
+        if (Math.random() < 0.6) {
+          // Calculate direction towards player
+          const dx = playerPosition.x - hunter.position.x;
+          const dy = playerPosition.y - hunter.position.y;
+
+          // Choose direction that gets closer to player
+          if (Math.abs(dx) > Math.abs(dy)) {
+            newDirection = dx > 0 ? 'right' : 'left';
+          } else if (dy !== 0) {
+            newDirection = dy > 0 ? 'down' : 'up';
+          }
+        } else {
+          // Random movement
+          newDirection = directions[Math.floor(Math.random() * directions.length)];
+        }
+
+        // Try to move in chosen direction
+        switch (newDirection) {
+          case 'up':
+            newPosition.y = Math.max(0, hunter.position.y - 1);
+            break;
+          case 'down':
+            newPosition.y = Math.min(GRID_SIZE - 1, hunter.position.y + 1);
+            break;
+          case 'left':
+            newPosition.x = Math.max(0, hunter.position.x - 1);
+            break;
+          case 'right':
+            newPosition.x = Math.min(GRID_SIZE - 1, hunter.position.x + 1);
+            break;
+        }
+
+        // If hit wall, try alternative direction or stay put
+        if (isWall(newPosition)) {
+          // Try perpendicular directions
+          const altDirections = newDirection === 'up' || newDirection === 'down' ? ['left', 'right'] : ['up', 'down'];
+          for (const altDir of altDirections) {
+            let altPos = { ...hunter.position };
+            switch (altDir) {
+              case 'up':
+                altPos.y = Math.max(0, hunter.position.y - 1);
+                break;
+              case 'down':
+                altPos.y = Math.min(GRID_SIZE - 1, hunter.position.y + 1);
+                break;
+              case 'left':
+                altPos.x = Math.max(0, hunter.position.x - 1);
+                break;
+              case 'right':
+                altPos.x = Math.min(GRID_SIZE - 1, hunter.position.x + 1);
+                break;
+            }
+            if (!isWall(altPos)) {
+              newPosition = altPos;
+              newDirection = altDir as any;
+              break;
+            }
+          }
+
+          // If all directions blocked, stay in place
+          if (isWall(newPosition)) {
+            newPosition = hunter.position;
+          }
+        }
+        
+        return {
+          ...hunter,
+          position: newPosition,
+          direction: newDirection
+        };
+      }));
+    }, 180); // Even faster movement for maximum difficulty
+
+    return () => clearInterval(interval);
+  }, [phase, hunters.length, isWall, playerPosition]);
+
+  // Check for hunter collision (player death) - from Index.tsx
+  useEffect(() => {
+    const hunterAtPosition = hunters.find(hunter => 
+      hunter.position.x === playerPosition.x && hunter.position.y === playerPosition.y
+    );
+    
+    if (hunterAtPosition && phase === 'collection') {
+      setLives(prev => {
+        const newLives = prev - 1;
+        if (newLives <= 0) {
+          // Game over
+          setPhase('start');
+          toast({
+            title: "💀 Game Over!",
+            description: "Better luck next time!",
+            duration: 3000
+          });
+        } else {
+          // Respawn player
+          setPlayerPosition({ x: 1, y: 1 });
+          toast({
+            title: `💔 Hit by ${hunterAtPosition.emoji}!`,
+            description: `${newLives} lives remaining`,
+            duration: 2000
+          });
+        }
+        return newLives;
+      });
+    }
+  const autoComplete = () => {
+    if (phase !== 'collection') return;
+    
+    // Collect all remaining items
+    const remainingItems = priceItems.filter(item => !item.collected);
+    remainingItems.forEach(item => {
+      setCollectedPrices(prev => ({ ...prev, [item.id]: item }));
+    });
+    
+    // Update count and mark items as collected
+    setCollectedCount(TARGET_ITEMS);
+    setPriceItems(prev => prev.map(item => ({ ...item, collected: true })));
+    
+    toast({
+      title: "🎉 Auto Complete!",
+      description: "All items collected automatically!",
+      duration: 2000
+    });
+  };
 
   // Check for item collection
   useEffect(() => {

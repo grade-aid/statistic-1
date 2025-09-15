@@ -55,9 +55,21 @@ interface DroppedItem {
   item: string;
 }
 
-const GRID_SIZE = 12; // Optimized grid for tablet viewports
+const GRID_SIZE = 18;
 
-// Remove dynamic sizing - use CSS instead
+// Responsive grid configuration optimized for tablet  
+const getResponsiveCellSize = () => {
+  if (typeof window === 'undefined') return 20;
+  const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+  const vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
+  
+  // Optimize for tablet viewports (768px-1024px width)
+  if (vw >= 1024) return Math.min(26, Math.floor(vh / 32)); // Desktop with height constraint
+  if (vw >= 768) return Math.min(22, Math.floor(vh / 34));  // Tablet with height constraint
+  return Math.min(18, Math.floor(vh / 36)); // Mobile with height constraint
+};
+
+const getCellSize = () => getResponsiveCellSize();
 
 const WholeFromPercentage = () => {
   const { toast } = useToast();
