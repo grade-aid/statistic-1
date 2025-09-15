@@ -44,7 +44,7 @@ interface WholeExercise {
   id: string;
 }
 
-const GRID_SIZE = 20;
+const GRID_SIZE = 15; // Smaller grid for tablet optimization
 
 // Remove dynamic sizing - use CSS instead
 
@@ -463,13 +463,13 @@ const WholeFromPercentage = () => {
   // Render different phases
   if (phase === 'start') {
     return (
-      <div className="h-screen bg-gradient-to-br from-purple-50 to-pink-100 flex items-center justify-center p-4 overflow-hidden">
-        <Card className="p-6 text-center w-full max-w-md">
-          <div className="text-4xl mb-4">🔍</div>
-          <h1 className="text-2xl font-bold mb-3">🐘 Find the Whole Game</h1>
-          <p className="text-base text-muted-foreground mb-4">Collect animals, then find the whole from parts!</p>
-          <Button onClick={startGame} className="w-full text-lg py-3">
-            <Play className="mr-2 h-4 w-4" />
+      <div className="h-dvh bg-gradient-to-br from-purple-50 to-pink-100 flex items-center justify-center p-4 max-h-screen overflow-hidden">
+        <Card className="p-6 lg:p-8 text-center w-full max-w-lg shadow-lg rounded-2xl">
+          <div className="text-5xl lg:text-6xl mb-4">🔍</div>
+          <h1 className="text-2xl lg:text-3xl font-bold mb-3 text-gray-800">🐘 Find the Whole Game</h1>
+          <p className="text-lg text-muted-foreground mb-6">Collect animals, then find the whole from parts!</p>
+          <Button onClick={startGame} className="w-full text-lg lg:text-xl py-4 px-6 h-12 lg:h-14 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+            <Play className="mr-2 h-5 w-5" />
             Start Adventure
           </Button>
         </Card>
@@ -487,146 +487,136 @@ const WholeFromPercentage = () => {
     const exampleConfig = animalConfig[exampleType];
     
     return (
-      <div className="h-dvh bg-gradient-to-br from-purple-50 to-pink-100 p-2 md:p-4 overflow-hidden flex flex-col max-h-screen">
-        <div className="max-w-4xl mx-auto flex-1 flex items-center justify-center min-h-0">
-          <Card className="p-4 md:p-8 bg-white/90 backdrop-blur-sm w-full max-h-full overflow-y-auto">
-            <div className="text-center space-y-4 md:space-y-6">
+      <div className="h-dvh bg-gradient-to-br from-purple-50 to-pink-100 p-3 lg:p-4 overflow-hidden flex items-center justify-center max-h-screen">
+        <Card className="p-4 lg:p-6 bg-white/90 backdrop-blur-sm w-full max-w-4xl shadow-xl rounded-2xl max-h-full overflow-hidden">
+          <div className="text-center space-y-3 lg:space-y-4 h-full flex flex-col justify-center">
+            
+            {/* Compact Learning Goal */}
+            <div className={`transition-all duration-1000 ${showPartial ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
+              <div className="text-3xl lg:text-4xl mb-2">🔍</div>
+              <h3 className="text-xl lg:text-2xl font-bold text-purple-800 mb-2">🎯 Learning Goal</h3>
+              <div className="text-base lg:text-lg text-purple-700 mb-3">
+                Find the number from percentage
+              </div>
               
-              {/* Step 1: Show partial pie (known part) */}
-              <div className={`transition-all duration-1000 ${showPartial ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
-                <div className="text-4xl md:text-6xl mb-2 md:mb-4">🔍</div>
-                <div className="bg-gradient-to-r from-purple-100 to-pink-100 p-4 md:p-6 rounded-xl mb-3 md:mb-4 border-2 border-purple-200">
-                  <div className="text-center mb-4">
-                    <h3 className="text-xl md:text-2xl font-bold text-purple-800 mb-2">🎯 Learning Goal</h3>
-                    <div className="text-lg md:text-xl text-purple-700 mb-3">
-                      Find the number from percentage
-                    </div>
+              {/* Compact Visual Example */}
+              <div className="bg-gradient-to-r from-purple-100 to-pink-100 p-3 lg:p-4 rounded-xl border-2 border-purple-200">
+                <div className="grid grid-cols-5 gap-2 lg:gap-3 items-center justify-items-center mb-3">
+                  <div className="bg-blue-100 px-2 lg:px-3 py-2 rounded-lg border border-blue-300 text-center">
+                    <div className="text-xs font-semibold text-blue-600">Total</div>
+                    <div className="text-lg lg:text-xl font-bold text-blue-800">20</div>
                   </div>
-                  
-                  {/* Visual Example */}
-                  <div className="bg-white p-4 rounded-lg shadow-sm">
-                    <div className="flex items-center justify-center gap-4 mb-4 flex-wrap">
-                      <div className="bg-blue-100 px-4 py-3 rounded-lg border-2 border-blue-300">
-                        <div className="text-sm font-semibold text-blue-600">Total Animals</div>
-                        <div className="text-3xl font-bold text-blue-800">20</div>
-                      </div>
-                      <div className="text-2xl text-gray-500">×</div>
-                      <div className="bg-purple-100 px-4 py-3 rounded-lg border-2 border-purple-300">
-                        <div className="text-sm font-semibold text-purple-600">Percentage</div>
-                        <div className="text-3xl font-bold text-purple-800">40%</div>
-                      </div>
-                      <div className="text-2xl text-gray-500">=</div>
-                      <div className="bg-green-100 px-4 py-3 rounded-lg border-2 border-green-300">
-                        <div className="text-sm font-semibold text-green-600">🐘 Animals</div>
-                        <div className="text-3xl font-bold text-green-800">?</div>
-                      </div>
-                    </div>
-                    
-                    <div className="text-center">
-                      <div className="text-lg text-gray-700 mb-2">
-                        If 40% of your 20 animals are 🐘
-                      </div>
-                      <div className="text-xl font-bold text-purple-700">
-                        How many 🐘 do you have?
-                      </div>
-                    </div>
+                  <div className="text-lg lg:text-xl text-gray-500">×</div>
+                  <div className="bg-purple-100 px-2 lg:px-3 py-2 rounded-lg border border-purple-300 text-center">
+                    <div className="text-xs font-semibold text-purple-600">%</div>
+                    <div className="text-lg lg:text-xl font-bold text-purple-800">40%</div>
+                  </div>
+                  <div className="text-lg lg:text-xl text-gray-500">=</div>
+                  <div className="bg-green-100 px-2 lg:px-3 py-2 rounded-lg border border-green-300 text-center">
+                    <div className="text-xs font-semibold text-green-600">🐘</div>
+                    <div className="text-lg lg:text-xl font-bold text-green-800">?</div>
                   </div>
                 </div>
-              </div>
-
-              {/* Step 2: Show calculation process */}
-              <div className={`transition-all duration-1000 ${showCalculation ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
-                <div className="flex items-center justify-center gap-2 md:gap-4 text-2xl md:text-3xl mb-2 md:mb-4">
-                  <div className="bg-purple-100 p-2 md:p-3 rounded-full animate-pulse">
-                    <span>🎯</span>
-                    <div className="text-sm md:text-base font-bold">{totalCollected}</div>
-                  </div>
-                  <div className="text-3xl md:text-4xl">×</div>
-                  <div className="bg-pink-100 p-2 md:p-3 rounded-full animate-pulse">
-                    <span>📊</span>
-                    <div className="text-sm md:text-base font-bold">{examplePercentage}%</div>
-                  </div>
-                  <div className="text-3xl md:text-4xl">=</div>
-                  <div className="bg-yellow-100 p-2 md:p-3 rounded-full animate-bounce">
-                    <span>❓</span>
-                  </div>
+                <div className="text-sm lg:text-base text-gray-700">
+                  If 40% of 20 animals are 🐘, how many 🐘?
                 </div>
-                <div className="text-sm md:text-base text-gray-600">
-                  Formula: Whole × Percentage = Part
-                </div>
-              </div>
-
-              {/* Step 4: Show result */}
-              <div className={`transition-all duration-1000 ${showResult ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
-                <div className="bg-gradient-to-r from-green-200 to-emerald-200 p-3 md:p-4 rounded-full inline-block animate-bounce">
-                  <div className="text-3xl md:text-5xl font-bold text-green-700">8 🐘</div>
-                </div>
-                <div className="text-2xl md:text-4xl mt-2">🎉</div>
-              </div>
-
-              {/* Navigation */}
-              <div className="flex gap-2 md:gap-4 justify-center mt-4 md:mt-6">
-                <Button 
-                  onClick={() => setPhase('start')} 
-                  variant="outline"
-                  className="text-sm md:text-base py-2 px-3 md:py-3 md:px-6"
-                >
-                  ← Back
-                </Button>
-                <Button 
-                  onClick={() => {
-                    const newExercises = generateExercises();
-                    setExercises(newExercises);
-                    setCurrentExercise(newExercises[0] || null);
-                    setPhase('learning');
-                  }} 
-                  className="text-sm md:text-lg py-2 px-4 md:py-3 md:px-6 bg-purple-600 hover:bg-purple-700"
-                >
-                  🚀 Start Learning
-                </Button>
               </div>
             </div>
-          </Card>
-        </div>
+
+            {/* Compact calculation */}
+            <div className={`transition-all duration-1000 ${showCalculation ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
+              <div className="flex items-center justify-center gap-2 lg:gap-3 text-lg lg:text-xl mb-2">
+                <div className="bg-purple-100 px-2 py-1 rounded-full animate-pulse">
+                  <span className="text-sm lg:text-base">🎯 {totalCollected}</span>
+                </div>
+                <span>×</span>
+                <div className="bg-pink-100 px-2 py-1 rounded-full animate-pulse">
+                  <span className="text-sm lg:text-base">📊 {examplePercentage}%</span>
+                </div>
+                <span>=</span>
+                <div className="bg-yellow-100 px-2 py-1 rounded-full animate-bounce">
+                  <span className="text-sm lg:text-base">❓</span>
+                </div>
+              </div>
+              <div className="text-xs lg:text-sm text-gray-600">Whole × Percentage = Part</div>
+            </div>
+
+            {/* Compact result */}
+            <div className={`transition-all duration-1000 ${showResult ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
+              <div className="bg-gradient-to-r from-green-200 to-emerald-200 px-4 py-2 rounded-full inline-block animate-bounce">
+                <div className="text-2xl lg:text-3xl font-bold text-green-700">8 🐘</div>
+              </div>
+              <div className="text-xl lg:text-2xl mt-1">🎉</div>
+            </div>
+
+            {/* Compact Navigation */}
+            <div className="flex gap-3 justify-center mt-4">
+              <Button 
+                onClick={() => setPhase('start')} 
+                variant="outline"
+                className="text-base py-3 px-4 h-12 rounded-xl"
+              >
+                ← Back
+              </Button>
+              <Button 
+                onClick={() => {
+                  const newExercises = generateExercises();
+                  setExercises(newExercises);
+                  setCurrentExercise(newExercises[0] || null);
+                  setPhase('learning');
+                }} 
+                className="text-base lg:text-lg py-3 px-6 h-12 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+              >
+                🚀 Start Learning
+              </Button>
+            </div>
+          </div>
+        </Card>
       </div>
     );
   }
 
   if (phase === 'collection') {
     return (
-      <div className="h-screen bg-gradient-to-br from-purple-50 to-pink-100 p-4 overflow-hidden flex flex-col">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-4">
-            <h2 className="text-2xl font-bold mb-2">🔍 Collect Animals for Whole Number Learning</h2>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-2">
-              <div className="flex items-center gap-1">
+      <div className="h-dvh bg-gradient-to-br from-purple-50 to-pink-100 p-3 lg:p-4 overflow-hidden flex flex-col max-h-screen">
+        <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full">
+          
+          {/* Compact Header */}
+          <div className="text-center mb-3">
+            <h2 className="text-lg lg:text-xl font-bold mb-2 text-gray-800">🔍 Collect Animals</h2>
+            
+            <div className="flex flex-wrap items-center justify-center gap-3 lg:gap-4 mb-2">
+              <div className="flex items-center gap-0.5">
                 {Array.from({ length: 9 }, (_, i) => (
-                  <span key={i} className="text-lg">
+                  <span key={i} className="text-sm lg:text-base">
                     {i < lives ? '❤️' : '🖤'}
                   </span>
                 ))}
               </div>
-              <p className="text-lg">
-                {totalCollected} / {totalTarget} animals
-              </p>
+              <div className="bg-white/80 px-3 py-1 rounded-full border">
+                <span className="text-sm lg:text-base font-semibold">
+                  {totalCollected} / {totalTarget}
+                </span>
+              </div>
               <Button 
                 onClick={autoComplete} 
                 variant="outline" 
                 size="sm"
-                className="text-sm"
+                className="text-xs lg:text-sm px-2 py-1 h-8 rounded-lg"
                 disabled={animals.length === 0}
               >
-                Auto Complete
+                Skip
               </Button>
             </div>
           </div>
 
-          <div className="flex justify-center">
-            <Card className="w-full max-w-2xl mx-auto">
-              <div className="relative bg-muted rounded-xl p-4 aspect-square">
+          {/* Optimized Game Grid */}
+          <div className="flex-1 flex justify-center items-center min-h-0">
+            <Card className="w-full aspect-square max-w-md lg:max-w-lg shadow-lg rounded-2xl overflow-hidden">
+              <div className="relative bg-muted h-full p-2">
                 <div 
                   className="grid gap-px relative w-full h-full"
-                  style={{ gridTemplateColumns: 'repeat(20, minmax(0, 1fr))' }}
+                  style={{ gridTemplateColumns: `repeat(${GRID_SIZE}, minmax(0, 1fr))` }}
                 >
                   {Array.from({ length: GRID_SIZE * GRID_SIZE }, (_, index) => {
                     const x = index % GRID_SIZE;
@@ -640,14 +630,15 @@ const WholeFromPercentage = () => {
                       <div
                         key={index}
                         className={`
-                          border border-border/20 flex items-center justify-center text-lg
+                          border border-border/20 flex items-center justify-center text-xs lg:text-sm
                           ${isWallCell ? 'bg-stone-600' : 'bg-background/50'}
+                          transition-colors hover:bg-background/70
                         `}
                         style={{ aspectRatio: '1' }}
                       >
-                        {isPlayer && <span className="text-xl">🧑</span>}
-                        {animal && <span className="text-xl">{animal.emoji}</span>}
-                        {hunter && <span className="text-xl">{hunter.emoji}</span>}
+                        {isPlayer && <span className="text-sm lg:text-base">🧑</span>}
+                        {animal && <span className="text-sm lg:text-base">{animal.emoji}</span>}
+                        {hunter && <span className="text-sm lg:text-base">{hunter.emoji}</span>}
                       </div>
                     );
                   })}
@@ -656,8 +647,11 @@ const WholeFromPercentage = () => {
             </Card>
           </div>
 
-          <div className="text-center mt-4">
-            <p className="text-sm text-muted-foreground">Use WASD or arrow keys to move • Avoid hunters • Collect all animals!</p>
+          {/* Compact Controls */}
+          <div className="text-center mt-2">
+            <p className="text-xs lg:text-sm text-muted-foreground">
+              Use WASD or arrow keys • Avoid hunters • Collect all animals!
+            </p>
           </div>
         </div>
       </div>
@@ -666,134 +660,127 @@ const WholeFromPercentage = () => {
 
   if (phase === 'learning') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 p-2 md:p-4 flex flex-col">
-        <div className="max-w-4xl mx-auto">
-          <Card className="p-6 mb-6 bg-white/80 backdrop-blur-sm">
-            <h1 className="text-3xl font-bold text-center mb-6">
-              🧮 Find the Part from Percentage
-            </h1>
-            <div className="text-center text-lg text-gray-600">
-              Progress: {completedExercises.length} / {exercises.length} completed
+      <div className="h-dvh bg-gradient-to-br from-purple-50 to-pink-100 p-3 lg:p-4 overflow-hidden flex flex-col max-h-screen">
+        <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full min-h-0">
+          
+          {/* Compact Header */}
+          <Card className="p-3 lg:p-4 mb-3 bg-white/80 backdrop-blur-sm shadow-md rounded-xl">
+            <div className="flex items-center justify-between">
+              <h1 className="text-lg lg:text-xl font-bold text-gray-800">
+                🧮 Find the Part from %
+              </h1>
+              <div className="text-sm lg:text-base text-gray-600 bg-purple-100 px-3 py-1 rounded-full">
+                {completedExercises.length} / {exercises.length}
+              </div>
             </div>
           </Card>
 
           {currentExercise && (
-            <Card className="p-8 text-center">
-              
-              {/* Current Animal Display */}
-              <div className="mb-8">
-                <div className="text-6xl mb-4">
-                  {animalConfig[currentExercise.targetType].emoji}
-                </div>
-                <h2 className="text-3xl font-bold mb-6 text-gray-700">
-                  How many {animalConfig[currentExercise.targetType].emoji} animals?
-                </h2>
-              </div>
-
-              {/* Problem Statement */}
-              <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-8 rounded-xl mb-8">
-                <div className="text-xl text-gray-600 mb-4">
-                  You collected <span className="font-bold text-blue-600">{currentExercise.wholeCount}</span> total animals
-                </div>
-                <div className="text-xl text-gray-600 mb-6">
-                  <span className="font-bold text-purple-600">{currentExercise.percentage}%</span> of them are {animalConfig[currentExercise.targetType].emoji}
-                </div>
+            <Card className="flex-1 p-4 lg:p-6 text-center shadow-lg rounded-2xl overflow-hidden">
+              <div className="h-full flex flex-col justify-between">
                 
-                {/* Visual Representation */}
-                <div className="bg-white p-6 rounded-lg mb-6">
-                  <div className="flex items-center justify-center gap-2 mb-4 flex-wrap">
-                    <span className="text-4xl flex-shrink-0">🎯</span>
-                    <span className="text-2xl text-blue-600 font-bold mx-2">{currentExercise.wholeCount} total</span>
-                    <span className="text-3xl text-gray-400 mx-4 flex-shrink-0">×</span>
-                    <span className="text-2xl text-purple-600 font-bold mx-2">{currentExercise.percentage}%</span>
-                    <span className="text-3xl text-gray-400 mx-4 flex-shrink-0">= ?</span>
+                {/* Animal & Question - Compact */}
+                <div className="mb-4">
+                  <div className="text-3xl lg:text-4xl mb-2">
+                    {animalConfig[currentExercise.targetType].emoji}
                   </div>
-                  <div className="text-lg text-gray-600">
-                    How many {animalConfig[currentExercise.targetType].emoji} animals?
+                  <h2 className="text-base lg:text-lg font-bold text-gray-700 mb-3">
+                    How many {animalConfig[currentExercise.targetType].emoji}?
+                  </h2>
+                </div>
+
+                {/* Compact Problem Layout */}
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-3 lg:p-4 rounded-xl mb-4 flex-1 flex flex-col justify-center">
+                  
+                  {/* Problem Statement */}
+                  <div className="grid grid-cols-3 lg:grid-cols-5 gap-2 lg:gap-3 items-center justify-items-center mb-3">
+                    <div className="bg-blue-100 px-2 lg:px-3 py-2 rounded-lg border text-center">
+                      <div className="text-xs font-semibold text-blue-600">Total</div>
+                      <div className="text-lg lg:text-xl font-bold text-blue-800">{currentExercise.wholeCount}</div>
+                    </div>
+                    <div className="text-lg lg:text-xl text-gray-500">×</div>
+                    <div className="bg-purple-100 px-2 lg:px-3 py-2 rounded-lg border text-center">
+                      <div className="text-xs font-semibold text-purple-600">%</div>
+                      <div className="text-lg lg:text-xl font-bold text-purple-800">{currentExercise.percentage}%</div>
+                    </div>
+                    <div className="text-lg lg:text-xl text-gray-500 hidden lg:block">=</div>
+                    <div className={`px-2 lg:px-3 py-2 rounded-lg border text-center transition-all ${
+                      showAnswer 
+                        ? 'bg-green-100 border-green-300' 
+                        : 'bg-gray-100 border-gray-300'
+                    } ${!showAnswer ? 'lg:col-start-4 col-start-2' : ''}`}>
+                      <div className="text-xs font-semibold text-gray-600">Answer</div>
+                      <div className={`text-lg lg:text-xl font-bold ${
+                        showAnswer ? 'text-green-800' : 'text-gray-500'
+                      }`}>
+                        {showAnswer ? currentExercise.partCount : '?'}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="text-sm lg:text-base text-gray-600 mb-2">
+                    {currentExercise.wholeCount} total × {currentExercise.percentage}% = ? {animalConfig[currentExercise.targetType].emoji}
                   </div>
                 </div>
 
-                {/* Calculation */}
-                <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-6 rounded-lg">
-                  <div className="text-2xl font-bold text-gray-700 mb-4">Calculation:</div>
-                  <div className="flex items-center justify-center gap-6 text-4xl font-bold">
-                    <div className="bg-blue-200 text-blue-800 px-6 py-3 rounded-lg">
-                      {currentExercise.wholeCount}
+                {/* Action Button */}
+                <div className="space-y-3">
+                  {!showAnswer && (
+                    <Button 
+                      onClick={() => {
+                        setShowAnswer(true);
+                        setShowConfetti(true);
+                        setCompletedExercises(prev => [...prev, currentExercise.id]);
+                        
+                        toast({
+                          title: "🎉 Correct!",
+                          description: `${currentExercise.wholeCount} × ${currentExercise.percentage}% = ${currentExercise.partCount}`,
+                          duration: 3000
+                        });
+                      }}
+                      className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white text-base lg:text-lg py-3 px-6 h-12 lg:h-14 rounded-xl w-full"
+                    >
+                      Calculate Answer
+                    </Button>
+                  )}
+
+                  {/* Compact Answer Display */}
+                  {showAnswer && (
+                    <div className="space-y-3">
+                      <div className="bg-green-50 p-3 lg:p-4 rounded-lg border border-green-200">
+                        <div className="text-lg lg:text-xl font-bold text-green-700 mb-1">
+                          🎉 {currentExercise.partCount} {animalConfig[currentExercise.targetType].emoji}
+                        </div>
+                        <div className="text-sm lg:text-base text-green-600 mb-2">
+                          {currentExercise.wholeCount} × {currentExercise.percentage}% = {currentExercise.partCount}
+                        </div>
+                        <div className="text-lg lg:text-xl">
+                          {Array.from({ length: Math.min(currentExercise.partCount, 8) }, (_, i) => animalConfig[currentExercise.targetType].emoji).join('')}
+                          {currentExercise.partCount > 8 && '...'}
+                        </div>
+                      </div>
+
+                      <Button 
+                        onClick={() => {
+                          setShowAnswer(false);
+                          setShowConfetti(false);
+                          
+                          const nextExercise = exercises.find(ex => !completedExercises.includes(ex.id) && ex.id !== currentExercise.id);
+                          if (nextExercise) {
+                            setCurrentExercise(nextExercise);
+                          } else {
+                            setPhase('complete');
+                          }
+                        }}
+                        className="bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white text-base lg:text-lg py-3 px-6 h-12 lg:h-14 rounded-xl w-full"
+                      >
+                        {exercises.find(ex => !completedExercises.includes(ex.id) && ex.id !== currentExercise.id) ? 
+                          'Next Animal →' : 'Complete! 🎊'}
+                      </Button>
                     </div>
-                    <span className="text-gray-600">×</span>
-                    <div className="bg-purple-200 text-purple-800 px-6 py-3 rounded-lg">
-                      {currentExercise.percentage}%
-                    </div>
-                    <span className="text-gray-600">=</span>
-                    <div className={`px-6 py-3 rounded-lg transition-all ${
-                      showAnswer 
-                        ? 'bg-green-200 text-green-800' 
-                        : 'bg-gray-200 text-gray-500'
-                    }`}>
-                      {showAnswer ? currentExercise.partCount : '?'}
-                    </div>
-                  </div>
+                  )}
                 </div>
               </div>
-
-              {/* Calculate Button */}
-              {!showAnswer && (
-                <Button 
-                  onClick={() => {
-                    setShowAnswer(true);
-                    setShowConfetti(true);
-                    setCompletedExercises(prev => [...prev, currentExercise.id]);
-                    
-                    toast({
-                      title: "🎉 Correct!",
-                      description: `${currentExercise.wholeCount} × ${currentExercise.percentage}% = ${currentExercise.partCount}`,
-                      duration: 3000
-                    });
-                  }}
-                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white text-2xl py-6 px-12 rounded-xl"
-                >
-                  Calculate the Answer
-                </Button>
-              )}
-
-              {/* Answer Display */}
-              {showAnswer && (
-                <div className="space-y-6">
-                  <div className="bg-green-50 p-6 rounded-lg border-2 border-green-200">
-                    <div className="text-3xl font-bold text-green-700 mb-4">
-                      🎉 Answer: {currentExercise.partCount} {animalConfig[currentExercise.targetType].emoji} animals!
-                    </div>
-                    <div className="text-xl text-green-600 mb-4">
-                      {currentExercise.wholeCount} × {currentExercise.percentage}% = {currentExercise.partCount}
-                    </div>
-                    <div className="text-lg text-gray-600">
-                      So out of <span className="font-bold">{currentExercise.wholeCount}</span> total animals, <span className="font-bold">{currentExercise.partCount}</span> are {animalConfig[currentExercise.targetType].emoji}
-                    </div>
-                    <div className="text-2xl md:text-3xl mb-1 md:mb-2">
-                      {Array.from({ length: Math.min(currentExercise.partCount, 12) }, (_, i) => animalConfig[currentExercise.targetType].emoji).join('')}
-                      {currentExercise.partCount > 12 && '...'}
-                    </div>
-                  </div>
-
-                  <Button 
-                    onClick={() => {
-                      setShowAnswer(false);
-                      setShowConfetti(false);
-                      
-                      const nextExercise = exercises.find(ex => !completedExercises.includes(ex.id) && ex.id !== currentExercise.id);
-                      if (nextExercise) {
-                        setCurrentExercise(nextExercise);
-                      } else {
-                        setPhase('complete');
-                      }
-                    }}
-                    className="bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white text-xl py-4 px-8"
-                  >
-                    {exercises.find(ex => !completedExercises.includes(ex.id) && ex.id !== currentExercise.id) ? 
-                      'Next Animal →' : 'Complete! 🎊'}
-                  </Button>
-                </div>
-              )}
             </Card>
           )}
         </div>
@@ -805,18 +792,18 @@ const WholeFromPercentage = () => {
 
   if (phase === 'complete') {
     return (
-      <div className="h-screen bg-gradient-to-br from-purple-50 to-pink-100 flex items-center justify-center p-4 overflow-hidden">
-        <Card className="p-8 text-center w-full max-w-md">
-          <div className="text-6xl mb-6">🎊</div>
-          <h2 className="text-2xl font-bold text-green-700 mb-4">
+      <div className="h-dvh bg-gradient-to-br from-purple-50 to-pink-100 flex items-center justify-center p-4 overflow-hidden max-h-screen">
+        <Card className="p-6 lg:p-8 text-center w-full max-w-lg shadow-xl rounded-2xl">
+          <div className="text-4xl lg:text-5xl mb-4">🎊</div>
+          <h2 className="text-xl lg:text-2xl font-bold text-green-700 mb-3">
             Whole Number Mastery Complete!
           </h2>
-          <p className="text-lg text-green-600 mb-6">
-            You've mastered finding parts from percentages using your collected animals!
+          <p className="text-base lg:text-lg text-green-600 mb-6">
+            You've mastered finding parts from percentages!
           </p>
           <Button 
             onClick={() => navigate('/percentage-difference')}
-            className="w-full text-xl py-4 bg-green-600 hover:bg-green-700"
+            className="w-full text-lg lg:text-xl py-4 px-6 h-14 rounded-xl bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
           >
             Next Challenge <ArrowRight className="w-5 h-5 ml-2" />
           </Button>
