@@ -50,8 +50,15 @@ interface DroppedItem {
   item: string;
 }
 
-const GRID_SIZE = 12;
+const GRID_SIZE = 16;
 const TARGET_ITEMS = 9;
+
+interface Hunter {
+  id: string;
+  position: { x: number; y: number };
+  emoji: string;
+  direction: 'up' | 'down' | 'left' | 'right';
+}
 
 const PercentageDifference = () => {
   const navigate = useNavigate();
@@ -65,6 +72,8 @@ const PercentageDifference = () => {
   const [priceItems, setPriceItems] = useState<PriceItem[]>([]);
   const [collectedPrices, setCollectedPrices] = useState<CollectedPrices>({});
   const [walls, setWalls] = useState<{ x: number; y: number }[]>([]);
+  const [hunters, setHunters] = useState<Hunter[]>([]);
+  const [lives, setLives] = useState(9);
   const [collectedCount, setCollectedCount] = useState(0);
 
   // Examples state
@@ -111,9 +120,15 @@ const PercentageDifference = () => {
     const newWalls: { x: number; y: number }[] = [];
     for (let x = 0; x < GRID_SIZE; x++) {
       for (let y = 0; y < GRID_SIZE; y++) {
+        // Border walls
         if (x === 0 || x === GRID_SIZE - 1 || y === 0 || y === GRID_SIZE - 1) {
           newWalls.push({ x, y });
-        } else if (x % 3 === 0 && y % 3 === 0 && Math.random() > 0.5) {
+        } 
+        // More obstacles - add walls at regular intervals
+        else if ((x % 4 === 0 && y % 4 === 0) || 
+                 (x % 6 === 2 && y % 6 === 2) || 
+                 (x % 8 === 4 && y % 3 === 1) ||
+                 (Math.random() > 0.85)) {
           newWalls.push({ x, y });
         }
       }
@@ -122,10 +137,14 @@ const PercentageDifference = () => {
   }, []);
 
   // Generate price items for collection
-  const generatePriceItems = useCallback(() => {
+  const generatePriceItems = useCallback((wallPositions: { x: number; y: number }[]) => {
     const items: PriceItem[] = [];
     const itemTypes = Object.keys(itemConfig);
     const stores = Object.keys(storeConfig);
+
+    const isWallPosition = (pos: { x: number; y: number }) => {
+      return wallPositions.some(wall => wall.x === pos.x && wall.y === pos.y);
+    };
 
     for (let i = 0; i < TARGET_ITEMS; i++) {
       const itemType = itemTypes[i % itemTypes.length];
@@ -139,16 +158,20 @@ const PercentageDifference = () => {
       const oldPrice = isIncrease ? basePrice : Math.round(basePrice * (1 + priceChange));
       const newPrice = isIncrease ? Math.round(basePrice * (1 + priceChange)) : basePrice;
 
-      // Find valid position
+      // Find valid position - avoid walls and other items
       let position;
+      let attempts = 0;
       do {
         position = {
           x: Math.floor(Math.random() * (GRID_SIZE - 2)) + 1,
           y: Math.floor(Math.random() * (GRID_SIZE - 2)) + 1
         };
+        attempts++;
       } while (
-        walls.some(wall => wall.x === position.x && wall.y === position.y) ||
-        items.some(item => item.position.x === position.x && item.position.y === position.y)
+        (position.x === 1 && position.y === 1 || // Avoid player start position
+         isWallPosition(position) ||
+         items.some(item => item.position.x === position.x && item.position.y === position.y)) 
+         && attempts < 50
       );
 
       items.push({
@@ -164,7 +187,39 @@ const PercentageDifference = () => {
     }
     
     return items;
-  }, [walls]);
+  }, []);
+
+  // Generate hunters
+  const generateHunters = useCallback((wallPositions: { x: number; y: number }[]) => {
+    const newHunters: Hunter[] = [];
+    const hunterEmojis = ['🐺', '🦖'];
+    
+    const isWallPosition = (pos: { x: number; y: number }) => {
+      return wallPositions.some(wall => wall.x === pos.x && wall.y === pos.y);
+    };
+    
+    for (let i = 0; i < 2; i++) {
+      let position: { x: number; y: number };
+      let attempts = 0;
+      do {
+        position = {
+          x: Math.floor(Math.random() * (GRID_SIZE - 2)) + 1,
+          y: Math.floor(Math.random() * (GRID_SIZE - 2)) + 1
+        };
+        attempts++;
+      } while ((position.x === 1 && position.y === 1 || isWallPosition(position) || 
+                newHunters.some(hunter => hunter.position.x === position.x && hunter.position.y === position.y)) 
+                && attempts < 50);
+      
+      newHunters.push({
+        id: `hunter-${i}`,
+        position,
+        emoji: hunterEmojis[i],
+        direction: ['up', 'down', 'left', 'right'][Math.floor(Math.random() * 4)] as any
+      });
+    }
+    setHunters(newHunters);
+  }, []);
 
   // Check if position is a wall
   const isWall = (pos: { x: number; y: number }) => {
@@ -178,43 +233,61 @@ const PercentageDifference = () => {
     
     // Generate items after walls are set
     setTimeout(() => {
-      const items = generatePriceItems();
+      const items = generatePriceItems(newWalls);
       setPriceItems(items);
+      generateHunters(newWalls);
     }, 100);
     
     setPlayerPosition({ x: 1, y: 1 });
+    setLives(9);
     setCollectedPrices({});
     setCollectedCount(0);
     setPhase('collection');
   };
 
   // Player movement
-  const movePlayer = useCallback((dx: number, dy: number) => {
+  const movePlayer = useCallback((direction: string) => {
     if (phase !== 'collection') return;
     
     setPlayerPosition(prev => {
-      const newPos = {
-        x: Math.max(0, Math.min(GRID_SIZE - 1, prev.x + dx)),
-        y: Math.max(0, Math.min(GRID_SIZE - 1, prev.y + dy))
-      };
+      let newX = prev.x;
+      let newY = prev.y;
       
-      // Check if new position is a wall
-      if (isWall(newPos)) {
-        return prev; // Don't move if hitting a wall
+      switch (direction) {
+        case 'up':
+        case 'w':
+          newY = Math.max(0, prev.y - 1);
+          break;
+        case 'down':
+        case 's':
+          newY = Math.min(GRID_SIZE - 1, prev.y + 1);
+          break;
+        case 'left':
+        case 'a':
+          newX = Math.max(0, prev.x - 1);
+          break;
+        case 'right':
+        case 'd':
+          newX = Math.min(GRID_SIZE - 1, prev.x + 1);
+          break;
       }
       
+      const newPos = { x: newX, y: newY };
+      if (isWall(newPos)) {
+        return prev;
+      }
       return newPos;
     });
-  }, [phase, walls]);
+  }, [phase, isWall]);
 
   // Handle keyboard input
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
-      switch(e.key) {
-        case 'ArrowUp': movePlayer(0, -1); break;
-        case 'ArrowDown': movePlayer(0, 1); break;
-        case 'ArrowLeft': movePlayer(-1, 0); break;
-        case 'ArrowRight': movePlayer(1, 0); break;
+      const key = e.key.toLowerCase();
+      if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'w', 'a', 's', 'd'].includes(key)) {
+        e.preventDefault();
+        const direction = key.replace('arrow', '');
+        movePlayer(direction);
       }
     };
 
@@ -222,7 +295,109 @@ const PercentageDifference = () => {
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [movePlayer]);
 
+  // Hunter movement and collision logic
+  useEffect(() => {
+    if (phase !== 'collection' || hunters.length === 0) return;
+    
+    const interval = setInterval(() => {
+      setHunters(prevHunters => prevHunters.map(hunter => {
+        const directions = ['up', 'down', 'left', 'right'] as const;
+        let newPosition = { ...hunter.position };
+        let newDirection = hunter.direction;
+        
+        if (Math.random() < 0.6) {
+          const dx = playerPosition.x - hunter.position.x;
+          const dy = playerPosition.y - hunter.position.y;
+          
+          if (Math.abs(dx) > Math.abs(dy)) {
+            newDirection = dx > 0 ? 'right' : 'left';
+          } else if (dy !== 0) {
+            newDirection = dy > 0 ? 'down' : 'up';
+          }
+        } else {
+          newDirection = directions[Math.floor(Math.random() * directions.length)];
+        }
+        
+        switch (newDirection) {
+          case 'up':
+            newPosition.y = Math.max(0, hunter.position.y - 1);
+            break;
+          case 'down':
+            newPosition.y = Math.min(GRID_SIZE - 1, hunter.position.y + 1);
+            break;
+          case 'left':
+            newPosition.x = Math.max(0, hunter.position.x - 1);
+            break;
+          case 'right':
+            newPosition.x = Math.min(GRID_SIZE - 1, hunter.position.x + 1);
+            break;
+        }
+        
+        if (isWall(newPosition)) {
+          newPosition = hunter.position;
+        }
+        
+        return { ...hunter, position: newPosition, direction: newDirection };
+      }));
+    }, 400); // Slower hunters
+    
+    return () => clearInterval(interval);
+  }, [phase, hunters.length, isWall, playerPosition]);
+
+  // Hunter collision
+  useEffect(() => {
+    const hunterAtPosition = hunters.find(hunter => 
+      hunter.position.x === playerPosition.x && hunter.position.y === playerPosition.y
+    );
+    
+    if (hunterAtPosition && phase === 'collection') {
+      setLives(prev => {
+        const newLives = prev - 1;
+        if (newLives <= 0) {
+          setPhase('start');
+          toast({
+            title: "💀 Game Over!",
+            description: "Better luck next time!",
+            duration: 3000
+          });
+        } else {
+          setPlayerPosition({ x: 1, y: 1 });
+          toast({
+            title: `💔 Hit by ${hunterAtPosition.emoji}!`,
+            description: `${newLives} lives remaining`,
+            duration: 2000
+          });
+        }
+        return newLives;
+      });
+    }
+  }, [playerPosition, hunters, phase, toast]);
+
   // Check for item collection
+  useEffect(() => {
+    if (phase !== 'collection') return;
+    
+    const itemToCollect = priceItems.find(item => 
+      item.position.x === playerPosition.x && 
+      item.position.y === playerPosition.y && 
+      !item.collected
+    );
+    
+    if (itemToCollect) {
+      setPriceItems(prev => prev.map(item => 
+        item.id === itemToCollect.id ? { ...item, collected: true } : item
+      ));
+      
+      setCollectedPrices(prev => ({
+        ...prev,
+        [itemToCollect.id]: itemToCollect
+      }));
+      
+      setCollectedCount(prev => prev + 1);
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 1000);
+    }
+  }, [playerPosition, priceItems, phase]);
   useEffect(() => {
     if (phase !== 'collection') return;
     
@@ -475,6 +650,13 @@ const PercentageDifference = () => {
             <h2 className="text-3xl font-bold mb-2 text-gray-800">🛒 Collect Items</h2>
             
             <div className="flex items-center justify-center gap-4">
+              <div className="flex items-center gap-1 bg-white/95 px-4 py-2 rounded-2xl border-2 border-purple-200 shadow-sm backdrop-blur-sm">
+                {Array.from({ length: 9 }, (_, i) => (
+                  <span key={i} className="text-lg">
+                    {i < lives ? '❤️' : '🖤'}
+                  </span>
+                ))}
+              </div>
               <div className="bg-white/95 px-6 py-3 rounded-2xl border-2 border-purple-200 shadow-sm backdrop-blur-sm">
                 <span className="text-xl font-bold text-gray-700">
                   {collectedCount} / {TARGET_ITEMS}
@@ -507,19 +689,25 @@ const PercentageDifference = () => {
                     const item = priceItems.find(item => 
                       item.position.x === x && item.position.y === y && !item.collected
                     );
+                    const hunter = hunters.find(h => h.position.x === x && h.position.y === y);
                     
                     return (
                       <div
                         key={index}
                         className={`
-                          border border-purple-200/50 flex items-center justify-center text-lg rounded-sm
+                          border border-purple-200/50 flex items-center justify-center text-sm rounded-sm
                           ${isWallCell ? 'bg-purple-600 shadow-inner' : 'bg-white/80 hover:bg-white/90'}
-                          transition-all duration-200
+                          transition-all duration-200 relative
                         `}
                         style={{ aspectRatio: '1' }}
                       >
-                        {isPlayer && <span className="text-lg drop-shadow-sm">🛒</span>}
-                        {item && <span className="text-lg drop-shadow-sm animate-pulse">{item.emoji}</span>}
+                        {isPlayer && <span className="text-sm drop-shadow-sm">🛒</span>}
+                        {item && <span className="text-sm drop-shadow-sm animate-bounce">{item.emoji}</span>}
+                        {hunter && (
+                          <div className="w-full h-full bg-red-500 rounded-full flex items-center justify-center shadow-lg border-2 border-red-600">
+                            <span className="text-xs drop-shadow-sm">{hunter.emoji}</span>
+                          </div>
+                        )}
                       </div>
                     );
                   })}
@@ -534,7 +722,7 @@ const PercentageDifference = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <MapPin className="w-5 h-5 text-purple-600" />
-                  <span className="text-lg font-medium">Use arrow keys to move 🛒</span>
+                  <span className="text-lg font-medium">Use WASD or Arrow Keys to move 🛒 • Avoid Hunters!</span>
                 </div>
                 <div className="text-lg font-bold text-purple-600">
                   Progress: {Math.round((collectedCount / TARGET_ITEMS) * 100)}%
