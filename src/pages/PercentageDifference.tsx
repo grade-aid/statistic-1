@@ -45,34 +45,13 @@ interface DragDropQuestion {
   correctAnswer: number;
 }
 
-interface Hunter {
-  id: string;
-  position: { x: number; y: number };
-  emoji: string;
-  direction: 'up' | 'down' | 'left' | 'right';
-}
-
 interface DroppedItem {
   zone: string;
   item: string;
 }
 
-const GRID_SIZE = 18;
+const GRID_SIZE = 12;
 const TARGET_ITEMS = 9;
-
-// Responsive grid configuration optimized for tablet
-const getResponsiveCellSize = () => {
-  if (typeof window === 'undefined') return 20;
-  const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
-  const vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
-  
-  // Optimize for tablet viewports (768px-1024px width)
-  if (vw >= 1024) return Math.min(26, Math.floor(vh / 32)); // Desktop with height constraint
-  if (vw >= 768) return Math.min(22, Math.floor(vh / 34));  // Tablet with height constraint
-  return Math.min(18, Math.floor(vh / 36)); // Mobile with height constraint
-};
-
-const getCellSize = () => getResponsiveCellSize();
 
 const PercentageDifference = () => {
   const navigate = useNavigate();
@@ -87,8 +66,6 @@ const PercentageDifference = () => {
   const [collectedPrices, setCollectedPrices] = useState<CollectedPrices>({});
   const [walls, setWalls] = useState<{ x: number; y: number }[]>([]);
   const [collectedCount, setCollectedCount] = useState(0);
-  const [lives, setLives] = useState(9);
-  const [hunters, setHunters] = useState<Hunter[]>([]);
 
   // Examples state
   const [currentExampleIndex, setCurrentExampleIndex] = useState(0);
@@ -105,8 +82,6 @@ const PercentageDifference = () => {
   const [showConfetti, setShowConfetti] = useState(false);
   const [completedQuestions, setCompletedQuestions] = useState<string[]>([]);
   const [showQuestionResult, setShowQuestionResult] = useState(false);
-  const [currentStep, setCurrentStep] = useState(1);
-  const [stepCompleted, setStepCompleted] = useState<{[key: number]: boolean}>({});
 
   // Item configuration for collection
   const itemConfig = {
@@ -132,25 +107,17 @@ const PercentageDifference = () => {
   // Generate walls for game grid
   const generateWalls = useCallback(() => {
     const newWalls: { x: number; y: number }[] = [];
-    // Generate maze-like walls
     for (let x = 0; x < GRID_SIZE; x++) {
       for (let y = 0; y < GRID_SIZE; y++) {
-        // Border walls
         if (x === 0 || x === GRID_SIZE - 1 || y === 0 || y === GRID_SIZE - 1) {
           newWalls.push({ x, y });
-        }
-        // Internal maze walls
-        else if (x % 3 === 0 && y % 3 === 0 && Math.random() > 0.5) {
+        } else if (x % 3 === 0 && y % 3 === 0 && Math.random() > 0.5) {
           newWalls.push({ x, y });
         }
       }
     }
     return newWalls;
   }, []);
-
-  const isWall = useCallback((pos: { x: number; y: number }) => {
-    return walls.some(wall => wall.x === pos.x && wall.y === pos.y);
-  }, [walls]);
 
   // Generate price items for collection
   const generatePriceItems = useCallback(() => {
@@ -197,245 +164,61 @@ const PercentageDifference = () => {
     return items;
   }, [walls]);
 
-  const generateHunters = useCallback((wallPositions: { x: number; y: number }[]) => {
-    const newHunters: Hunter[] = [];
-    const hunterEmojis = ['🐺', '🦖'];
-    
-    const isWallPosition = (pos: { x: number; y: number }) => {
-      return wallPositions.some(wall => wall.x === pos.x && wall.y === pos.y);
-    };
-    
-    for (let i = 0; i < 2; i++) {
-      let position: { x: number; y: number };
-      let attempts = 0;
-      do {
-        position = {
-          x: Math.floor(Math.random() * (GRID_SIZE - 2)) + 1,
-          y: Math.floor(Math.random() * (GRID_SIZE - 2)) + 1
-        };
-        attempts++;
-      } while ((position.x === 1 && position.y === 1 || isWallPosition(position) || 
-                newHunters.some(hunter => hunter.position.x === position.x && hunter.position.y === position.y)) 
-                && attempts < 50);
-      
-      newHunters.push({
-        id: `hunter-${i}`,
-        position,
-        emoji: hunterEmojis[i],
-        direction: ['up', 'down', 'left', 'right'][Math.floor(Math.random() * 4)] as any
-      });
-    }
-    setHunters(newHunters);
-  }, []);
+  // Check if position is a wall
+  const isWall = (pos: { x: number; y: number }) => {
+    return walls.some(wall => wall.x === pos.x && wall.y === pos.y);
+  };
 
   // Start game
   const startGame = () => {
-    setPlayerPosition({ x: 1, y: 1 });
-    setLives(9);
-    setCollectedPrices({});
-    setCollectedCount(0);
-    
-    // Generate walls first
     const newWalls = generateWalls();
     setWalls(newWalls);
     
-    // Then generate items and hunters using the wall positions
+    // Generate items after walls are set
     setTimeout(() => {
       const items = generatePriceItems();
       setPriceItems(items);
-      generateHunters(newWalls);
     }, 100);
     
+    setPlayerPosition({ x: 1, y: 1 });
+    setCollectedPrices({});
+    setCollectedCount(0);
     setPhase('collection');
   };
 
-  // Player movement - updated to match Index.tsx
-  const movePlayer = useCallback((direction: string) => {
+  // Player movement
+  const movePlayer = useCallback((dx: number, dy: number) => {
     if (phase !== 'collection') return;
     
     setPlayerPosition(prev => {
-      let newX = prev.x;
-      let newY = prev.y;
+      const newPos = {
+        x: Math.max(0, Math.min(GRID_SIZE - 1, prev.x + dx)),
+        y: Math.max(0, Math.min(GRID_SIZE - 1, prev.y + dy))
+      };
       
-      switch (direction) {
-        case 'up':
-        case 'w':
-          newY = Math.max(0, prev.y - 1);
-          break;
-        case 'down':
-        case 's':
-          newY = Math.min(GRID_SIZE - 1, prev.y + 1);
-          break;
-        case 'left':
-        case 'a':
-          newX = Math.max(0, prev.x - 1);
-          break;
-        case 'right':
-        case 'd':
-          newX = Math.min(GRID_SIZE - 1, prev.x + 1);
-          break;
-      }
-      
-      const newPos = { x: newX, y: newY };
-
-      // Check for wall collision
+      // Check if new position is a wall
       if (isWall(newPos)) {
-        return prev;
+        return prev; // Don't move if hitting a wall
       }
+      
       return newPos;
     });
-  }, [phase, isWall]);
+  }, [phase, walls]);
 
-  // Handle keyboard input - updated to match Index.tsx
+  // Handle keyboard input
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
-      const key = e.key.toLowerCase();
-      if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'w', 'a', 's', 'd'].includes(key)) {
-        e.preventDefault();
-        const direction = key.replace('arrow', '');
-        movePlayer(direction);
+      switch(e.key) {
+        case 'ArrowUp': movePlayer(0, -1); break;
+        case 'ArrowDown': movePlayer(0, 1); break;
+        case 'ArrowLeft': movePlayer(-1, 0); break;
+        case 'ArrowRight': movePlayer(1, 0); break;
       }
     };
-    
+
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [movePlayer]);
-
-  // Hunter movement AI - from Index.tsx
-  useEffect(() => {
-    if (phase !== 'collection' || hunters.length === 0) return;
-    
-    const interval = setInterval(() => {
-      setHunters(prevHunters => prevHunters.map(hunter => {
-        const directions = ['up', 'down', 'left', 'right'] as const;
-        let newPosition = { ...hunter.position };
-        let newDirection = hunter.direction;
-
-        // 60% chance to hunt player, 40% chance random movement
-        if (Math.random() < 0.6) {
-          // Calculate direction towards player
-          const dx = playerPosition.x - hunter.position.x;
-          const dy = playerPosition.y - hunter.position.y;
-
-          // Choose direction that gets closer to player
-          if (Math.abs(dx) > Math.abs(dy)) {
-            newDirection = dx > 0 ? 'right' : 'left';
-          } else if (dy !== 0) {
-            newDirection = dy > 0 ? 'down' : 'up';
-          }
-        } else {
-          // Random movement
-          newDirection = directions[Math.floor(Math.random() * directions.length)];
-        }
-
-        // Try to move in chosen direction
-        switch (newDirection) {
-          case 'up':
-            newPosition.y = Math.max(0, hunter.position.y - 1);
-            break;
-          case 'down':
-            newPosition.y = Math.min(GRID_SIZE - 1, hunter.position.y + 1);
-            break;
-          case 'left':
-            newPosition.x = Math.max(0, hunter.position.x - 1);
-            break;
-          case 'right':
-            newPosition.x = Math.min(GRID_SIZE - 1, hunter.position.x + 1);
-            break;
-        }
-
-        // If hit wall, try alternative direction or stay put
-        if (isWall(newPosition)) {
-          // Try perpendicular directions
-          const altDirections = newDirection === 'up' || newDirection === 'down' ? ['left', 'right'] : ['up', 'down'];
-          for (const altDir of altDirections) {
-            let altPos = { ...hunter.position };
-            switch (altDir) {
-              case 'up':
-                altPos.y = Math.max(0, hunter.position.y - 1);
-                break;
-              case 'down':
-                altPos.y = Math.min(GRID_SIZE - 1, hunter.position.y + 1);
-                break;
-              case 'left':
-                altPos.x = Math.max(0, hunter.position.x - 1);
-                break;
-              case 'right':
-                altPos.x = Math.min(GRID_SIZE - 1, hunter.position.x + 1);
-                break;
-            }
-            if (!isWall(altPos)) {
-              newPosition = altPos;
-              newDirection = altDir as any;
-              break;
-            }
-          }
-
-          // If all directions blocked, stay in place
-          if (isWall(newPosition)) {
-            newPosition = hunter.position;
-          }
-        }
-        
-        return {
-          ...hunter,
-          position: newPosition,
-          direction: newDirection
-        };
-      }));
-    }, 180); // Even faster movement for maximum difficulty
-
-    return () => clearInterval(interval);
-  }, [phase, hunters.length, isWall, playerPosition]);
-
-  // Check for hunter collision (player death) - from Index.tsx
-  useEffect(() => {
-    const hunterAtPosition = hunters.find(hunter => 
-      hunter.position.x === playerPosition.x && hunter.position.y === playerPosition.y
-    );
-    
-    if (hunterAtPosition && phase === 'collection') {
-      setLives(prev => {
-        const newLives = prev - 1;
-        if (newLives <= 0) {
-          // Game over
-          setPhase('start');
-          toast({
-            title: "💀 Game Over!",
-            description: "Better luck next time!",
-            duration: 3000
-          });
-        } else {
-          // Respawn player
-          setPlayerPosition({ x: 1, y: 1 });
-          toast({
-            title: `💔 Hit by ${hunterAtPosition.emoji}!`,
-            description: `${newLives} lives remaining`,
-            duration: 2000
-          });
-        }
-        return newLives;
-      });
-    }
-  const autoComplete = () => {
-    if (phase !== 'collection') return;
-    
-    // Collect all remaining items
-    const remainingItems = priceItems.filter(item => !item.collected);
-    remainingItems.forEach(item => {
-      setCollectedPrices(prev => ({ ...prev, [item.id]: item }));
-    });
-    
-    // Update count and mark items as collected
-    setCollectedCount(TARGET_ITEMS);
-    setPriceItems(prev => prev.map(item => ({ ...item, collected: true })));
-    
-    toast({
-      title: "🎉 Auto Complete!",
-      description: "All items collected automatically!",
-      duration: 2000
-    });
-  };
 
   // Check for item collection
   useEffect(() => {
@@ -561,82 +344,52 @@ const PercentageDifference = () => {
     e.preventDefault();
     if (!draggedItem) return;
 
-    // Check if this is the correct step
-    if (zone === 'step1' && currentStep === 1) {
-      const difference = Math.abs(currentQuestion.newPrice - currentQuestion.oldPrice);
-      if (draggedItem === `$${difference}`) {
-        const updatedItems = droppedItems.filter(item => item.zone !== zone);
-        updatedItems.push({ zone, item: draggedItem });
-        setDroppedItems(updatedItems);
-        setStepCompleted(prev => ({...prev, 1: true}));
-        setCurrentStep(2);
-        toast({
-          title: "Step 1 Complete! ✅",
-          description: "Now divide by the base price"
-        });
-      } else {
-        toast({
-          title: "Not quite right 🤔",
-          description: "Check the difference calculation",
-          variant: "destructive"
-        });
-      }
-    } else if (zone === 'step2' && currentStep === 2) {
-      const basePrice = currentQuestion.isIncrease ? currentQuestion.oldPrice : currentQuestion.newPrice;
-      if (draggedItem === `$${basePrice}`) {
-        const updatedItems = droppedItems.filter(item => item.zone !== zone);
-        updatedItems.push({ zone, item: draggedItem });
-        setDroppedItems(updatedItems);
-        setStepCompleted(prev => ({...prev, 2: true}));
-        setCurrentStep(3);
-        toast({
-          title: "Step 2 Complete! ✅",
-          description: "Now multiply by 100"
-        });
-      } else {
-        toast({
-          title: "Not quite right 🤔", 
-          description: "Use the correct base price for division",
-          variant: "destructive"
-        });
-      }
-    } else if (zone === 'step3' && currentStep === 3) {
-      if (draggedItem === '100') {
-        const updatedItems = droppedItems.filter(item => item.zone !== zone);
-        updatedItems.push({ zone, item: draggedItem });
-        setDroppedItems(updatedItems);
-        setStepCompleted(prev => ({...prev, 3: true}));
-        
-        // Complete the question
-        setCompletedQuestions(prev => [...prev, currentQuestion.id]);
-        setShowConfetti(true);
-        setShowQuestionResult(true);
-        setTimeout(() => setShowConfetti(false), 2000);
-        
-        toast({
-          title: "Perfect! 🎉",
-          description: `The ${currentQuestion.name} ${currentQuestion.isIncrease ? 'increased' : 'decreased'} by ${currentQuestion.correctAnswer}%`,
-        });
-      } else {
-        toast({
-          title: "Not quite right 🤔",
-          description: "Multiply by 100 to get the percentage",
-          variant: "destructive"
-        });
-      }
-    }
-    
+    // Remove existing item in this zone
+    const updatedItems = droppedItems.filter(item => item.zone !== zone);
+    updatedItems.push({ zone, item: draggedItem });
+    setDroppedItems(updatedItems);
     setDraggedItem(null);
   };
 
+  const checkAnswer = () => {
+    const oldPriceItem = droppedItems.find(item => item.zone === 'oldPrice');
+    const newPriceItem = droppedItems.find(item => item.zone === 'newPrice');
+    const differenceItem = droppedItems.find(item => item.zone === 'difference');
+    const hundredItem = droppedItems.find(item => item.zone === 'hundred');
+
+    const difference = Math.abs(currentQuestion.newPrice - currentQuestion.oldPrice);
+    const basePrice = currentQuestion.isIncrease ? currentQuestion.oldPrice : currentQuestion.newPrice;
+
+    const isCorrect = 
+      oldPriceItem?.item === `$${basePrice}` &&
+      newPriceItem?.item === (currentQuestion.isIncrease ? `$${currentQuestion.newPrice}` : `$${currentQuestion.oldPrice}`) &&
+      differenceItem?.item === `$${difference}` &&
+      hundredItem?.item === '100';
+
+    if (isCorrect) {
+      setCompletedQuestions(prev => [...prev, currentQuestion.id]);
+      setShowConfetti(true);
+      setShowQuestionResult(true);
+      setTimeout(() => setShowConfetti(false), 2000);
+      
+      toast({
+        title: "Correct! 🎉",
+        description: `The ${currentQuestion.name} ${currentQuestion.isIncrease ? 'increased' : 'decreased'} by ${currentQuestion.correctAnswer}%`,
+      });
+    } else {
+      toast({
+        title: "Not quite right 🤔",
+        description: "Check the calculation steps and try again!",
+        variant: "destructive"
+      });
+    }
+  };
 
   const handleNextQuestion = () => {
     if (currentQuestionIndex < dragDropQuestions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
       setDroppedItems([]);
       setShowQuestionResult(false);
-      setCurrentStep(1);
-      setStepCompleted({});
     } else {
       // Store data for visualization page
       localStorage.setItem('priceComparisonData', JSON.stringify({
@@ -650,8 +403,6 @@ const PercentageDifference = () => {
   const resetQuestion = () => {
     setDroppedItems([]);
     setShowQuestionResult(false);
-    setCurrentStep(1);
-    setStepCompleted({});
   };
 
   // Start phase - Tablet Optimized
@@ -968,106 +719,61 @@ const PercentageDifference = () => {
                 </div>
               </div>
 
-              {/* Drag Drop Interface - 3 Steps */}
+              {/* Drag Drop Interface */}
               <div className="flex-1 flex flex-col justify-center">
                 
-                <div className="text-center mb-4">
-                  <h3 className="text-lg font-bold">Complete the 3-step calculation:</h3>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                  {/* Step 1 - Find Difference */}
-                  <div className={`bg-blue-50 p-4 rounded-lg border-2 transition-colors ${
-                    currentStep >= 1 ? 'border-blue-500' : 'border-blue-200 opacity-60'
-                  }`}>
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold">1</div>
-                      <h4 className="text-sm font-bold text-blue-800">Find difference</h4>
-                    </div>
-                    <div className="bg-white p-3 rounded border border-blue-200 text-center">
-                      <div className="text-xs mb-2 text-blue-600">
-                        ${currentQuestion.isIncrease ? currentQuestion.newPrice : currentQuestion.oldPrice} - ${currentQuestion.isIncrease ? currentQuestion.oldPrice : currentQuestion.newPrice}
-                      </div>
-                      <div className="text-sm font-bold text-blue-600 mb-2">= $</div>
-                      <div
-                        className={`w-16 h-10 border-2 border-dashed rounded-lg bg-white mx-auto flex items-center justify-center text-sm font-bold transition-colors ${
-                          currentStep >= 1 ? 'border-blue-400 hover:border-blue-500' : 'border-gray-300'
-                        }`}
-                        onDragOver={currentStep >= 1 ? handleDragOver : undefined}
-                        onDrop={currentStep >= 1 ? (e) => handleDrop(e, 'step1') : undefined}
-                      >
-                        {droppedItems.find(item => item.zone === 'step1')?.item || '?'}
-                      </div>
-                    </div>
+                {/* Drag Drop Equation */}
+                <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-lg border-2 border-dashed border-purple-200 mb-4">
+                  <div className="text-center mb-3">
+                    <h3 className="text-lg font-bold">Complete the equation:</h3>
                   </div>
-
-                  {/* Step 2 - Divide by Base Price */}
-                  <div className={`bg-purple-50 p-4 rounded-lg border-2 transition-colors ${
-                    currentStep >= 2 ? 'border-purple-500' : 'border-purple-200 opacity-60'
-                  }`}>
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="w-6 h-6 bg-purple-500 text-white rounded-full flex items-center justify-center text-sm font-bold">2</div>
-                      <h4 className="text-sm font-bold text-purple-800">Divide by base</h4>
+                  
+                  <div className="flex items-center justify-center gap-2 flex-wrap text-xl font-bold">
+                    <span>(</span>
+                    
+                    {/* Difference drop zone */}
+                    <div
+                      className="w-16 h-12 border-2 border-dashed border-purple-300 rounded-lg bg-white flex items-center justify-center text-sm font-bold hover:border-purple-400 transition-colors"
+                      onDragOver={handleDragOver}
+                      onDrop={(e) => handleDrop(e, 'difference')}
+                    >
+                      {droppedItems.find(item => item.zone === 'difference')?.item || '?'}
                     </div>
-                    <div className="bg-white p-3 rounded border border-purple-200 text-center">
-                      <div className="text-xs mb-2 text-purple-600">
-                        {stepCompleted[1] ? droppedItems.find(item => item.zone === 'step1')?.item || '$??' : '$??'} ÷ $
-                      </div>
-                      <div
-                        className={`w-16 h-10 border-2 border-dashed rounded-lg bg-white mx-auto mb-2 flex items-center justify-center text-sm font-bold transition-colors ${
-                          currentStep >= 2 ? 'border-purple-400 hover:border-purple-500' : 'border-gray-300'
-                        }`}
-                        onDragOver={currentStep >= 2 ? handleDragOver : undefined}
-                        onDrop={currentStep >= 2 ? (e) => handleDrop(e, 'step2') : undefined}
-                      >
-                        {droppedItems.find(item => item.zone === 'step2')?.item || '?'}
-                      </div>
-                      <div className="text-sm font-bold text-purple-600">= 
-                        {stepCompleted[2] ? (
-                          <span className="ml-1">
-                            {(parseInt(droppedItems.find(item => item.zone === 'step1')?.item?.replace('$', '') || '0') / 
-                              parseInt(droppedItems.find(item => item.zone === 'step2')?.item?.replace('$', '') || '1')).toFixed(2)}
-                          </span>
-                        ) : ' ??'}
-                      </div>
+                    
+                    <span>÷</span>
+                    
+                    {/* Base price drop zone */}
+                    <div
+                      className="w-16 h-12 border-2 border-dashed border-purple-300 rounded-lg bg-white flex items-center justify-center text-sm font-bold hover:border-purple-400 transition-colors"
+                      onDragOver={handleDragOver}
+                      onDrop={(e) => handleDrop(e, 'oldPrice')}
+                    >
+                      {droppedItems.find(item => item.zone === 'oldPrice')?.item || '?'}
                     </div>
-                  </div>
-
-                  {/* Step 3 - Multiply by 100 */}
-                  <div className={`bg-pink-50 p-4 rounded-lg border-2 transition-colors ${
-                    currentStep >= 3 ? 'border-pink-500' : 'border-pink-200 opacity-60'
-                  }`}>
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="w-6 h-6 bg-pink-500 text-white rounded-full flex items-center justify-center text-sm font-bold">3</div>
-                      <h4 className="text-sm font-bold text-pink-800">× 100</h4>
+                    
+                    <span>) × </span>
+                    
+                    {/* Hundred drop zone */}
+                    <div
+                      className="w-12 h-12 border-2 border-dashed border-purple-300 rounded-lg bg-white flex items-center justify-center text-sm font-bold hover:border-purple-400 transition-colors"
+                      onDragOver={handleDragOver}
+                      onDrop={(e) => handleDrop(e, 'hundred')}
+                    >
+                      {droppedItems.find(item => item.zone === 'hundred')?.item || '?'}
                     </div>
-                    <div className="bg-white p-3 rounded border border-pink-200 text-center">
-                      <div className="text-xs mb-2 text-pink-600">
-                        {stepCompleted[2] ? 
-                          `${(parseInt(droppedItems.find(item => item.zone === 'step1')?.item?.replace('$', '') || '0') / 
-                            parseInt(droppedItems.find(item => item.zone === 'step2')?.item?.replace('$', '') || '1')).toFixed(2)} × ` 
-                          : '?? × '
-                        }
-                      </div>
-                      <div
-                        className={`w-12 h-10 border-2 border-dashed rounded-lg bg-white mx-auto mb-2 flex items-center justify-center text-sm font-bold transition-colors ${
-                          currentStep >= 3 ? 'border-pink-400 hover:border-pink-500' : 'border-gray-300'
-                        }`}
-                        onDragOver={currentStep >= 3 ? handleDragOver : undefined}
-                        onDrop={currentStep >= 3 ? (e) => handleDrop(e, 'step3') : undefined}
-                      >
-                        {droppedItems.find(item => item.zone === 'step3')?.item || '?'}
-                      </div>
-                      <div className="text-sm font-bold">
-                        {stepCompleted[3] ? (
-                          <div className="bg-gradient-to-r from-pink-500 to-purple-500 text-white px-2 py-1 rounded">
-                            = {currentQuestion.correctAnswer}%
-                          </div>
-                        ) : (
-                          <span className="text-pink-600">= ??%</span>
-                        )}
-                      </div>
+                    
+                    <span>= </span>
+                    
+                    {/* Result drop zone */}
+                    <div
+                      className="w-16 h-12 border-2 border-dashed border-purple-300 rounded-lg bg-white flex items-center justify-center text-sm font-bold hover:border-purple-400 transition-colors"
+                      onDragOver={handleDragOver}
+                      onDrop={(e) => handleDrop(e, 'newPrice')}
+                    >
+                      {droppedItems.find(item => item.zone === 'newPrice')?.item || '?'}
                     </div>
+                    
+                    <span>%</span>
                   </div>
                 </div>
 
@@ -1116,7 +822,14 @@ const PercentageDifference = () => {
 
               {/* Action Buttons */}
               {!showQuestionResult && (
-                <div className="flex justify-center">
+                <div className="flex gap-3 flex-shrink-0">
+                  <Button 
+                    onClick={checkAnswer}
+                    disabled={droppedItems.length < 4}
+                    className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 h-12 text-lg rounded-2xl disabled:opacity-50 min-w-[150px]"
+                  >
+                    Check Answer
+                  </Button>
                   <Button 
                     onClick={resetQuestion}
                     variant="outline"
