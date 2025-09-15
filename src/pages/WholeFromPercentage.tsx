@@ -44,6 +44,22 @@ interface WholeExercise {
   id: string;
 }
 
+interface DragDropQuestion {
+  id: string;
+  animalType: keyof GameState;
+  equation: string;
+  correctDrops: {
+    animal: string;
+    total: string;
+    hundred: string;
+  };
+}
+
+interface DroppedItem {
+  zone: string;
+  item: string;
+}
+
 const GRID_SIZE = 12; // Optimized grid for tablet viewports
 
 // Remove dynamic sizing - use CSS instead
@@ -72,6 +88,13 @@ const WholeFromPercentage = () => {
   const [completedExercises, setCompletedExercises] = useState<string[]>([]);
   const [showConfetti, setShowConfetti] = useState(false);
   const [showAnswer, setShowAnswer] = useState(false);
+
+  // Drag-drop questions state
+  const [showDragDrop, setShowDragDrop] = useState(false);
+  const [dragDropQuestions, setDragDropQuestions] = useState<DragDropQuestion[]>([]);
+  const [currentDragDropIndex, setCurrentDragDropIndex] = useState(0);
+  const [droppedItems, setDroppedItems] = useState<DroppedItem[]>([]);
+  const [draggedItem, setDraggedItem] = useState<string | null>(null);
 
   // Intro animation states (always declared)
   const [showPartial, setShowPartial] = useState(false);
@@ -241,6 +264,88 @@ const WholeFromPercentage = () => {
     
     return newExercises;
   }, [collected]);
+
+  const generateDragDropQuestions = useCallback(() => {
+    const animalTypes = Object.keys(collected) as Array<keyof GameState>;
+    const availableTypes = animalTypes.filter(type => collected[type] > 0);
+    const questions: DragDropQuestion[] = [];
+    const totalCollected = Object.values(collected).reduce((sum, count) => sum + count, 0);
+    
+    for (let i = 0; i < Math.min(5, availableTypes.length); i++) {
+      const animalType = availableTypes[i % availableTypes.length];
+      questions.push({
+        id: `dragdrop-${i}`,
+        animalType,
+        equation: `? ÷ ? × ? = ${collected[animalType]}`,
+        correctDrops: {
+          animal: `${totalCollected}`,
+          total: `${Math.round((collected[animalType] / totalCollected) * 100)}`,
+          hundred: "100"
+        }
+      });
+    }
+    return questions;
+  }, [collected]);
+
+  const handleDragStart = (item: string) => {
+    setDraggedItem(item);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e: React.DragEvent, zone: string) => {
+    e.preventDefault();
+    if (draggedItem) {
+      setDroppedItems(prev => [
+        ...prev.filter(item => item.zone !== zone),
+        { zone, item: draggedItem }
+      ]);
+      setDraggedItem(null);
+    }
+  };
+
+  const checkDragDropAnswer = () => {
+    const currentQuestion = dragDropQuestions[currentDragDropIndex];
+    if (!currentQuestion) return false;
+
+    const animalDrop = droppedItems.find(item => item.zone === 'animal');
+    const totalDrop = droppedItems.find(item => item.zone === 'total');
+    const hundredDrop = droppedItems.find(item => item.zone === 'hundred');
+
+    return animalDrop?.item === currentQuestion.correctDrops.animal &&
+           totalDrop?.item === currentQuestion.correctDrops.total &&
+           hundredDrop?.item === currentQuestion.correctDrops.hundred;
+  };
+
+  const handleDragDropSubmit = () => {
+    if (checkDragDropAnswer()) {
+      setShowConfetti(true);
+      toast({
+        title: "🎉 Perfect!",
+        description: "Correct equation!",
+        duration: 2000
+      });
+
+      setTimeout(() => {
+        if (currentDragDropIndex < dragDropQuestions.length - 1) {
+          setCurrentDragDropIndex(prev => prev + 1);
+          setDroppedItems([]);
+          setShowConfetti(false);
+        } else {
+          // All questions completed, move to next phase
+          navigate('/percentage-difference');
+        }
+      }, 2000);
+    } else {
+      toast({
+        title: "🤔 Try again",
+        description: "Check your equation placement",
+        duration: 2000
+      });
+    }
+  };
 
   const startGame = () => {
     setPhase('collection');
@@ -685,7 +790,7 @@ const WholeFromPercentage = () => {
             </div>
           </Card>
 
-          {currentExercise && (
+          {currentExercise && !showDragDrop && (
             <Card className="flex-1 p-6 text-center shadow-2xl rounded-3xl overflow-hidden bg-white/95 backdrop-blur-sm border-2">
               <div className="h-full flex flex-col justify-between">
                 
@@ -774,16 +879,133 @@ const WholeFromPercentage = () => {
                           if (nextExercise) {
                             setCurrentExercise(nextExercise);
                           } else {
-                            setPhase('complete');
+                            // Start drag-drop questions
+                            const dragDropQs = generateDragDropQuestions();
+                            setDragDropQuestions(dragDropQs);
+                            setCurrentDragDropIndex(0);
+                            setDroppedItems([]);
+                            setShowDragDrop(true);
                           }
                         }}
                         className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white text-2xl py-6 px-8 h-16 rounded-2xl w-full shadow-lg hover:shadow-xl transition-all duration-300"
                       >
                         {exercises.find(ex => !completedExercises.includes(ex.id) && ex.id !== currentExercise.id) ? 
-                          'Next Animal →' : 'Complete Challenge! 🎊'}
+                          'Next Animal →' : 'Start Practice Questions 🎯'}
                       </Button>
                     </div>
                   )}
+                </div>
+              </div>
+            </Card>
+          )}
+
+          {/* Drag-Drop Questions Phase */}
+          {showDragDrop && dragDropQuestions.length > 0 && (
+            <Card className="flex-1 p-6 text-center shadow-2xl rounded-3xl overflow-hidden bg-white/95 backdrop-blur-sm border-2">
+              <div className="h-full flex flex-col justify-between">
+                
+                {/* Question Header */}
+                <div className="mb-4">
+                  <div className="text-6xl mb-3">
+                    {animalConfig[dragDropQuestions[currentDragDropIndex].animalType].emoji}
+                  </div>
+                  <h2 className="text-2xl font-bold text-gray-700 mb-2">
+                    Drag the correct numbers into the equation
+                  </h2>
+                  <div className="text-lg text-purple-600 font-semibold">
+                    Question {currentDragDropIndex + 1} of {dragDropQuestions.length}
+                  </div>
+                </div>
+
+                {/* Drag-Drop Interface */}
+                <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-2xl mb-6 flex-1 flex flex-col justify-center border-2 border-purple-200">
+                  
+                  {/* Draggable Items */}
+                  <div className="mb-8">
+                    <h3 className="text-lg font-bold text-gray-700 mb-4">Drag these items:</h3>
+                    <div className="flex justify-center gap-4 flex-wrap">
+                      {[
+                        { id: totalCollected.toString(), label: `${totalCollected}`, color: 'bg-purple-200 border-purple-400' },
+                        { id: Math.round((collected[dragDropQuestions[currentDragDropIndex].animalType] / totalCollected) * 100).toString(), label: `${Math.round((collected[dragDropQuestions[currentDragDropIndex].animalType] / totalCollected) * 100)}`, color: 'bg-pink-200 border-pink-400' },
+                        { id: '100', label: '100', color: 'bg-purple-200 border-purple-400' }
+                      ].map((item) => (
+                        <div
+                          key={item.id}
+                          draggable
+                          onDragStart={() => handleDragStart(item.id)}
+                          className={`${item.color} px-6 py-4 rounded-2xl border-2 text-2xl font-bold cursor-move hover:scale-105 transition-transform shadow-sm`}
+                        >
+                          {item.label}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Equation with Drop Zones */}
+                  <div className="mb-6">
+                    <h3 className="text-lg font-bold text-gray-700 mb-4">Complete the equation:</h3>
+                    <div className="flex items-center justify-center gap-4 flex-wrap text-2xl font-bold">
+                      {/* Drop Zone 1 */}
+                      <div
+                        onDragOver={handleDragOver}
+                        onDrop={(e) => handleDrop(e, 'animal')}
+                        className={`w-20 h-16 border-4 border-dashed rounded-2xl flex items-center justify-center text-lg font-bold transition-all ${
+                          droppedItems.find(item => item.zone === 'animal') 
+                            ? 'bg-purple-100 border-purple-400 text-purple-700' 
+                            : 'border-gray-400 text-gray-400 hover:border-purple-400'
+                        }`}
+                      >
+                        {droppedItems.find(item => item.zone === 'animal')?.item || '?'}
+                      </div>
+                      
+                      <span className="text-gray-500">÷</span>
+                      
+                      {/* Drop Zone 2 */}
+                      <div
+                        onDragOver={handleDragOver}
+                        onDrop={(e) => handleDrop(e, 'total')}
+                        className={`w-20 h-16 border-4 border-dashed rounded-2xl flex items-center justify-center text-lg font-bold transition-all ${
+                          droppedItems.find(item => item.zone === 'total') 
+                            ? 'bg-pink-100 border-pink-400 text-pink-700' 
+                            : 'border-gray-400 text-gray-400 hover:border-pink-400'
+                        }`}
+                      >
+                        {droppedItems.find(item => item.zone === 'total')?.item || '?'}
+                      </div>
+                      
+                      <span className="text-gray-500">×</span>
+                      
+                      {/* Drop Zone 3 */}
+                      <div
+                        onDragOver={handleDragOver}
+                        onDrop={(e) => handleDrop(e, 'hundred')}
+                        className={`w-20 h-16 border-4 border-dashed rounded-2xl flex items-center justify-center text-lg font-bold transition-all ${
+                          droppedItems.find(item => item.zone === 'hundred') 
+                            ? 'bg-purple-100 border-purple-400 text-purple-700' 
+                            : 'border-gray-400 text-gray-400 hover:border-purple-400'
+                        }`}
+                      >
+                        {droppedItems.find(item => item.zone === 'hundred')?.item || '?'}
+                      </div>
+                      
+                      <span className="text-gray-500">=</span>
+                      
+                      <div className="bg-pink-100 px-4 py-3 rounded-2xl border-2 border-pink-300">
+                        {collected[dragDropQuestions[currentDragDropIndex].animalType]} {animalConfig[dragDropQuestions[currentDragDropIndex].animalType].emoji}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Submit Button */}
+                <div className="space-y-4">
+                  <Button 
+                    onClick={handleDragDropSubmit}
+                    disabled={droppedItems.length < 3}
+                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white text-2xl py-6 px-8 h-16 rounded-2xl w-full shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50"
+                  >
+                    Check My Answer ✓
+                  </Button>
                 </div>
               </div>
             </Card>
