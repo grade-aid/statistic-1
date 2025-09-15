@@ -530,21 +530,6 @@ const WholeFromPercentage = () => {
                         How many 🐘 do you have?
                       </div>
                     </div>
-                    
-                    {/* Visual representation */}
-                    <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                      <div className="text-sm text-gray-600 mb-2 text-center">Visual:</div>
-                      <div className="grid grid-cols-10 gap-1 max-w-md mx-auto">
-                        {Array.from({ length: 20 }, (_, i) => (
-                          <div key={i} className={`text-lg text-center p-1 rounded ${i < 8 ? 'bg-green-200' : 'bg-gray-200'}`}>
-                            {i < 8 ? '🐘' : '🐾'}
-                          </div>
-                        ))}
-                      </div>
-                      <div className="text-xs text-center mt-2 text-gray-600">
-                        Green = 🐘 animals (40% of 20) | Gray = Other animals
-                      </div>
-                    </div>
                   </div>
                 </div>
               </div>
