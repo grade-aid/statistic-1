@@ -521,9 +521,12 @@ const Learning = () => {
               <div
                 onDragOver={handleDragOver}
                 onDrop={(e) => handleDrop(e, 'animal')}
-                className={`w-20 h-16 border-4 border-dashed rounded-2xl flex items-center justify-center text-lg font-bold transition-all ${
+                onClick={() => {
+                  setDroppedItems(prev => prev.filter(item => item.zone !== 'animal'));
+                }}
+                className={`w-20 h-16 border-4 border-dashed rounded-2xl flex items-center justify-center text-lg font-bold transition-all cursor-pointer ${
                   droppedItems.find(item => item.zone === 'animal') 
-                    ? 'bg-purple-100 border-purple-400 text-purple-700' 
+                    ? 'bg-purple-100 border-purple-400 text-purple-700 hover:bg-purple-200' 
                     : 'border-gray-400 text-gray-400 hover:border-purple-400'
                 }`}
               >
@@ -536,9 +539,12 @@ const Learning = () => {
               <div
                 onDragOver={handleDragOver}
                 onDrop={(e) => handleDrop(e, 'total')}
-                className={`w-20 h-16 border-4 border-dashed rounded-2xl flex items-center justify-center text-lg font-bold transition-all ${
+                onClick={() => {
+                  setDroppedItems(prev => prev.filter(item => item.zone !== 'total'));
+                }}
+                className={`w-20 h-16 border-4 border-dashed rounded-2xl flex items-center justify-center text-lg font-bold transition-all cursor-pointer ${
                   droppedItems.find(item => item.zone === 'total') 
-                    ? 'bg-pink-100 border-pink-400 text-pink-700' 
+                    ? 'bg-pink-100 border-pink-400 text-pink-700 hover:bg-pink-200' 
                     : 'border-gray-400 text-gray-400 hover:border-pink-400'
                 }`}
               >
@@ -551,9 +557,12 @@ const Learning = () => {
               <div
                 onDragOver={handleDragOver}
                 onDrop={(e) => handleDrop(e, 'hundred')}
-                className={`w-20 h-16 border-4 border-dashed rounded-2xl flex items-center justify-center text-lg font-bold transition-all ${
+                onClick={() => {
+                  setDroppedItems(prev => prev.filter(item => item.zone !== 'hundred'));
+                }}
+                className={`w-20 h-16 border-4 border-dashed rounded-2xl flex items-center justify-center text-lg font-bold transition-all cursor-pointer ${
                   droppedItems.find(item => item.zone === 'hundred') 
-                    ? 'bg-purple-100 border-purple-400 text-purple-700' 
+                    ? 'bg-purple-100 border-purple-400 text-purple-700 hover:bg-purple-200' 
                     : 'border-gray-400 text-gray-400 hover:border-purple-400'
                 }`}
               >
