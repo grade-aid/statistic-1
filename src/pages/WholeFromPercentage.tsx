@@ -495,18 +495,57 @@ const WholeFromPercentage = () => {
               {/* Step 1: Show partial pie (known part) */}
               <div className={`transition-all duration-1000 ${showPartial ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
                 <div className="text-4xl md:text-6xl mb-2 md:mb-4">🔍</div>
-                <div className="bg-purple-100 p-3 md:p-4 rounded-xl mb-3 md:mb-4">
-                  <div className="text-lg md:text-xl mb-2 md:mb-3 text-purple-700">
-                    You collected {totalCollected} total animals
+                <div className="bg-gradient-to-r from-purple-100 to-pink-100 p-4 md:p-6 rounded-xl mb-3 md:mb-4 border-2 border-purple-200">
+                  <div className="text-center mb-4">
+                    <h3 className="text-xl md:text-2xl font-bold text-purple-800 mb-2">🎯 Learning Goal</h3>
+                    <div className="text-lg md:text-xl text-purple-700 mb-3">
+                      Find the number from percentage
+                    </div>
                   </div>
-                  <div className="text-lg md:text-xl mb-2 md:mb-3 text-purple-700">
-                    {examplePercentage}% of them are {exampleConfig.emoji}
+                  
+                  {/* Visual Example */}
+                  <div className="bg-white p-4 rounded-lg shadow-sm">
+                    <div className="flex items-center justify-center gap-4 mb-4 flex-wrap">
+                      <div className="bg-blue-100 px-4 py-3 rounded-lg border-2 border-blue-300">
+                        <div className="text-sm font-semibold text-blue-600">Total Animals</div>
+                        <div className="text-3xl font-bold text-blue-800">20</div>
+                      </div>
+                      <div className="text-2xl text-gray-500">×</div>
+                      <div className="bg-purple-100 px-4 py-3 rounded-lg border-2 border-purple-300">
+                        <div className="text-sm font-semibold text-purple-600">Percentage</div>
+                        <div className="text-3xl font-bold text-purple-800">40%</div>
+                      </div>
+                      <div className="text-2xl text-gray-500">=</div>
+                      <div className="bg-green-100 px-4 py-3 rounded-lg border-2 border-green-300">
+                        <div className="text-sm font-semibold text-green-600">🐘 Animals</div>
+                        <div className="text-3xl font-bold text-green-800">?</div>
+                      </div>
+                    </div>
+                    
+                    <div className="text-center">
+                      <div className="text-lg text-gray-700 mb-2">
+                        If 40% of your 20 animals are 🐘
+                      </div>
+                      <div className="text-xl font-bold text-purple-700">
+                        How many 🐘 do you have?
+                      </div>
+                    </div>
+                    
+                    {/* Visual representation */}
+                    <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                      <div className="text-sm text-gray-600 mb-2 text-center">Visual:</div>
+                      <div className="grid grid-cols-10 gap-1 max-w-md mx-auto">
+                        {Array.from({ length: 20 }, (_, i) => (
+                          <div key={i} className={`text-lg text-center p-1 rounded ${i < 8 ? 'bg-green-200' : 'bg-gray-200'}`}>
+                            {i < 8 ? '🐘' : '🐾'}
+                          </div>
+                        ))}
+                      </div>
+                      <div className="text-xs text-center mt-2 text-gray-600">
+                        Green = 🐘 animals (40% of 20) | Gray = Other animals
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-sm md:text-base text-purple-600 mb-2">
-                    Question: How many {exampleConfig.emoji} animals do you have?
-                  </div>
-                  <div className="text-3xl md:text-5xl font-bold text-purple-600">{examplePercentage}%</div>
-                  <div className="text-sm md:text-base text-purple-500">of {totalCollected} total animals</div>
                 </div>
               </div>
 
