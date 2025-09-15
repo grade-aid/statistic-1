@@ -71,6 +71,9 @@ const PercentageDifference = () => {
   const [currentExampleIndex, setCurrentExampleIndex] = useState(0);
   const [showCalculation, setShowCalculation] = useState(false);
   const [showResult, setShowResult] = useState(false);
+  const [showStep1, setShowStep1] = useState(false);
+  const [showStep2, setShowStep2] = useState(false);
+  const [showStep3, setShowStep3] = useState(false);
 
   // Drag-drop state
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -305,12 +308,19 @@ const PercentageDifference = () => {
   useEffect(() => {
     setShowCalculation(false);
     setShowResult(false);
+    setShowStep1(false);
+    setShowStep2(false);
+    setShowStep3(false);
   }, [currentExampleIndex]);
 
   // Handle example interactions
   const handleShowCalculation = () => {
     setShowCalculation(true);
-    setTimeout(() => setShowResult(true), 2000);
+    // Show steps progressively
+    setTimeout(() => setShowStep1(true), 500);
+    setTimeout(() => setShowStep2(true), 1500);
+    setTimeout(() => setShowStep3(true), 2500);
+    setTimeout(() => setShowResult(true), 3500);
   };
 
   const handleNextExample = () => {
@@ -552,47 +562,60 @@ const PercentageDifference = () => {
                 </div>
 
                 {showCalculation && (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 animate-fade-in">
-                    {/* Step 1 */}
-                    <div className="bg-blue-50 p-3 rounded-lg border-2 border-blue-200">
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold">1</div>
-                        <h4 className="text-sm font-bold text-blue-800">Find difference</h4>
-                      </div>
-                      <div className="bg-white p-2 rounded border border-blue-200 text-center">
-                        <div className="text-sm">
-                          <span className="font-bold text-blue-600">${Math.abs(currentExample.newPrice - currentExample.oldPrice)}</span>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4">
+                    {/* Step 1 - Find Difference */}
+                    {showStep1 && (
+                      <div className="bg-blue-50 p-3 rounded-lg border-2 border-blue-200 animate-fade-in">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold">1</div>
+                          <h4 className="text-sm font-bold text-blue-800">Find difference</h4>
+                        </div>
+                        <div className="bg-white p-2 rounded border border-blue-200 text-center">
+                          <div className="text-xs mb-1 text-blue-600">
+                            ${currentExample.newPrice} - ${currentExample.oldPrice}
+                          </div>
+                          <div className="text-sm font-bold text-blue-600">
+                            = ${Math.abs(currentExample.newPrice - currentExample.oldPrice)}
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    )}
 
-                    {/* Step 2 */}
-                    <div className="bg-purple-50 p-3 rounded-lg border-2 border-purple-200">
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="w-6 h-6 bg-purple-500 text-white rounded-full flex items-center justify-center text-sm font-bold">2</div>
-                        <h4 className="text-sm font-bold text-purple-800">Divide by base</h4>
-                      </div>
-                      <div className="bg-white p-2 rounded border border-purple-200 text-center">
-                        <div className="text-sm">
-                          <span className="font-bold text-purple-600">
-                            {(Math.abs(currentExample.newPrice - currentExample.oldPrice) / (currentExample.isIncrease ? currentExample.oldPrice : currentExample.newPrice)).toFixed(2)}
-                          </span>
+                    {/* Step 2 - Divide by Base Price */}
+                    {showStep2 && (
+                      <div className="bg-purple-50 p-3 rounded-lg border-2 border-purple-200 animate-fade-in">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-6 h-6 bg-purple-500 text-white rounded-full flex items-center justify-center text-sm font-bold">2</div>
+                          <h4 className="text-sm font-bold text-purple-800">Divide by {currentExample.isIncrease ? 'original' : 'final'}</h4>
+                        </div>
+                        <div className="bg-white p-2 rounded border border-purple-200 text-center">
+                          <div className="text-xs mb-1 text-purple-600">
+                            ${Math.abs(currentExample.newPrice - currentExample.oldPrice)} ÷ ${currentExample.isIncrease ? currentExample.oldPrice : currentExample.newPrice}
+                          </div>
+                          <div className="text-sm font-bold text-purple-600">
+                            = {(Math.abs(currentExample.newPrice - currentExample.oldPrice) / (currentExample.isIncrease ? currentExample.oldPrice : currentExample.newPrice)).toFixed(2)}
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    )}
 
-                    {/* Step 3 */}
-                    <div className="bg-pink-50 p-3 rounded-lg border-2 border-pink-200">
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="w-6 h-6 bg-pink-500 text-white rounded-full flex items-center justify-center text-sm font-bold">3</div>
-                        <h4 className="text-sm font-bold text-pink-800">× 100</h4>
-                      </div>
-                      <div className="bg-white p-2 rounded border border-pink-200 text-center">
-                        <div className="bg-gradient-to-r from-pink-500 to-purple-500 text-white px-2 py-1 rounded text-sm">
-                          <span className="font-bold">{currentExample.percentageChange}%</span>
+                    {/* Step 3 - Multiply by 100 */}
+                    {showStep3 && (
+                      <div className="bg-pink-50 p-3 rounded-lg border-2 border-pink-200 animate-fade-in">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-6 h-6 bg-pink-500 text-white rounded-full flex items-center justify-center text-sm font-bold">3</div>
+                          <h4 className="text-sm font-bold text-pink-800">× 100</h4>
+                        </div>
+                        <div className="bg-white p-2 rounded border border-pink-200 text-center">
+                          <div className="text-xs mb-1 text-pink-600">
+                            {(Math.abs(currentExample.newPrice - currentExample.oldPrice) / (currentExample.isIncrease ? currentExample.oldPrice : currentExample.newPrice)).toFixed(2)} × 100
+                          </div>
+                          <div className="bg-gradient-to-r from-pink-500 to-purple-500 text-white px-2 py-1 rounded text-sm">
+                            <span className="font-bold">= {currentExample.percentageChange}%</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 )}
 
