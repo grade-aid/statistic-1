@@ -55,7 +55,7 @@ interface DroppedItem {
   item: string;
 }
 
-const GRID_SIZE = 12; // Optimized grid for tablet viewports
+const GRID_SIZE = 8; // Bigger squares for easier gameplay
 
 // Remove dynamic sizing - use CSS instead
 
@@ -482,7 +482,7 @@ const WholeFromPercentage = () => {
         
         return { ...hunter, position: newPosition, direction: newDirection };
       }));
-    }, 180);
+    }, 400); // Slower hunters - changed from 180ms to 400ms
     
     return () => clearInterval(interval);
   }, [phase, hunters.length, isWall, playerPosition]);
@@ -789,15 +789,19 @@ const WholeFromPercentage = () => {
                       <div
                         key={index}
                         className={`
-                          border border-purple-200/50 flex items-center justify-center text-lg rounded-sm
-                          ${isWallCell ? 'bg-purple-600 shadow-inner' : 'bg-white/80 hover:bg-white/90'}
+                          border border-purple-200/50 flex items-center justify-center text-xl rounded-sm
+                          ${isWallCell ? 'bg-purple-600 shadow-inner' : 
+                            animal ? 'animate-pulse shadow-sm' : 'bg-white/80 hover:bg-white/90'}
                           transition-all duration-200
                         `}
-                        style={{ aspectRatio: '1' }}
+                        style={{ 
+                          aspectRatio: '1',
+                          backgroundColor: animal ? animal.color + '40' : undefined // Add animal color with transparency
+                        }}
                       >
-                        {isPlayer && <span className="text-lg drop-shadow-sm">🧑</span>}
-                        {animal && <span className="text-lg drop-shadow-sm animate-pulse">{animal.emoji}</span>}
-                        {hunter && <span className="text-lg drop-shadow-sm">{hunter.emoji}</span>}
+                        {isPlayer && <span className="text-xl drop-shadow-sm">🧑</span>}
+                        {animal && <span className="text-xl drop-shadow-sm animate-bounce">{animal.emoji}</span>}
+                        {hunter && <span className="text-xl drop-shadow-sm">{hunter.emoji}</span>}
                       </div>
                     );
                   })}
