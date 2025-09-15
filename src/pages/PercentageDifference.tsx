@@ -453,14 +453,15 @@ const PercentageDifference = () => {
     }
   }, [playerPosition, priceItems, phase]);
 
-  // Check if collection is complete
+  // Check if collection is complete - must collect ALL visible items
   useEffect(() => {
-    if (collectedCount >= TARGET_ITEMS && phase === 'collection') {
+    const totalItemsGenerated = priceItems.length;
+    if (collectedCount >= totalItemsGenerated && totalItemsGenerated > 0 && phase === 'collection') {
       setTimeout(() => {
         setPhase('examples');
       }, 1000);
     }
-  }, [collectedCount, phase]);
+  }, [collectedCount, priceItems.length, phase]);
 
   // Generate examples from collected data
   const examples: PriceExample[] = Object.values(collectedPrices).slice(0, 4).map(item => {
@@ -672,7 +673,7 @@ const PercentageDifference = () => {
               </div>
               <div className="bg-white/95 px-6 py-3 rounded-2xl border-2 border-purple-200 shadow-sm backdrop-blur-sm">
                 <span className="text-xl font-bold text-gray-700">
-                  {collectedCount} / {TARGET_ITEMS}
+                  {collectedCount} / {priceItems.length}
                 </span>
               </div>
             </div>
@@ -730,7 +731,7 @@ const PercentageDifference = () => {
                   <span className="text-lg font-medium">Use WASD or Arrow Keys to move 🛒 • Avoid Hunters!</span>
                 </div>
                 <div className="text-lg font-bold text-purple-600">
-                  Progress: {Math.round((collectedCount / TARGET_ITEMS) * 100)}%
+                  Progress: {priceItems.length > 0 ? Math.round((collectedCount / priceItems.length) * 100) : 0}%
                 </div>
               </div>
             </Card>
