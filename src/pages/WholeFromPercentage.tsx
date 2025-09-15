@@ -218,34 +218,29 @@ const WholeFromPercentage = () => {
     
     if (availableTypes.length === 0) return [];
     
+    const totalCollected = Object.values(collected).reduce((sum, count) => sum + count, 0);
     const newExercises: WholeExercise[] = [];
-    const targetPercentages = [25, 50, 33]; // Exactly 3 exercises with simple percentages
     
     // Sort animal types by count (descending) to pick the most collected ones
     const sortedTypes = availableTypes.sort((a, b) => collected[b] - collected[a]);
     
     for (let i = 0; i < Math.min(3, sortedTypes.length); i++) {
       const type = sortedTypes[i];
-      const animalCount = collected[type];
-      const percentage = targetPercentages[i];
-      
-      // Calculate what part count would give us this percentage of total animals
-      const expectedPartCount = Math.round((percentage / 100) * totalTarget);
-      
-      // Use the actual collected count if it's reasonable, otherwise use expected
-      const partCount = Math.abs(animalCount - expectedPartCount) <= 2 ? animalCount : expectedPartCount;
+      const actualPartCount = collected[type];
+      // Calculate the real percentage of this animal type from the total collected
+      const actualPercentage = Math.round((actualPartCount / totalCollected) * 100);
       
       newExercises.push({
         id: `exercise-${i}`,
         targetType: type,
-        percentage,
-        partCount,
-        wholeCount: totalTarget // The answer is always the total number of animals
+        percentage: actualPercentage,
+        partCount: actualPartCount, // This is the answer - the actual count collected
+        wholeCount: totalCollected // The total animals collected (known value)
       });
     }
     
     return newExercises;
-  }, [collected, totalTarget]);
+  }, [collected]);
 
   const startGame = () => {
     setPhase('collection');
@@ -446,7 +441,7 @@ const WholeFromPercentage = () => {
       
       toast({
         title: "🎉 Correct!",
-        description: `${currentExercise.partCount} ÷ ${currentExercise.percentage}% = ${currentExercise.wholeCount}`,
+        description: `${currentExercise.wholeCount} × ${currentExercise.percentage}% = ${currentExercise.partCount}`,
         duration: 3000
       });
       
@@ -502,17 +497,16 @@ const WholeFromPercentage = () => {
                 <div className="text-4xl md:text-6xl mb-2 md:mb-4">🔍</div>
                 <div className="bg-purple-100 p-3 md:p-4 rounded-xl mb-3 md:mb-4">
                   <div className="text-lg md:text-xl mb-2 md:mb-3 text-purple-700">
-                    You have {exampleConfig.emoji} animals that are 40% of your total
+                    You collected {totalCollected} total animals
+                  </div>
+                  <div className="text-lg md:text-xl mb-2 md:mb-3 text-purple-700">
+                    {examplePercentage}% of them are {exampleConfig.emoji}
                   </div>
                   <div className="text-sm md:text-base text-purple-600 mb-2">
-                    Question: How many total animals do you have?
+                    Question: How many {exampleConfig.emoji} animals do you have?
                   </div>
-                  <div className="text-2xl md:text-3xl mb-1 md:mb-2">
-                    {Array.from({ length: Math.min(exampleCount, 8) }, (_, i) => exampleConfig.emoji).join('')}
-                    {exampleCount > 8 && '...'}
-                  </div>
-                  <div className="text-3xl md:text-5xl font-bold text-purple-600">40%</div>
-                  <div className="text-sm md:text-base text-purple-500">of all your animals</div>
+                  <div className="text-3xl md:text-5xl font-bold text-purple-600">{examplePercentage}%</div>
+                  <div className="text-sm md:text-base text-purple-500">of {totalCollected} total animals</div>
                 </div>
               </div>
 
@@ -520,13 +514,13 @@ const WholeFromPercentage = () => {
               <div className={`transition-all duration-1000 ${showCalculation ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
                 <div className="flex items-center justify-center gap-2 md:gap-4 text-2xl md:text-3xl mb-2 md:mb-4">
                   <div className="bg-purple-100 p-2 md:p-3 rounded-full animate-pulse">
-                    <span>{exampleConfig.emoji}</span>
-                    <div className="text-sm md:text-base font-bold">{exampleCount}</div>
+                    <span>🎯</span>
+                    <div className="text-sm md:text-base font-bold">{totalCollected}</div>
                   </div>
-                  <div className="text-3xl md:text-4xl">÷</div>
+                  <div className="text-3xl md:text-4xl">×</div>
                   <div className="bg-pink-100 p-2 md:p-3 rounded-full animate-pulse">
                     <span>📊</span>
-                    <div className="text-sm md:text-base font-bold">40%</div>
+                    <div className="text-sm md:text-base font-bold">{examplePercentage}%</div>
                   </div>
                   <div className="text-3xl md:text-4xl">=</div>
                   <div className="bg-yellow-100 p-2 md:p-3 rounded-full animate-bounce">
@@ -534,7 +528,22 @@ const WholeFromPercentage = () => {
                   </div>
                 </div>
                 <div className="text-sm md:text-base text-gray-600">
-                  Formula: Part ÷ Percentage = Whole
+                  Formula: Whole × Percentage = Part
+                </div>
+              </div>
+
+              {/* Step 4: Show result */}
+              <div className={`transition-all duration-1000 ${showResult ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
+                <div className="bg-gradient-to-r from-green-200 to-emerald-200 p-3 md:p-4 rounded-full inline-block animate-bounce">
+                  <div className="text-3xl md:text-5xl font-bold text-green-700">{exampleCount}</div>
+                </div>
+                <div className="text-2xl md:text-4xl mt-2">🎉</div>
+                <div className="text-sm md:text-base text-green-600 mt-2">
+                  {exampleConfig.emoji} animals you have!
+                </div>
+                <div className="text-2xl md:text-3xl mb-1 md:mb-2">
+                  {Array.from({ length: Math.min(exampleCount, 8) }, (_, i) => exampleConfig.emoji).join('')}
+                  {exampleCount > 8 && '...'}
                 </div>
               </div>
 
@@ -601,16 +610,6 @@ const WholeFromPercentage = () => {
                 </div>
               </div>
 
-              {/* Step 4: Show result */}
-              <div className={`transition-all duration-1000 ${showResult ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
-                <div className="bg-gradient-to-r from-green-200 to-emerald-200 p-3 md:p-4 rounded-full inline-block animate-bounce">
-                  <div className="text-3xl md:text-5xl font-bold text-green-700">{totalCollected}</div>
-                </div>
-                <div className="text-2xl md:text-4xl mt-2">🎉</div>
-                <div className="text-sm md:text-base text-green-600 mt-2">
-                  Total animals you collected!
-                </div>
-              </div>
 
               {/* Navigation */}
               <div className="flex gap-2 md:gap-4 justify-center mt-4 md:mt-6">
@@ -718,7 +717,7 @@ const WholeFromPercentage = () => {
         <div className="max-w-4xl mx-auto">
           <Card className="p-6 mb-6 bg-white/80 backdrop-blur-sm">
             <h1 className="text-3xl font-bold text-center mb-6">
-              🔍 Find the Whole from Part
+              🧮 Find the Part from Percentage
             </h1>
             <div className="text-center text-lg text-gray-600">
               Progress: {completedExercises.length} / {exercises.length} completed
@@ -734,29 +733,30 @@ const WholeFromPercentage = () => {
                   {animalConfig[currentExercise.targetType].emoji}
                 </div>
                 <h2 className="text-3xl font-bold mb-6 text-gray-700">
-                  How many animals total?
+                  How many {animalConfig[currentExercise.targetType].emoji} animals?
                 </h2>
               </div>
 
               {/* Problem Statement */}
               <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-8 rounded-xl mb-8">
                 <div className="text-xl text-gray-600 mb-4">
-                  You found <span className="font-bold text-blue-600">{currentExercise.partCount}</span> {animalConfig[currentExercise.targetType].emoji}
+                  You collected <span className="font-bold text-blue-600">{currentExercise.wholeCount}</span> total animals
                 </div>
                 <div className="text-xl text-gray-600 mb-6">
-                  This is <span className="font-bold text-purple-600">{currentExercise.percentage}%</span> of all animals
+                  <span className="font-bold text-purple-600">{currentExercise.percentage}%</span> of them are {animalConfig[currentExercise.targetType].emoji}
                 </div>
                 
                 {/* Visual Representation */}
                 <div className="bg-white p-6 rounded-lg mb-6">
                   <div className="flex items-center justify-center gap-2 mb-4 flex-wrap">
-                    {Array.from({ length: currentExercise.partCount }, (_, i) => (
-                      <span key={i} className="text-4xl flex-shrink-0">{animalConfig[currentExercise.targetType].emoji}</span>
-                    ))}
-                    <span className="text-3xl text-gray-400 mx-4 flex-shrink-0">= {currentExercise.percentage}%</span>
+                    <span className="text-4xl flex-shrink-0">🎯</span>
+                    <span className="text-2xl text-blue-600 font-bold mx-2">{currentExercise.wholeCount} total</span>
+                    <span className="text-3xl text-gray-400 mx-4 flex-shrink-0">×</span>
+                    <span className="text-2xl text-purple-600 font-bold mx-2">{currentExercise.percentage}%</span>
+                    <span className="text-3xl text-gray-400 mx-4 flex-shrink-0">= ?</span>
                   </div>
                   <div className="text-lg text-gray-600">
-                    What's the total number?
+                    How many {animalConfig[currentExercise.targetType].emoji} animals?
                   </div>
                 </div>
 
@@ -765,9 +765,9 @@ const WholeFromPercentage = () => {
                   <div className="text-2xl font-bold text-gray-700 mb-4">Calculation:</div>
                   <div className="flex items-center justify-center gap-6 text-4xl font-bold">
                     <div className="bg-blue-200 text-blue-800 px-6 py-3 rounded-lg">
-                      {currentExercise.partCount}
+                      {currentExercise.wholeCount}
                     </div>
-                    <span className="text-gray-600">÷</span>
+                    <span className="text-gray-600">×</span>
                     <div className="bg-purple-200 text-purple-800 px-6 py-3 rounded-lg">
                       {currentExercise.percentage}%
                     </div>
@@ -777,7 +777,7 @@ const WholeFromPercentage = () => {
                         ? 'bg-green-200 text-green-800' 
                         : 'bg-gray-200 text-gray-500'
                     }`}>
-                      {showAnswer ? currentExercise.wholeCount : '?'}
+                      {showAnswer ? currentExercise.partCount : '?'}
                     </div>
                   </div>
                 </div>
@@ -793,7 +793,7 @@ const WholeFromPercentage = () => {
                     
                     toast({
                       title: "🎉 Correct!",
-                      description: `${currentExercise.partCount} ÷ ${currentExercise.percentage}% = ${currentExercise.wholeCount}`,
+                      description: `${currentExercise.wholeCount} × ${currentExercise.percentage}% = ${currentExercise.partCount}`,
                       duration: 3000
                     });
                   }}
@@ -808,13 +808,17 @@ const WholeFromPercentage = () => {
                 <div className="space-y-6">
                   <div className="bg-green-50 p-6 rounded-lg border-2 border-green-200">
                     <div className="text-3xl font-bold text-green-700 mb-4">
-                      🎉 Answer: {currentExercise.wholeCount} total animals!
+                      🎉 Answer: {currentExercise.partCount} {animalConfig[currentExercise.targetType].emoji} animals!
                     </div>
                     <div className="text-xl text-green-600 mb-4">
-                      {currentExercise.partCount} ÷ {currentExercise.percentage}% = {currentExercise.wholeCount}
+                      {currentExercise.wholeCount} × {currentExercise.percentage}% = {currentExercise.partCount}
                     </div>
                     <div className="text-lg text-gray-600">
-                      So you collected <span className="font-bold">{currentExercise.partCount}</span> out of <span className="font-bold">{currentExercise.wholeCount}</span> total animals
+                      So out of <span className="font-bold">{currentExercise.wholeCount}</span> total animals, <span className="font-bold">{currentExercise.partCount}</span> are {animalConfig[currentExercise.targetType].emoji}
+                    </div>
+                    <div className="text-2xl md:text-3xl mb-1 md:mb-2">
+                      {Array.from({ length: Math.min(currentExercise.partCount, 12) }, (_, i) => animalConfig[currentExercise.targetType].emoji).join('')}
+                      {currentExercise.partCount > 12 && '...'}
                     </div>
                   </div>
 
@@ -855,7 +859,7 @@ const WholeFromPercentage = () => {
             Whole Number Mastery Complete!
           </h2>
           <p className="text-lg text-green-600 mb-6">
-            You've mastered finding the whole from percentages using your collected animals!
+            You've mastered finding parts from percentages using your collected animals!
           </p>
           <Button 
             onClick={() => navigate('/percentage-difference')}
