@@ -90,6 +90,7 @@ const WholeFromPercentage = () => {
   const [currentDragDropIndex, setCurrentDragDropIndex] = useState(0);
   const [droppedItems, setDroppedItems] = useState<DroppedItem[]>([]);
   const [draggedItem, setDraggedItem] = useState<string | null>(null);
+  const [completedDragDropQuestions, setCompletedDragDropQuestions] = useState<string[]>([]);
 
   // Intro animation states (always declared)
   const [showPartial, setShowPartial] = useState(false);
@@ -287,11 +288,58 @@ const WholeFromPercentage = () => {
   const handleDrop = (e: React.DragEvent, zone: string) => {
     e.preventDefault();
     if (draggedItem) {
-      setDroppedItems(prev => [
-        ...prev.filter(item => item.zone !== zone),
+      const updatedDroppedItems = [
+        ...droppedItems.filter(item => item.zone !== zone),
         { zone, item: draggedItem }
-      ]);
+      ];
+      setDroppedItems(updatedDroppedItems);
       setDraggedItem(null);
+
+      // Auto-check answer when all 3 zones are filled
+      if (updatedDroppedItems.length === 3) {
+        setTimeout(() => {
+          const currentQuestion = dragDropQuestions[currentDragDropIndex];
+          if (!currentQuestion) return;
+
+          const totalDrop = updatedDroppedItems.find(item => item.zone === 'total');
+          const percentageDrop = updatedDroppedItems.find(item => item.zone === 'percentage');
+          const resultDrop = updatedDroppedItems.find(item => item.zone === 'result');
+
+          const percentageValue = Math.round((collected[currentQuestion.animalType] / totalCollected) * 100);
+          const animalCount = collected[currentQuestion.animalType];
+
+          const isCorrect = totalDrop?.item === totalCollected.toString() &&
+                 percentageDrop?.item === `${percentageValue}% ${animalConfig[currentQuestion.animalType].emoji}` &&
+                 resultDrop?.item === `${animalCount} ${animalConfig[currentQuestion.animalType].emoji}`;
+
+          if (isCorrect) {
+            setCompletedDragDropQuestions(prev => [...prev, currentQuestion.id]);
+            setShowConfetti(true);
+            toast({
+              title: "🎉 Perfect!",
+              description: "Correct equation!",
+              duration: 2000
+            });
+
+            setTimeout(() => {
+              if (currentDragDropIndex < dragDropQuestions.length - 1) {
+                setCurrentDragDropIndex(prev => prev + 1);
+                setDroppedItems([]);
+                setShowConfetti(false);
+              } else {
+                // All questions completed, move to next phase
+                navigate('/percentage-difference');
+              }
+            }, 2500);
+          } else {
+            toast({
+              title: "🤔 Try again",
+              description: "Check your equation placement",
+              duration: 2000
+            });
+          }
+        }, 300);
+      }
     }
   };
 
@@ -871,12 +919,13 @@ const WholeFromPercentage = () => {
                           if (nextExercise) {
                             setCurrentExercise(nextExercise);
                           } else {
-                            // Start drag-drop questions
-                            const dragDropQs = generateDragDropQuestions();
-                            setDragDropQuestions(dragDropQs);
-                            setCurrentDragDropIndex(0);
-                            setDroppedItems([]);
-                            setShowDragDrop(true);
+            // Start drag-drop questions
+            const dragDropQs = generateDragDropQuestions();
+            setDragDropQuestions(dragDropQs);
+            setCurrentDragDropIndex(0);
+            setDroppedItems([]);
+            setCompletedDragDropQuestions([]);
+            setShowDragDrop(true);
                           }
                         }}
                         className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white text-2xl py-6 px-8 h-16 rounded-2xl w-full shadow-lg hover:shadow-xl transition-all duration-300"
@@ -999,15 +1048,28 @@ const WholeFromPercentage = () => {
                   </div>
                 </div>
 
-                {/* Submit Button */}
+                {/* Result Display or Submit Button */}
                 <div className="space-y-4">
-                  <Button 
-                    onClick={handleDragDropSubmit}
-                    disabled={droppedItems.length < 3}
-                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white text-2xl py-6 px-8 h-16 rounded-2xl w-full shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50"
-                  >
-                    Check My Answer ✓
-                  </Button>
+                  {completedDragDropQuestions.includes(dragDropQuestions[currentDragDropIndex]?.id) ? (
+                    <div className="bg-gradient-to-r from-green-100 to-emerald-100 p-6 rounded-2xl border-2 border-green-200">
+                      <div className="text-3xl mb-2">🎉</div>
+                      <div className="text-xl font-bold text-green-700 mb-2">
+                        Excellent! Moving to next question...
+                      </div>
+                      <div className="text-sm text-green-600">
+                        {totalCollected} × {Math.round((collected[dragDropQuestions[currentDragDropIndex].animalType] / totalCollected) * 100)}% = {collected[dragDropQuestions[currentDragDropIndex].animalType]} {animalConfig[dragDropQuestions[currentDragDropIndex].animalType].emoji}
+                      </div>
+                    </div>
+                  ) : droppedItems.length < 3 ? (
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-2xl border-2 border-blue-200">
+                      <div className="text-lg font-semibold text-blue-700">
+                        Drop all items to see the result!
+                      </div>
+                      <div className="text-sm text-blue-600 mt-1">
+                        {3 - droppedItems.length} more item{3 - droppedItems.length !== 1 ? 's' : ''} needed
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
               </div>
             </Card>
