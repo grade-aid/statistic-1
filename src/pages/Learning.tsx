@@ -247,24 +247,49 @@ const Learning = () => {
                           {/* Animal emoji in slice */}
                           <text 
                             x={labelX} 
-                            y={labelY} 
+                            y={isCompleted ? labelY - 6 : labelY} 
                             textAnchor="middle" 
                             dy="0.3em" 
                             className={type === 'mammals' ? 'text-3xl pointer-events-none' : 'text-2xl pointer-events-none'}
                           >
                             {typeConfig.emoji}
                           </text>
-                          {/* Animal count */}
-                          <text 
-                            x={labelX} 
-                            y={labelY + 18} 
-                            textAnchor="middle" 
-                            dy="0.3em" 
-                            className={`${type === 'mammals' ? 'text-base' : 'text-sm'} font-bold fill-white pointer-events-none`}
-                            style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}
-                          >
-                            {count}
-                          </text>
+                          {/* Animal count or percentage */}
+                          {isCompleted ? (
+                            <>
+                              <text 
+                                x={labelX} 
+                                y={labelY + 12} 
+                                textAnchor="middle" 
+                                dy="0.3em" 
+                                className="text-lg font-bold fill-white pointer-events-none animate-scale-in"
+                                style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}
+                              >
+                                {Math.round(count / totalAnimals * 100)}%
+                              </text>
+                              <text 
+                                x={labelX} 
+                                y={labelY + 28} 
+                                textAnchor="middle" 
+                                dy="0.3em" 
+                                className="text-xs font-medium fill-white/80 pointer-events-none"
+                                style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}
+                              >
+                                ({count})
+                              </text>
+                            </>
+                          ) : (
+                            <text 
+                              x={labelX} 
+                              y={labelY + 18} 
+                              textAnchor="middle" 
+                              dy="0.3em" 
+                              className={`${type === 'mammals' ? 'text-base' : 'text-sm'} font-bold fill-white pointer-events-none`}
+                              style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}
+                            >
+                              {count}
+                            </text>
+                          )}
                         </g>
                       );
                       
