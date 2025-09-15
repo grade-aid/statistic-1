@@ -462,19 +462,6 @@ const PercentageDifference = () => {
     }
   }, [collectedCount, phase]);
 
-  // Auto-complete for testing
-  const autoComplete = () => {
-    priceItems.forEach(item => {
-      if (!item.collected) {
-        setCollectedPrices(prev => ({
-          ...prev,
-          [item.id]: item
-        }));
-      }
-    });
-    setCollectedCount(TARGET_ITEMS);
-  };
-
   // Generate examples from collected data
   const examples: PriceExample[] = Object.values(collectedPrices).slice(0, 4).map(item => {
     const percentageChange = Math.round(
@@ -688,14 +675,6 @@ const PercentageDifference = () => {
                   {collectedCount} / {TARGET_ITEMS}
                 </span>
               </div>
-              <Button 
-                onClick={autoComplete} 
-                variant="outline" 
-                className="text-lg px-6 py-3 h-12 rounded-2xl border-2 border-purple-300 bg-white/95 hover:bg-purple-50 transition-all duration-300 shadow-sm backdrop-blur-sm min-w-[150px]"
-                disabled={priceItems.length === 0}
-              >
-                Skip Collection
-              </Button>
             </div>
           </div>
 
