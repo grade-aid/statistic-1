@@ -1,10 +1,28 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowRight, ShoppingCart } from "lucide-react";
+import { ArrowRight, ShoppingCart, MapPin } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import Confetti from "@/components/Confetti";
+
+// Game phases
+type GamePhase = 'start' | 'collection' | 'examples' | 'dragdrop' | 'complete';
+
+interface PriceItem {
+  id: string;
+  emoji: string;
+  name: string;
+  oldPrice: number;
+  newPrice: number;
+  store: string;
+  position: { x: number; y: number };
+  collected: boolean;
+}
+
+interface CollectedPrices {
+  [key: string]: PriceItem;
+}
 
 interface PriceExample {
   id: string;
@@ -32,13 +50,22 @@ interface DroppedItem {
   item: string;
 }
 
+const GRID_SIZE = 12;
+const TARGET_ITEMS = 9;
+
 const PercentageDifference = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Phase state
-  const [showExamples, setShowExamples] = useState(true);
-  const [showDragDrop, setShowDragDrop] = useState(false);
+  // Game phase
+  const [phase, setPhase] = useState<GamePhase>('start');
+
+  // Collection phase state
+  const [playerPosition, setPlayerPosition] = useState({ x: 1, y: 1 });
+  const [priceItems, setPriceItems] = useState<PriceItem[]>([]);
+  const [collectedPrices, setCollectedPrices] = useState<CollectedPrices>({});
+  const [walls, setWalls] = useState<{ x: number; y: number }[]>([]);
+  const [collectedCount, setCollectedCount] = useState(0);
 
   // Examples state
   const [currentExampleIndex, setCurrentExampleIndex] = useState(0);
@@ -53,98 +80,223 @@ const PercentageDifference = () => {
   const [completedQuestions, setCompletedQuestions] = useState<string[]>([]);
   const [showQuestionResult, setShowQuestionResult] = useState(false);
 
-  // Price examples data
-  const examples: PriceExample[] = [
-    {
-      id: '1',
-      emoji: '📱',
-      name: 'Phone',
-      oldPrice: 800,
-      newPrice: 1000,
-      store: 'TechMart',
-      percentageChange: 25,
-      isIncrease: true
-    },
-    {
-      id: '2',
-      emoji: '💻',
-      name: 'Laptop',
-      oldPrice: 1200,
-      newPrice: 960,
-      store: 'ElectroShop',
-      percentageChange: 20,
-      isIncrease: false
-    },
-    {
-      id: '3',
-      emoji: '🎧',
-      name: 'Headphones',
-      oldPrice: 150,
-      newPrice: 180,
-      store: 'AudioPlus',
-      percentageChange: 20,
-      isIncrease: true
-    },
-    {
-      id: '4',
-      emoji: '⌚',
-      name: 'Watch',
-      oldPrice: 500,
-      newPrice: 375,
-      store: 'TimeZone',
-      percentageChange: 25,
-      isIncrease: false
-    }
-  ];
+  // Item configuration for collection
+  const itemConfig = {
+    phone: { emoji: '📱', name: 'Phone' },
+    laptop: { emoji: '💻', name: 'Laptop' },
+    headphones: { emoji: '🎧', name: 'Headphones' },
+    watch: { emoji: '⌚', name: 'Watch' },
+    camera: { emoji: '📷', name: 'Camera' },
+    tablet: { emoji: '📱', name: 'Tablet' },
+    speaker: { emoji: '🔊', name: 'Speaker' },
+    mouse: { emoji: '🖱️', name: 'Mouse' },
+    keyboard: { emoji: '⌨️', name: 'Keyboard' }
+  };
 
-  // Drag-drop questions
-  const dragDropQuestions: DragDropQuestion[] = [
-    {
-      id: '1',
-      emoji: '📷',
-      name: 'Camera',
-      oldPrice: 600,
-      newPrice: 720,
-      isIncrease: true,
-      correctAnswer: 20
-    },
-    {
-      id: '2', 
-      emoji: '🔊',
-      name: 'Speaker',
-      oldPrice: 200,
-      newPrice: 160,
-      isIncrease: false,
-      correctAnswer: 20
-    },
-    {
-      id: '3',
-      emoji: '🖱️',
-      name: 'Mouse',
-      oldPrice: 80,
-      newPrice: 100,
-      isIncrease: true,
-      correctAnswer: 25
-    },
-    {
-      id: '4',
-      emoji: '⌨️',
-      name: 'Keyboard',
-      oldPrice: 120,
-      newPrice: 90,
-      isIncrease: false,
-      correctAnswer: 25
-    },
-    {
-      id: '5',
-      emoji: '📱',
-      name: 'Tablet',
-      oldPrice: 400,
-      newPrice: 500,
-      isIncrease: true,
-      correctAnswer: 25
+  // Store configuration
+  const storeConfig = {
+    techmart: { name: 'TechMart', color: 'bg-blue-200' },
+    electroshop: { name: 'ElectroShop', color: 'bg-green-200' },
+    gadgetstore: { name: 'GadgetStore', color: 'bg-purple-200' },
+    techhub: { name: 'TechHub', color: 'bg-orange-200' }
+  };
+
+  // Generate walls for game grid
+  const generateWalls = useCallback(() => {
+    const newWalls: { x: number; y: number }[] = [];
+    for (let x = 0; x < GRID_SIZE; x++) {
+      for (let y = 0; y < GRID_SIZE; y++) {
+        if (x === 0 || x === GRID_SIZE - 1 || y === 0 || y === GRID_SIZE - 1) {
+          newWalls.push({ x, y });
+        } else if (x % 3 === 0 && y % 3 === 0 && Math.random() > 0.5) {
+          newWalls.push({ x, y });
+        }
+      }
     }
-  ];
+    return newWalls;
+  }, []);
+
+  // Generate price items for collection
+  const generatePriceItems = useCallback(() => {
+    const items: PriceItem[] = [];
+    const itemTypes = Object.keys(itemConfig);
+    const stores = Object.keys(storeConfig);
+
+    for (let i = 0; i < TARGET_ITEMS; i++) {
+      const itemType = itemTypes[i % itemTypes.length];
+      const store = stores[Math.floor(i / 3) % stores.length];
+      
+      // Generate realistic price changes
+      const basePrice = 100 + Math.floor(Math.random() * 900);
+      const priceChange = 0.1 + Math.random() * 0.4; // 10-50% change
+      const isIncrease = Math.random() > 0.5;
+      
+      const oldPrice = isIncrease ? basePrice : Math.round(basePrice * (1 + priceChange));
+      const newPrice = isIncrease ? Math.round(basePrice * (1 + priceChange)) : basePrice;
+
+      // Find valid position
+      let position;
+      do {
+        position = {
+          x: Math.floor(Math.random() * (GRID_SIZE - 2)) + 1,
+          y: Math.floor(Math.random() * (GRID_SIZE - 2)) + 1
+        };
+      } while (
+        walls.some(wall => wall.x === position.x && wall.y === position.y) ||
+        items.some(item => item.position.x === position.x && item.position.y === position.y)
+      );
+
+      items.push({
+        id: `${itemType}-${i}`,
+        emoji: itemConfig[itemType as keyof typeof itemConfig].emoji,
+        name: itemConfig[itemType as keyof typeof itemConfig].name,
+        oldPrice,
+        newPrice,
+        store: storeConfig[store as keyof typeof storeConfig].name,
+        position,
+        collected: false
+      });
+    }
+    
+    return items;
+  }, [walls]);
+
+  // Check if position is a wall
+  const isWall = (pos: { x: number; y: number }) => {
+    return walls.some(wall => wall.x === pos.x && wall.y === pos.y);
+  };
+
+  // Start game
+  const startGame = () => {
+    const newWalls = generateWalls();
+    setWalls(newWalls);
+    
+    // Generate items after walls are set
+    setTimeout(() => {
+      const items = generatePriceItems();
+      setPriceItems(items);
+    }, 100);
+    
+    setPlayerPosition({ x: 1, y: 1 });
+    setCollectedPrices({});
+    setCollectedCount(0);
+    setPhase('collection');
+  };
+
+  // Player movement
+  const movePlayer = useCallback((dx: number, dy: number) => {
+    if (phase !== 'collection') return;
+    
+    setPlayerPosition(prev => {
+      const newPos = {
+        x: Math.max(0, Math.min(GRID_SIZE - 1, prev.x + dx)),
+        y: Math.max(0, Math.min(GRID_SIZE - 1, prev.y + dy))
+      };
+      
+      // Check if new position is a wall
+      if (isWall(newPos)) {
+        return prev; // Don't move if hitting a wall
+      }
+      
+      return newPos;
+    });
+  }, [phase, walls]);
+
+  // Handle keyboard input
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      switch(e.key) {
+        case 'ArrowUp': movePlayer(0, -1); break;
+        case 'ArrowDown': movePlayer(0, 1); break;
+        case 'ArrowLeft': movePlayer(-1, 0); break;
+        case 'ArrowRight': movePlayer(1, 0); break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [movePlayer]);
+
+  // Check for item collection
+  useEffect(() => {
+    if (phase !== 'collection') return;
+    
+    const itemToCollect = priceItems.find(item => 
+      item.position.x === playerPosition.x && 
+      item.position.y === playerPosition.y && 
+      !item.collected
+    );
+    
+    if (itemToCollect) {
+      setPriceItems(prev => prev.map(item => 
+        item.id === itemToCollect.id ? { ...item, collected: true } : item
+      ));
+      
+      setCollectedPrices(prev => ({
+        ...prev,
+        [itemToCollect.id]: itemToCollect
+      }));
+      
+      setCollectedCount(prev => prev + 1);
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 1000);
+    }
+  }, [playerPosition, priceItems, phase]);
+
+  // Check if collection is complete
+  useEffect(() => {
+    if (collectedCount >= TARGET_ITEMS && phase === 'collection') {
+      setTimeout(() => {
+        setPhase('examples');
+      }, 1000);
+    }
+  }, [collectedCount, phase]);
+
+  // Auto-complete for testing
+  const autoComplete = () => {
+    priceItems.forEach(item => {
+      if (!item.collected) {
+        setCollectedPrices(prev => ({
+          ...prev,
+          [item.id]: item
+        }));
+      }
+    });
+    setCollectedCount(TARGET_ITEMS);
+  };
+
+  // Generate examples from collected data
+  const examples: PriceExample[] = Object.values(collectedPrices).slice(0, 4).map(item => {
+    const percentageChange = Math.round(
+      Math.abs(item.newPrice - item.oldPrice) / Math.min(item.oldPrice, item.newPrice) * 100
+    );
+    return {
+      id: item.id,
+      emoji: item.emoji,
+      name: item.name,
+      oldPrice: item.oldPrice,
+      newPrice: item.newPrice,
+      store: item.store,
+      percentageChange,
+      isIncrease: item.newPrice > item.oldPrice
+    };
+  });
+
+  // Drag-drop questions from collected data
+  const dragDropQuestions: DragDropQuestion[] = Object.values(collectedPrices).slice(0, 5).map(item => {
+    const percentageChange = Math.round(
+      Math.abs(item.newPrice - item.oldPrice) / Math.min(item.oldPrice, item.newPrice) * 100
+    );
+    return {
+      id: `drag-${item.id}`,
+      emoji: item.emoji,
+      name: item.name,
+      oldPrice: item.oldPrice,
+      newPrice: item.newPrice,
+      isIncrease: item.newPrice > item.oldPrice,
+      correctAnswer: percentageChange
+    };
+  });
 
   const currentExample = examples[currentExampleIndex];
   const currentQuestion = dragDropQuestions[currentQuestionIndex];
@@ -165,8 +317,7 @@ const PercentageDifference = () => {
     if (currentExampleIndex < examples.length - 1) {
       setCurrentExampleIndex(prev => prev + 1);
     } else {
-      setShowExamples(false);
-      setShowDragDrop(true);
+      setPhase('dragdrop');
     }
   };
 
@@ -244,8 +395,140 @@ const PercentageDifference = () => {
     setShowQuestionResult(false);
   };
 
+  // Start phase
+  if (phase === 'start') {
+    return (
+      <div className="h-screen bg-gradient-to-br from-purple-50 to-pink-100 p-4 flex items-center justify-center overflow-hidden">
+        <Card className="p-8 max-w-2xl mx-auto text-center shadow-2xl rounded-3xl bg-white/95 backdrop-blur-sm border-2">
+          <div className="space-y-6">
+            <div className="text-6xl mb-4">🛒</div>
+            <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              Price Comparison Adventure!
+            </h1>
+            <p className="text-xl text-muted-foreground mb-6">
+              Collect items with different prices and learn percentage differences
+            </p>
+            <Button 
+              onClick={startGame}
+              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-xl px-8 py-4 h-16 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              Start Shopping! <ShoppingCart className="w-6 h-6 ml-2" />
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
+  // Collection phase
+  if (phase === 'collection') {
+    return (
+      <div className="h-dvh bg-gradient-to-br from-purple-50 to-pink-100 p-6 overflow-hidden flex flex-col max-h-screen">
+        <div className="flex-1 flex flex-col max-w-5xl mx-auto w-full">
+          
+          {/* Header */}
+          <div className="text-center mb-4">
+            <h2 className="text-4xl font-bold mb-3 text-gray-800">🛒 Collect Price Items</h2>
+            
+            <div className="flex flex-wrap items-center justify-center gap-4 mb-3">
+              <div className="bg-white/95 px-6 py-3 rounded-2xl border-2 border-purple-200 shadow-sm backdrop-blur-sm">
+                <span className="text-xl font-bold text-gray-700">
+                  {collectedCount} / {TARGET_ITEMS}
+                </span>
+              </div>
+              <Button 
+                onClick={autoComplete} 
+                variant="outline" 
+                className="text-lg px-4 py-3 h-12 rounded-2xl border-2 border-purple-300 bg-white/95 hover:bg-purple-50 transition-all duration-300 shadow-sm backdrop-blur-sm"
+                disabled={priceItems.length === 0}
+              >
+                Skip Collection
+              </Button>
+            </div>
+          </div>
+
+          {/* Game Grid */}
+          <div className="flex-1 flex justify-center items-center min-h-0">
+            <Card className="w-full aspect-square max-w-lg shadow-2xl rounded-3xl overflow-hidden bg-white/95 backdrop-blur-sm border-2">
+              <div className="relative bg-gradient-to-br from-purple-50 to-pink-50 h-full p-3">
+                <div 
+                  className="grid gap-1 relative w-full h-full rounded-xl overflow-hidden"
+                  style={{ gridTemplateColumns: `repeat(${GRID_SIZE}, minmax(0, 1fr))` }}
+                >
+                  {Array.from({ length: GRID_SIZE * GRID_SIZE }, (_, index) => {
+                    const x = index % GRID_SIZE;
+                    const y = Math.floor(index / GRID_SIZE);
+                    const isWallCell = isWall({ x, y });
+                    const isPlayer = playerPosition.x === x && playerPosition.y === y;
+                    const item = priceItems.find(item => 
+                      item.position.x === x && item.position.y === y && !item.collected
+                    );
+                    
+                    return (
+                      <div
+                        key={index}
+                        className={`
+                          border border-purple-200/50 flex items-center justify-center text-lg rounded-sm
+                          ${isWallCell ? 'bg-purple-600 shadow-inner' : 'bg-white/80 hover:bg-white/90'}
+                          transition-all duration-200
+                        `}
+                        style={{ aspectRatio: '1' }}
+                      >
+                        {isPlayer && <span className="text-lg drop-shadow-sm">🛒</span>}
+                        {item && <span className="text-lg drop-shadow-sm animate-pulse">{item.emoji}</span>}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          {/* Instructions and Progress */}
+          <div className="mt-4">
+            <Card className="p-4 bg-white/95 backdrop-blur-sm border-2 border-purple-200 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <MapPin className="w-6 h-6 text-purple-600" />
+                  <span className="text-lg font-medium">Use arrow keys to move 🛒</span>
+                </div>
+                <div className="text-lg font-bold text-purple-600">
+                  Collected: {collectedCount}/{TARGET_ITEMS}
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          {/* Collected Items Display */}
+          {Object.keys(collectedPrices).length > 0 && (
+            <div className="mt-4">
+              <Card className="p-4 bg-white/95 backdrop-blur-sm border-2 border-purple-200 shadow-sm">
+                <h3 className="text-lg font-bold mb-3">Collected Items:</h3>
+                <div className="flex flex-wrap gap-2">
+                  {Object.values(collectedPrices).map(item => (
+                    <div key={item.id} className="bg-gradient-to-r from-purple-100 to-pink-100 px-3 py-2 rounded-lg border border-purple-200">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">{item.emoji}</span>
+                        <span className="text-sm font-medium">{item.name}</span>
+                        <span className="text-xs text-muted-foreground">
+                          ${item.oldPrice} → ${item.newPrice}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            </div>
+          )}
+        </div>
+        
+        <Confetti trigger={showConfetti} onComplete={() => setShowConfetti(false)} />
+      </div>
+    );
+  }
+
   // Examples phase
-  if (showExamples) {
+  if (phase === 'examples' && currentExample) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 p-4">
         <div className="max-w-4xl mx-auto">
@@ -256,7 +539,7 @@ const PercentageDifference = () => {
                 Price Percentage Changes
               </h1>
               <p className="text-xl text-muted-foreground">
-                Learn how to calculate percentage increases and decreases in prices
+                Learn from the items you collected
               </p>
             </div>
           </Card>
@@ -397,7 +680,7 @@ const PercentageDifference = () => {
   }
 
   // Drag-drop phase
-  if (showDragDrop) {
+  if (phase === 'dragdrop' && currentQuestion) {
     const difference = Math.abs(currentQuestion.newPrice - currentQuestion.oldPrice);
     const basePrice = currentQuestion.isIncrease ? currentQuestion.oldPrice : currentQuestion.newPrice;
 
@@ -419,7 +702,7 @@ const PercentageDifference = () => {
                   Drag & Drop Practice
                 </h1>
                 <p className="text-muted-foreground">
-                  Complete the percentage calculation by dragging the correct values
+                  Complete the percentage calculation with your collected items
                 </p>
               </div>
               <div className="text-right">
