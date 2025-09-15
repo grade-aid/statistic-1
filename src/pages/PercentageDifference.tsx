@@ -523,7 +523,7 @@ const PercentageDifference = () => {
             </div>
           </Card>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="max-w-2xl mx-auto">
             {/* Example Card */}
             <Card className="p-6">
               <div className="text-center mb-6">
@@ -585,55 +585,6 @@ const PercentageDifference = () => {
                     {currentExampleIndex < examples.length - 1 ? 'Next Example' : 'Start Practice'} 
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
-                )}
-              </div>
-            </Card>
-
-            {/* Visual Bar Chart */}
-            <Card className="p-6">
-              <h3 className="text-xl font-bold mb-4 text-center">Price Comparison</h3>
-              <div className="space-y-4">
-                <div>
-                  <div className="flex justify-between mb-2">
-                    <span>Old Price</span>
-                    <span className="font-bold">${currentExample.oldPrice}</span>
-                  </div>
-                  <div className="w-full bg-red-100 rounded-full h-8 relative overflow-hidden">
-                    <div 
-                      className="bg-gradient-to-r from-red-400 to-red-500 h-8 rounded-full transition-all duration-1000 flex items-center justify-center"
-                      style={{ width: `${(currentExample.oldPrice / Math.max(currentExample.oldPrice, currentExample.newPrice)) * 100}%` }}
-                    >
-                      <span className="text-white font-bold text-sm">${currentExample.oldPrice}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex justify-between mb-2">
-                    <span>New Price</span>
-                    <span className="font-bold">${currentExample.newPrice}</span>
-                  </div>
-                  <div className="w-full bg-green-100 rounded-full h-8 relative overflow-hidden">
-                    <div 
-                      className="bg-gradient-to-r from-green-400 to-green-500 h-8 rounded-full transition-all duration-1000 flex items-center justify-center"
-                      style={{ width: `${(currentExample.newPrice / Math.max(currentExample.oldPrice, currentExample.newPrice)) * 100}%` }}
-                    >
-                      <span className="text-white font-bold text-sm">${currentExample.newPrice}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {showResult && (
-                  <div className="mt-6 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border">
-                    <div className="text-center">
-                      <div className="text-3xl mb-2">
-                        {currentExample.isIncrease ? '📈' : '📉'}
-                      </div>
-                      <div className="text-lg font-bold text-purple-600">
-                        {currentExample.percentageChange}% {currentExample.isIncrease ? 'Increase' : 'Decrease'}
-                      </div>
-                    </div>
-                  </div>
                 )}
               </div>
             </Card>
