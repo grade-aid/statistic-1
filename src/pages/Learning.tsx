@@ -497,7 +497,7 @@ const Learning = () => {
             <h3 className="text-lg font-bold text-gray-700 mb-4">Drag these items:</h3>
             <div className="flex justify-center gap-4 flex-wrap">
               {[
-                { id: count.toString(), label: `${count}`, color: 'bg-purple-200 border-purple-400' },
+                { id: count.toString(), label: `${count} ${animalConfig[animalType as keyof typeof animalConfig].emoji}`, color: 'bg-purple-200 border-purple-400' },
                 { id: totalAnimals.toString(), label: `${totalAnimals}`, color: 'bg-pink-200 border-pink-400' },
                 { id: '100', label: '100', color: 'bg-purple-200 border-purple-400' }
               ].map((item) => (
