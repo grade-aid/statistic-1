@@ -279,7 +279,7 @@ const WholeFromPercentage = () => {
         equation: `? ÷ ? × ? = ${collected[animalType]}`,
         correctDrops: {
           animal: `${totalCollected}`,
-          total: `${Math.round((collected[animalType] / totalCollected) * 100)}`,
+          total: `${Math.round((collected[animalType] / totalCollected) * 100)}%`,
           hundred: "100"
         }
       });
@@ -920,15 +920,29 @@ const WholeFromPercentage = () => {
                 {/* Drag-Drop Interface */}
                 <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-2xl mb-6 flex-1 flex flex-col justify-center border-2 border-purple-200">
                   
+                   {/* Percentage Equivalency Display */}
+                  <div className="mb-6">
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-2xl border-2 border-blue-200">
+                      <h3 className="text-lg font-bold text-blue-700 mb-2">💡 Remember:</h3>
+                      <div className="text-xl font-semibold text-blue-600">
+                        {Math.round((collected[dragDropQuestions[currentDragDropIndex].animalType] / totalCollected) * 100)}% = {(Math.round((collected[dragDropQuestions[currentDragDropIndex].animalType] / totalCollected) * 100) / 100).toFixed(2)}
+                      </div>
+                      <div className="text-sm text-blue-500 mt-1">Percentage as decimal</div>
+                    </div>
+                  </div>
+
                   {/* Draggable Items */}
                   <div className="mb-8">
                     <h3 className="text-lg font-bold text-gray-700 mb-4">Drag these items:</h3>
                     <div className="flex justify-center gap-4 flex-wrap">
-                      {[
-                        { id: totalCollected.toString(), label: `${totalCollected}`, color: 'bg-purple-200 border-purple-400' },
-                        { id: Math.round((collected[dragDropQuestions[currentDragDropIndex].animalType] / totalCollected) * 100).toString(), label: `${Math.round((collected[dragDropQuestions[currentDragDropIndex].animalType] / totalCollected) * 100)}`, color: 'bg-pink-200 border-pink-400' },
-                        { id: '100', label: '100', color: 'bg-purple-200 border-purple-400' }
-                      ].map((item) => (
+                      {(() => {
+                        const percentageValue = Math.round((collected[dragDropQuestions[currentDragDropIndex].animalType] / totalCollected) * 100);
+                        return [
+                          { id: totalCollected.toString(), label: `${totalCollected}`, color: 'bg-purple-200 border-purple-400' },
+                          { id: `${percentageValue}%`, label: `${percentageValue}%`, color: 'bg-pink-200 border-pink-400' },
+                          { id: '100', label: '100', color: 'bg-purple-200 border-purple-400' }
+                        ];
+                      })().map((item) => (
                         <div
                           key={item.id}
                           draggable
