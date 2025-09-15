@@ -499,27 +499,6 @@ const PercentageDifference = () => {
             </Card>
           </div>
 
-          {/* Collected Items Display */}
-          {Object.keys(collectedPrices).length > 0 && (
-            <div className="mt-4">
-              <Card className="p-4 bg-white/95 backdrop-blur-sm border-2 border-purple-200 shadow-sm">
-                <h3 className="text-lg font-bold mb-3">Collected Items:</h3>
-                <div className="flex flex-wrap gap-2">
-                  {Object.values(collectedPrices).map(item => (
-                    <div key={item.id} className="bg-gradient-to-r from-purple-100 to-pink-100 px-3 py-2 rounded-lg border border-purple-200">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">{item.emoji}</span>
-                        <span className="text-sm font-medium">{item.name}</span>
-                        <span className="text-xs text-muted-foreground">
-                          ${item.oldPrice} → ${item.newPrice}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-            </div>
-          )}
         </div>
         
         <Confetti trigger={showConfetti} onComplete={() => setShowConfetti(false)} />
