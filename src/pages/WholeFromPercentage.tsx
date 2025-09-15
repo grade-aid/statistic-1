@@ -501,12 +501,18 @@ const WholeFromPercentage = () => {
               <div className={`transition-all duration-1000 ${showPartial ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
                 <div className="text-4xl md:text-6xl mb-2 md:mb-4">🔍</div>
                 <div className="bg-purple-100 p-3 md:p-4 rounded-xl mb-3 md:mb-4">
-                  <div className="text-2xl md:text-3xl mb-1 md:mb-2">
-                    {Array.from({ length: Math.min(exampleCount, 6) }, (_, i) => exampleConfig.emoji).join('')}
-                    {exampleCount > 6 && '...'}
+                  <div className="text-lg md:text-xl mb-2 md:mb-3 text-purple-700">
+                    20 of your animals are {exampleConfig.emoji} that is 40%
                   </div>
-                  <div className="text-3xl md:text-5xl font-bold text-purple-600">{examplePercentage}%</div>
-                  <div className="text-sm md:text-base text-purple-500">of your animals</div>
+                  <div className="text-sm md:text-base text-purple-600 mb-2">
+                    Calculation: 20 ÷ 50 × 100 = 40%
+                  </div>
+                  <div className="text-2xl md:text-3xl mb-1 md:mb-2">
+                    {Array.from({ length: Math.min(20, 8) }, (_, i) => exampleConfig.emoji).join('')}
+                    {20 > 8 && '...'}
+                  </div>
+                  <div className="text-3xl md:text-5xl font-bold text-purple-600">40%</div>
+                  <div className="text-sm md:text-base text-purple-500">of your total animals</div>
                 </div>
               </div>
 
