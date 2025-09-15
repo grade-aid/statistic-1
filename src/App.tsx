@@ -8,7 +8,7 @@ import Visualization from "./pages/Visualization";
 import Learning from "./pages/Learning";
 import WholeFromPercentage from "./pages/WholeFromPercentage";
 import PercentageDifference from "./pages/PercentageDifference";
-import PercentageVisualization from "./pages/PercentageVisualization";
+
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,7 +25,7 @@ const App = () => (
           <Route path="/learning" element={<Learning />} />
           <Route path="/whole-from-percentage" element={<WholeFromPercentage />} />
           <Route path="/percentage-difference" element={<PercentageDifference />} />
-          <Route path="/percentage-visualization" element={<PercentageVisualization />} />
+          
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

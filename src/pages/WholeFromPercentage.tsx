@@ -488,7 +488,7 @@ const WholeFromPercentage = () => {
         
         return { ...hunter, position: newPosition, direction: newDirection };
       }));
-    }, 400); // Slower hunters - changed from 180ms to 400ms
+    }, 250); // Faster hunters for more challenge
     
     return () => clearInterval(interval);
   }, [phase, hunters.length, isWall, playerPosition]);

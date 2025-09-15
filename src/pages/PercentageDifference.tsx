@@ -598,12 +598,8 @@ const PercentageDifference = () => {
       setCurrentStep(1);
       setStepCompleted({});
     } else {
-      // Store data for visualization page
-      localStorage.setItem('priceComparisonData', JSON.stringify({
-        examples: examples,
-        completed: true
-      }));
-      navigate('/percentage-visualization');
+      // Game completed - show congratulations
+      setPhase('complete');
     }
   };
 
@@ -1104,6 +1100,37 @@ const PercentageDifference = () => {
         </div>
 
         <Confetti trigger={showConfetti} onComplete={() => setShowConfetti(false)} />
+      </div>
+    );
+  }
+
+  // Complete phase - Game finished with congratulations
+  if (phase === 'complete') {
+    return (
+      <div className="h-dvh bg-gradient-to-br from-purple-50 to-pink-100 p-4 flex items-center justify-center overflow-hidden">
+        <Card className="p-8 max-w-2xl mx-auto text-center shadow-2xl rounded-3xl bg-white/95 backdrop-blur-sm border-2">
+          <div className="space-y-6">
+            <div className="text-6xl mb-4">🎉</div>
+            <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              Congratulations!
+            </h1>
+            <p className="text-xl text-muted-foreground mb-6">
+              You've mastered percentage differences! Great job learning how to compare prices and calculate percentage changes.
+            </p>
+            <div className="bg-gradient-to-r from-purple-100 to-pink-100 p-4 rounded-2xl mb-6">
+              <p className="text-lg font-semibold text-gray-700">
+                🎯 You successfully completed all percentage difference challenges!
+              </p>
+            </div>
+            <Button 
+              onClick={() => navigate('/')}
+              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-xl px-8 py-4 h-16 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 min-w-[200px]"
+            >
+              Return to Main Menu
+            </Button>
+          </div>
+        </Card>
+        <Confetti trigger={true} />
       </div>
     );
   }
