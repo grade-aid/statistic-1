@@ -502,17 +502,17 @@ const WholeFromPercentage = () => {
                 <div className="text-4xl md:text-6xl mb-2 md:mb-4">🔍</div>
                 <div className="bg-purple-100 p-3 md:p-4 rounded-xl mb-3 md:mb-4">
                   <div className="text-lg md:text-xl mb-2 md:mb-3 text-purple-700">
-                    20 of your animals are {exampleConfig.emoji} that is 40%
+                    You have {exampleConfig.emoji} animals that are 40% of your total
                   </div>
                   <div className="text-sm md:text-base text-purple-600 mb-2">
-                    Calculation: 20 ÷ 50 × 100 = 40%
+                    Question: How many total animals do you have?
                   </div>
                   <div className="text-2xl md:text-3xl mb-1 md:mb-2">
-                    {Array.from({ length: Math.min(20, 8) }, (_, i) => exampleConfig.emoji).join('')}
-                    {20 > 8 && '...'}
+                    {Array.from({ length: Math.min(exampleCount, 8) }, (_, i) => exampleConfig.emoji).join('')}
+                    {exampleCount > 8 && '...'}
                   </div>
                   <div className="text-3xl md:text-5xl font-bold text-purple-600">40%</div>
-                  <div className="text-sm md:text-base text-purple-500">of your total animals</div>
+                  <div className="text-sm md:text-base text-purple-500">of all your animals</div>
                 </div>
               </div>
 
@@ -526,12 +526,15 @@ const WholeFromPercentage = () => {
                   <div className="text-3xl md:text-4xl">÷</div>
                   <div className="bg-pink-100 p-2 md:p-3 rounded-full animate-pulse">
                     <span>📊</span>
-                    <div className="text-sm md:text-base font-bold">{examplePercentage}%</div>
+                    <div className="text-sm md:text-base font-bold">40%</div>
                   </div>
                   <div className="text-3xl md:text-4xl">=</div>
                   <div className="bg-yellow-100 p-2 md:p-3 rounded-full animate-bounce">
                     <span>❓</span>
                   </div>
+                </div>
+                <div className="text-sm md:text-base text-gray-600">
+                  Formula: Part ÷ Percentage = Whole
                 </div>
               </div>
 
