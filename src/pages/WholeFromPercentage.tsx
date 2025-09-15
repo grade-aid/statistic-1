@@ -306,6 +306,15 @@ const WholeFromPercentage = () => {
 
           const percentageValue = Math.round((collected[currentQuestion.animalType] / totalCollected) * 100);
 
+          console.log('Validation check:', {
+            totalDropped: totalDrop?.item,
+            totalExpected: totalCollected.toString(),
+            percentageDropped: percentageDrop?.item, 
+            percentageExpected: `${percentageValue}% ${animalConfig[currentQuestion.animalType].emoji}`,
+            totalMatch: totalDrop?.item === totalCollected.toString(),
+            percentageMatch: percentageDrop?.item === `${percentageValue}% ${animalConfig[currentQuestion.animalType].emoji}`
+          });
+
           const isCorrect = totalDrop?.item === totalCollected.toString() &&
                  percentageDrop?.item === `${percentageValue}% ${animalConfig[currentQuestion.animalType].emoji}`;
 
@@ -984,7 +993,7 @@ const WholeFromPercentage = () => {
                         <div
                           key={item.id}
                           draggable
-                          onDragStart={() => handleDragStart(item.id)}
+                          onDragStart={() => handleDragStart(item.label)}
                           className={`${item.color} px-6 py-4 rounded-2xl border-2 text-2xl font-bold cursor-move hover:scale-105 transition-transform shadow-sm`}
                         >
                           {item.label}
