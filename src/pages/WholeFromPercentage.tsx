@@ -718,19 +718,6 @@ const WholeFromPercentage = () => {
 
               {/* Tablet-Optimized Calculation */}
               <div className={`transition-all duration-1000 ${showCalculation ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
-                <div className="flex items-center justify-center gap-6 text-2xl mb-3">
-                  <div className="bg-purple-100 px-4 py-3 rounded-2xl animate-pulse border-2 border-purple-200 shadow-sm">
-                    <span className="text-xl font-semibold text-purple-700">🎯 {totalCollected}</span>
-                  </div>
-                  <span className="text-4xl font-bold text-gray-500">×</span>
-                  <div className="bg-pink-100 px-4 py-3 rounded-2xl animate-pulse border-2 border-pink-200 shadow-sm">
-                    <span className="text-xl font-semibold text-pink-700">📊 {examplePercentage}%</span>
-                  </div>
-                  <span className="text-4xl font-bold text-gray-500">=</span>
-                  <div className="bg-purple-100 px-4 py-3 rounded-2xl animate-bounce border-2 border-purple-200 shadow-sm">
-                    <span className="text-xl font-semibold text-purple-700">❓</span>
-                  </div>
-                </div>
                 <div className="text-lg text-muted-foreground font-medium">
                   Formula: Whole × Percentage = Part
                 </div>
