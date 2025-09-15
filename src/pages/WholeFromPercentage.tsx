@@ -55,7 +55,7 @@ interface DroppedItem {
   item: string;
 }
 
-const GRID_SIZE = 8; // Bigger squares for easier gameplay
+const GRID_SIZE = 16; // 16x16 grid for more gameplay space
 
 // Remove dynamic sizing - use CSS instead
 
@@ -136,9 +136,15 @@ const WholeFromPercentage = () => {
     const newWalls: Position[] = [];
     for (let x = 0; x < GRID_SIZE; x++) {
       for (let y = 0; y < GRID_SIZE; y++) {
+        // Border walls
         if (x === 0 || x === GRID_SIZE - 1 || y === 0 || y === GRID_SIZE - 1) {
           newWalls.push({ x, y });
-        } else if (x % 3 === 0 && y % 3 === 0 && Math.random() > 0.5) {
+        } 
+        // More obstacles - add walls at regular intervals
+        else if ((x % 4 === 0 && y % 4 === 0) || 
+                 (x % 6 === 2 && y % 6 === 2) || 
+                 (x % 8 === 4 && y % 3 === 1) ||
+                 (Math.random() > 0.85)) {
           newWalls.push({ x, y });
         }
       }
@@ -789,19 +795,19 @@ const WholeFromPercentage = () => {
                       <div
                         key={index}
                         className={`
-                          border border-purple-200/50 flex items-center justify-center text-xl rounded-sm
-                          ${isWallCell ? 'bg-purple-600 shadow-inner' : 
-                            animal ? 'animate-pulse shadow-sm' : 'bg-white/80 hover:bg-white/90'}
-                          transition-all duration-200
+                          border border-purple-200/50 flex items-center justify-center text-sm rounded-sm
+                          ${isWallCell ? 'bg-purple-600 shadow-inner' : 'bg-white/80 hover:bg-white/90'}
+                          transition-all duration-200 relative
                         `}
-                        style={{ 
-                          aspectRatio: '1',
-                          backgroundColor: animal ? animal.color + '40' : undefined // Add animal color with transparency
-                        }}
+                        style={{ aspectRatio: '1' }}
                       >
-                        {isPlayer && <span className="text-xl drop-shadow-sm">🧑</span>}
-                        {animal && <span className="text-xl drop-shadow-sm animate-bounce">{animal.emoji}</span>}
-                        {hunter && <span className="text-xl drop-shadow-sm">{hunter.emoji}</span>}
+                        {isPlayer && <span className="text-sm drop-shadow-sm">🧑</span>}
+                        {animal && <span className="text-sm drop-shadow-sm animate-bounce">{animal.emoji}</span>}
+                        {hunter && (
+                          <div className="w-full h-full bg-red-500 rounded-full flex items-center justify-center shadow-lg border-2 border-red-600">
+                            <span className="text-xs drop-shadow-sm">{hunter.emoji}</span>
+                          </div>
+                        )}
                       </div>
                     );
                   })}
