@@ -518,7 +518,7 @@ const WholeFromPercentage = () => {
         
         return { ...hunter, position: newPosition, direction: newDirection };
       }));
-    }, 300); // Smoother movement timing
+    }, 250); // Faster hunters
     
     return () => clearInterval(interval);
   }, [phase, hunters.length, isWall, playerPosition]);
@@ -780,6 +780,15 @@ const WholeFromPercentage = () => {
                 <span className="text-xl font-bold text-gray-700">
                   {totalCollected} / {totalTarget}
                 </span>
+              </div>
+              {/* Individual Animal Counters */}
+              <div className="flex gap-2 bg-white/95 px-4 py-2 rounded-2xl border-2 border-purple-200 shadow-sm backdrop-blur-sm">
+                {Object.entries(animalConfig).map(([type, config]) => (
+                  <div key={type} className="flex items-center gap-1">
+                    <span className="text-lg">{config.emoji}</span>
+                    <span className="font-bold text-sm">{collected[type as keyof GameState]}</span>
+                  </div>
+                ))}
               </div>
               <Button 
                 onClick={autoComplete} 
