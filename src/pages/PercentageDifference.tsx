@@ -428,30 +428,6 @@ const PercentageDifference = () => {
       setTimeout(() => setShowConfetti(false), 1000);
     }
   }, [playerPosition, priceItems, phase]);
-  useEffect(() => {
-    if (phase !== 'collection') return;
-    
-    const itemToCollect = priceItems.find(item => 
-      item.position.x === playerPosition.x && 
-      item.position.y === playerPosition.y && 
-      !item.collected
-    );
-    
-    if (itemToCollect) {
-      setPriceItems(prev => prev.map(item => 
-        item.id === itemToCollect.id ? { ...item, collected: true } : item
-      ));
-      
-      setCollectedPrices(prev => ({
-        ...prev,
-        [itemToCollect.id]: itemToCollect
-      }));
-      
-      setCollectedCount(prev => prev + 1);
-      setShowConfetti(true);
-      setTimeout(() => setShowConfetti(false), 1000);
-    }
-  }, [playerPosition, priceItems, phase]);
 
   // Check if collection is complete - must collect ALL visible items
   useEffect(() => {
