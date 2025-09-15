@@ -548,13 +548,83 @@ const PercentageDifference = () => {
                 </div>
 
                 {showCalculation && (
-                  <div className="mt-6 p-4 bg-blue-50 rounded-lg border animate-in slide-in-from-bottom duration-500">
-                    <h3 className="font-bold mb-3">Calculation Steps:</h3>
-                    <div className="space-y-2 text-sm">
-                      <div>1. Find difference: ${Math.abs(currentExample.newPrice - currentExample.oldPrice)}</div>
-                      <div>2. Divide by {currentExample.isIncrease ? 'old' : 'new'} price: {Math.abs(currentExample.newPrice - currentExample.oldPrice)} ÷ {currentExample.isIncrease ? currentExample.oldPrice : currentExample.newPrice}</div>
-                      <div>3. Multiply by 100: × 100 = {currentExample.percentageChange}%</div>
+                  <div className="mt-6 space-y-4">
+                    <div className="text-center mb-4">
+                      <h3 className="font-bold text-lg">Step-by-Step Calculation</h3>
                     </div>
+                    
+                    {/* Step 1 */}
+                    <div className="bg-blue-50 p-4 rounded-lg border-2 border-blue-200 animate-fade-in">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold">1</div>
+                        <h4 className="font-bold text-blue-800">Find the difference</h4>
+                      </div>
+                      <div className="bg-white p-3 rounded border border-blue-200">
+                        <div className="flex items-center justify-center gap-2 text-lg">
+                          <span className="font-bold text-green-600">${currentExample.newPrice}</span>
+                          <span>-</span>
+                          <span className="font-bold text-red-600">${currentExample.oldPrice}</span>
+                          <span>=</span>
+                          <span className="font-bold text-blue-600">${Math.abs(currentExample.newPrice - currentExample.oldPrice)}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Step 2 */}
+                    <div className="bg-purple-50 p-4 rounded-lg border-2 border-purple-200 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-8 h-8 bg-purple-500 text-white rounded-full flex items-center justify-center font-bold">2</div>
+                        <h4 className="font-bold text-purple-800">Divide by {currentExample.isIncrease ? 'original' : 'final'} price</h4>
+                      </div>
+                      <div className="bg-white p-3 rounded border border-purple-200">
+                        <div className="flex items-center justify-center gap-2 text-lg">
+                          <span className="font-bold text-blue-600">${Math.abs(currentExample.newPrice - currentExample.oldPrice)}</span>
+                          <span>÷</span>
+                          <span className="font-bold text-purple-600">
+                            ${currentExample.isIncrease ? currentExample.oldPrice : currentExample.newPrice}
+                          </span>
+                          <span>=</span>
+                          <span className="font-bold text-purple-600">
+                            {(Math.abs(currentExample.newPrice - currentExample.oldPrice) / (currentExample.isIncrease ? currentExample.oldPrice : currentExample.newPrice)).toFixed(2)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Step 3 */}
+                    <div className="bg-pink-50 p-4 rounded-lg border-2 border-pink-200 animate-fade-in" style={{ animationDelay: '0.6s' }}>
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-8 h-8 bg-pink-500 text-white rounded-full flex items-center justify-center font-bold">3</div>
+                        <h4 className="font-bold text-pink-800">Multiply by 100 for percentage</h4>
+                      </div>
+                      <div className="bg-white p-3 rounded border border-pink-200">
+                        <div className="flex items-center justify-center gap-2 text-lg">
+                          <span className="font-bold text-purple-600">
+                            {(Math.abs(currentExample.newPrice - currentExample.oldPrice) / (currentExample.isIncrease ? currentExample.oldPrice : currentExample.newPrice)).toFixed(2)}
+                          </span>
+                          <span>×</span>
+                          <span className="font-bold">100</span>
+                          <span>=</span>
+                          <div className="bg-gradient-to-r from-pink-500 to-purple-500 text-white px-3 py-1 rounded-full">
+                            <span className="font-bold">{currentExample.percentageChange}%</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Final Result */}
+                    {showResult && (
+                      <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-lg border-2 border-green-200 animate-scale-in" style={{ animationDelay: '0.9s' }}>
+                        <div className="text-center">
+                          <div className="text-3xl mb-2">
+                            {currentExample.isIncrease ? '📈' : '📉'}
+                          </div>
+                          <div className="text-xl font-bold text-green-700">
+                            Final Answer: {currentExample.percentageChange}% {currentExample.isIncrease ? 'Increase' : 'Decrease'}
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 
