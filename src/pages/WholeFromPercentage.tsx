@@ -407,13 +407,10 @@ const WholeFromPercentage = () => {
   useEffect(() => {
     if (isCollectionComplete) {
       setTimeout(() => {
-        const newExercises = generateExercises();
-        setExercises(newExercises);
-        setCurrentExercise(newExercises[0] || null);
-        setPhase('learning');
+        setPhase('intro'); // Show example first
       }, 1000);
     }
-  }, [isCollectionComplete, generateExercises]);
+  }, [isCollectionComplete]);
 
   const autoComplete = () => {
     if (phase !== 'collection') return;
@@ -476,7 +473,7 @@ const WholeFromPercentage = () => {
           <div className="text-4xl mb-4">🔍</div>
           <h1 className="text-2xl font-bold mb-3">🐘 Find the Whole Game</h1>
           <p className="text-base text-muted-foreground mb-4">Collect animals, then find the whole from parts!</p>
-          <Button onClick={() => setPhase('intro')} className="w-full text-lg py-3">
+          <Button onClick={startGame} className="w-full text-lg py-3">
             <Play className="mr-2 h-4 w-4" />
             Start Adventure
           </Button>
@@ -487,43 +484,43 @@ const WholeFromPercentage = () => {
 
   if (phase === 'intro') {
     return (
-      <div className="h-screen bg-gradient-to-br from-purple-50 to-pink-100 p-4 overflow-hidden">
-        <div className="max-w-4xl mx-auto flex items-center justify-center min-h-screen">
-          <Card className="p-12 bg-white/90 backdrop-blur-sm">
-            <div className="text-center">
+      <div className="h-dvh bg-gradient-to-br from-purple-50 to-pink-100 p-2 md:p-4 overflow-hidden flex flex-col max-h-screen">
+        <div className="max-w-4xl mx-auto flex-1 flex items-center justify-center min-h-0">
+          <Card className="p-4 md:p-8 bg-white/90 backdrop-blur-sm w-full max-h-full overflow-y-auto">
+            <div className="text-center space-y-4 md:space-y-6">
               
               {/* Step 1: Show partial pie (known part) */}
-              <div className={`transition-all duration-1000 mb-8 ${showPartial ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
-                <div className="text-7xl mb-6">🔍</div>
-                <div className="bg-purple-100 p-6 rounded-xl mb-6">
-                  <div className="text-4xl mb-2">🐘🐘🐘</div>
-                  <div className="text-6xl font-bold text-purple-600">25%</div>
+              <div className={`transition-all duration-1000 ${showPartial ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
+                <div className="text-4xl md:text-6xl mb-2 md:mb-4">🔍</div>
+                <div className="bg-purple-100 p-3 md:p-4 rounded-xl mb-3 md:mb-4">
+                  <div className="text-2xl md:text-3xl mb-1 md:mb-2">🐘🐘🐘</div>
+                  <div className="text-3xl md:text-5xl font-bold text-purple-600">25%</div>
                 </div>
               </div>
 
               {/* Step 2: Show calculation process */}
-              <div className={`transition-all duration-1000 mb-8 ${showCalculation ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
-                <div className="flex items-center justify-center gap-6 text-4xl mb-6">
-                  <div className="bg-purple-100 p-4 rounded-full animate-pulse">
+              <div className={`transition-all duration-1000 ${showCalculation ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
+                <div className="flex items-center justify-center gap-2 md:gap-4 text-2xl md:text-3xl mb-2 md:mb-4">
+                  <div className="bg-purple-100 p-2 md:p-3 rounded-full animate-pulse">
                     <span>🐘</span>
-                    <div className="text-lg font-bold">3</div>
+                    <div className="text-sm md:text-base font-bold">3</div>
                   </div>
-                  <div className="text-6xl">÷</div>
-                  <div className="bg-pink-100 p-4 rounded-full animate-pulse">
+                  <div className="text-3xl md:text-4xl">÷</div>
+                  <div className="bg-pink-100 p-2 md:p-3 rounded-full animate-pulse">
                     <span>📊</span>
-                    <div className="text-lg font-bold">25%</div>
+                    <div className="text-sm md:text-base font-bold">25%</div>
                   </div>
-                  <div className="text-6xl">=</div>
-                  <div className="bg-yellow-100 p-4 rounded-full animate-bounce">
+                  <div className="text-3xl md:text-4xl">=</div>
+                  <div className="bg-yellow-100 p-2 md:p-3 rounded-full animate-bounce">
                     <span>❓</span>
                   </div>
                 </div>
               </div>
 
               {/* Step 3: Show complete pie chart */}
-              <div className={`transition-all duration-1000 mb-8 ${showWhole ? 'opacity-100' : 'opacity-0'}`}>
-                <div className="flex justify-center mb-6">
-                  <svg className="w-64 h-64" viewBox="0 0 200 200">
+              <div className={`transition-all duration-1000 ${showWhole ? 'opacity-100' : 'opacity-0'}`}>
+                <div className="flex justify-center mb-2 md:mb-4">
+                  <svg className="w-40 h-40 md:w-48 md:h-48" viewBox="0 0 200 200">
                     {/* Known part - 25% (elephants) */}
                     <path
                       d="M 100 100 L 100 10 A 90 90 0 0 1 190 100 Z"
@@ -544,35 +541,40 @@ const WholeFromPercentage = () => {
                         transition: 'all 2s ease-in-out'
                       }}
                     />
-                    <text x="150" y="60" textAnchor="middle" className="text-3xl">🐘</text>
-                    <text x="60" y="130" textAnchor="middle" className="text-3xl">🐟</text>
+                    <text x="150" y="60" textAnchor="middle" className="text-2xl md:text-3xl">🐘</text>
+                    <text x="60" y="130" textAnchor="middle" className="text-2xl md:text-3xl">🐟</text>
                   </svg>
                 </div>
               </div>
 
               {/* Step 4: Show result */}
-              <div className={`transition-all duration-1000 mb-8 ${showResult ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
-                <div className="bg-gradient-to-r from-green-200 to-emerald-200 p-6 rounded-full inline-block animate-bounce">
-                  <div className="text-6xl font-bold text-green-700">12</div>
+              <div className={`transition-all duration-1000 ${showResult ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
+                <div className="bg-gradient-to-r from-green-200 to-emerald-200 p-3 md:p-4 rounded-full inline-block animate-bounce">
+                  <div className="text-3xl md:text-5xl font-bold text-green-700">12</div>
                 </div>
-                <div className="text-5xl mt-4">🎉</div>
-                <div className="text-3xl mt-2">🐘🐘🐘🐟🐟🐟🐟🐟🐟🐟🐟🐟</div>
+                <div className="text-2xl md:text-4xl mt-2">🎉</div>
+                <div className="text-lg md:text-2xl mt-1 overflow-hidden">🐘🐘🐘🐟🐟🐟🐟🐟🐟🐟🐟🐟</div>
               </div>
 
               {/* Navigation */}
-              <div className="flex gap-4 justify-center mt-8">
+              <div className="flex gap-2 md:gap-4 justify-center mt-4 md:mt-6">
                 <Button 
                   onClick={() => setPhase('start')} 
                   variant="outline"
-                  className="text-lg py-3 px-6"
+                  className="text-sm md:text-base py-2 px-3 md:py-3 md:px-6"
                 >
                   ← Back
                 </Button>
                 <Button 
-                  onClick={startGame} 
-                  className="text-xl py-4 px-8 bg-purple-600 hover:bg-purple-700"
+                  onClick={() => {
+                    const newExercises = generateExercises();
+                    setExercises(newExercises);
+                    setCurrentExercise(newExercises[0] || null);
+                    setPhase('learning');
+                  }} 
+                  className="text-sm md:text-lg py-2 px-4 md:py-3 md:px-6 bg-purple-600 hover:bg-purple-700"
                 >
-                  🚀 Start Game
+                  🚀 Start Learning
                 </Button>
               </div>
             </div>
