@@ -124,12 +124,13 @@ const PercentageDifference = () => {
         if (x === 0 || x === GRID_SIZE - 1 || y === 0 || y === GRID_SIZE - 1) {
           newWalls.push({ x, y });
         } 
-        // More obstacles - add walls at regular intervals
-        else if ((x % 4 === 0 && y % 4 === 0) || 
-                 (x % 6 === 2 && y % 6 === 2) || 
-                 (x % 8 === 4 && y % 3 === 1) ||
-                 (Math.random() > 0.85)) {
-          newWalls.push({ x, y });
+        // Reduced obstacles - fewer patterns and lower random chance
+        else if ((x % 6 === 3 && y % 6 === 3) || 
+                 (Math.random() > 0.93)) {
+          // Don't place walls that could trap the player near start position
+          if (!(x <= 3 && y <= 3)) {
+            newWalls.push({ x, y });
+          }
         }
       }
     }
@@ -305,7 +306,8 @@ const PercentageDifference = () => {
         let newPosition = { ...hunter.position };
         let newDirection = hunter.direction;
         
-        if (Math.random() < 0.6) {
+        // More focused tracking (80% chance to move toward player)
+        if (Math.random() < 0.8) {
           const dx = playerPosition.x - hunter.position.x;
           const dy = playerPosition.y - hunter.position.y;
           
@@ -315,6 +317,7 @@ const PercentageDifference = () => {
             newDirection = dy > 0 ? 'down' : 'up';
           }
         } else {
+          // Small chance for random movement to prevent getting stuck
           newDirection = directions[Math.floor(Math.random() * directions.length)];
         }
         
@@ -333,13 +336,40 @@ const PercentageDifference = () => {
             break;
         }
         
+        // If blocked, try alternative directions instead of staying put
         if (isWall(newPosition)) {
-          newPosition = hunter.position;
+          const alternativeDirections = directions.filter(dir => dir !== newDirection);
+          for (const altDir of alternativeDirections) {
+            let altPosition = { ...hunter.position };
+            switch (altDir) {
+              case 'up':
+                altPosition.y = Math.max(0, hunter.position.y - 1);
+                break;
+              case 'down':
+                altPosition.y = Math.min(GRID_SIZE - 1, hunter.position.y + 1);
+                break;
+              case 'left':
+                altPosition.x = Math.max(0, hunter.position.x - 1);
+                break;
+              case 'right':
+                altPosition.x = Math.min(GRID_SIZE - 1, hunter.position.x + 1);
+                break;
+            }
+            if (!isWall(altPosition)) {
+              newPosition = altPosition;
+              newDirection = altDir;
+              break;
+            }
+          }
+          // If all directions blocked, stay in place
+          if (isWall(newPosition)) {
+            newPosition = hunter.position;
+          }
         }
         
         return { ...hunter, position: newPosition, direction: newDirection };
       }));
-    }, 400); // Slower hunters
+    }, 350); // Smoother movement timing
     
     return () => clearInterval(interval);
   }, [phase, hunters.length, isWall, playerPosition]);
