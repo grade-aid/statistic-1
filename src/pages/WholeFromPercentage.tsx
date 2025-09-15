@@ -538,10 +538,6 @@ const WholeFromPercentage = () => {
                   <div className="text-3xl md:text-5xl font-bold text-green-700">{exampleCount}</div>
                 </div>
                 <div className="text-2xl md:text-4xl mt-2">🎉</div>
-                <div className="text-2xl md:text-3xl mb-1 md:mb-2">
-                  {Array.from({ length: Math.min(exampleCount, 8) }, (_, i) => exampleConfig.emoji).join('')}
-                  {exampleCount > 8 && '...'}
-                </div>
               </div>
 
               {/* Step 3: Show complete pie chart */}
