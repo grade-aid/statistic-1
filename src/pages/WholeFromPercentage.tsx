@@ -559,7 +559,7 @@ const WholeFromPercentage = () => {
               {/* Step 4: Show result */}
               <div className={`transition-all duration-1000 ${showResult ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
                 <div className="bg-gradient-to-r from-green-200 to-emerald-200 p-3 md:p-4 rounded-full inline-block animate-bounce">
-                  <div className="text-3xl md:text-5xl font-bold text-green-700">{exampleCount}</div>
+                  <div className="text-3xl md:text-5xl font-bold text-green-700">8 🐘</div>
                 </div>
                 <div className="text-2xl md:text-4xl mt-2">🎉</div>
               </div>
