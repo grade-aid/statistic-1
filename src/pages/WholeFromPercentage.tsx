@@ -598,12 +598,6 @@ const WholeFromPercentage = () => {
                   <div className="text-3xl md:text-5xl font-bold text-green-700">{totalCollected}</div>
                 </div>
                 <div className="text-2xl md:text-4xl mt-2">🎉</div>
-                <div className="text-lg md:text-2xl mt-1 overflow-hidden">
-                  {availableTypes.map(type => 
-                    Array.from({ length: Math.min(collected[type], 4) }, () => animalConfig[type].emoji).join('')
-                  ).join('')}
-                  {totalCollected > 20 && '...'}
-                </div>
                 <div className="text-sm md:text-base text-green-600 mt-2">
                   Total animals you collected!
                 </div>
