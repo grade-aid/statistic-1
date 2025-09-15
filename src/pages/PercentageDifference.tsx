@@ -82,6 +82,8 @@ const PercentageDifference = () => {
   const [showConfetti, setShowConfetti] = useState(false);
   const [completedQuestions, setCompletedQuestions] = useState<string[]>([]);
   const [showQuestionResult, setShowQuestionResult] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1);
+  const [stepCompleted, setStepCompleted] = useState<{[key: number]: boolean}>({});
 
   // Item configuration for collection
   const itemConfig = {
@@ -344,52 +346,82 @@ const PercentageDifference = () => {
     e.preventDefault();
     if (!draggedItem) return;
 
-    // Remove existing item in this zone
-    const updatedItems = droppedItems.filter(item => item.zone !== zone);
-    updatedItems.push({ zone, item: draggedItem });
-    setDroppedItems(updatedItems);
+    // Check if this is the correct step
+    if (zone === 'step1' && currentStep === 1) {
+      const difference = Math.abs(currentQuestion.newPrice - currentQuestion.oldPrice);
+      if (draggedItem === `$${difference}`) {
+        const updatedItems = droppedItems.filter(item => item.zone !== zone);
+        updatedItems.push({ zone, item: draggedItem });
+        setDroppedItems(updatedItems);
+        setStepCompleted(prev => ({...prev, 1: true}));
+        setCurrentStep(2);
+        toast({
+          title: "Step 1 Complete! ✅",
+          description: "Now divide by the base price"
+        });
+      } else {
+        toast({
+          title: "Not quite right 🤔",
+          description: "Check the difference calculation",
+          variant: "destructive"
+        });
+      }
+    } else if (zone === 'step2' && currentStep === 2) {
+      const basePrice = currentQuestion.isIncrease ? currentQuestion.oldPrice : currentQuestion.newPrice;
+      if (draggedItem === `$${basePrice}`) {
+        const updatedItems = droppedItems.filter(item => item.zone !== zone);
+        updatedItems.push({ zone, item: draggedItem });
+        setDroppedItems(updatedItems);
+        setStepCompleted(prev => ({...prev, 2: true}));
+        setCurrentStep(3);
+        toast({
+          title: "Step 2 Complete! ✅",
+          description: "Now multiply by 100"
+        });
+      } else {
+        toast({
+          title: "Not quite right 🤔", 
+          description: "Use the correct base price for division",
+          variant: "destructive"
+        });
+      }
+    } else if (zone === 'step3' && currentStep === 3) {
+      if (draggedItem === '100') {
+        const updatedItems = droppedItems.filter(item => item.zone !== zone);
+        updatedItems.push({ zone, item: draggedItem });
+        setDroppedItems(updatedItems);
+        setStepCompleted(prev => ({...prev, 3: true}));
+        
+        // Complete the question
+        setCompletedQuestions(prev => [...prev, currentQuestion.id]);
+        setShowConfetti(true);
+        setShowQuestionResult(true);
+        setTimeout(() => setShowConfetti(false), 2000);
+        
+        toast({
+          title: "Perfect! 🎉",
+          description: `The ${currentQuestion.name} ${currentQuestion.isIncrease ? 'increased' : 'decreased'} by ${currentQuestion.correctAnswer}%`,
+        });
+      } else {
+        toast({
+          title: "Not quite right 🤔",
+          description: "Multiply by 100 to get the percentage",
+          variant: "destructive"
+        });
+      }
+    }
+    
     setDraggedItem(null);
   };
 
-  const checkAnswer = () => {
-    const oldPriceItem = droppedItems.find(item => item.zone === 'oldPrice');
-    const newPriceItem = droppedItems.find(item => item.zone === 'newPrice');
-    const differenceItem = droppedItems.find(item => item.zone === 'difference');
-    const hundredItem = droppedItems.find(item => item.zone === 'hundred');
-
-    const difference = Math.abs(currentQuestion.newPrice - currentQuestion.oldPrice);
-    const basePrice = currentQuestion.isIncrease ? currentQuestion.oldPrice : currentQuestion.newPrice;
-
-    const isCorrect = 
-      oldPriceItem?.item === `$${basePrice}` &&
-      newPriceItem?.item === (currentQuestion.isIncrease ? `$${currentQuestion.newPrice}` : `$${currentQuestion.oldPrice}`) &&
-      differenceItem?.item === `$${difference}` &&
-      hundredItem?.item === '100';
-
-    if (isCorrect) {
-      setCompletedQuestions(prev => [...prev, currentQuestion.id]);
-      setShowConfetti(true);
-      setShowQuestionResult(true);
-      setTimeout(() => setShowConfetti(false), 2000);
-      
-      toast({
-        title: "Correct! 🎉",
-        description: `The ${currentQuestion.name} ${currentQuestion.isIncrease ? 'increased' : 'decreased'} by ${currentQuestion.correctAnswer}%`,
-      });
-    } else {
-      toast({
-        title: "Not quite right 🤔",
-        description: "Check the calculation steps and try again!",
-        variant: "destructive"
-      });
-    }
-  };
 
   const handleNextQuestion = () => {
     if (currentQuestionIndex < dragDropQuestions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
       setDroppedItems([]);
       setShowQuestionResult(false);
+      setCurrentStep(1);
+      setStepCompleted({});
     } else {
       // Store data for visualization page
       localStorage.setItem('priceComparisonData', JSON.stringify({
@@ -403,6 +435,8 @@ const PercentageDifference = () => {
   const resetQuestion = () => {
     setDroppedItems([]);
     setShowQuestionResult(false);
+    setCurrentStep(1);
+    setStepCompleted({});
   };
 
   // Start phase - Tablet Optimized
@@ -719,61 +753,106 @@ const PercentageDifference = () => {
                 </div>
               </div>
 
-              {/* Drag Drop Interface */}
+              {/* Drag Drop Interface - 3 Steps */}
               <div className="flex-1 flex flex-col justify-center">
                 
-                {/* Drag Drop Equation */}
-                <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-lg border-2 border-dashed border-purple-200 mb-4">
-                  <div className="text-center mb-3">
-                    <h3 className="text-lg font-bold">Complete the equation:</h3>
+                <div className="text-center mb-4">
+                  <h3 className="text-lg font-bold">Complete the 3-step calculation:</h3>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  {/* Step 1 - Find Difference */}
+                  <div className={`bg-blue-50 p-4 rounded-lg border-2 transition-colors ${
+                    currentStep >= 1 ? 'border-blue-500' : 'border-blue-200 opacity-60'
+                  }`}>
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold">1</div>
+                      <h4 className="text-sm font-bold text-blue-800">Find difference</h4>
+                    </div>
+                    <div className="bg-white p-3 rounded border border-blue-200 text-center">
+                      <div className="text-xs mb-2 text-blue-600">
+                        ${currentQuestion.isIncrease ? currentQuestion.newPrice : currentQuestion.oldPrice} - ${currentQuestion.isIncrease ? currentQuestion.oldPrice : currentQuestion.newPrice}
+                      </div>
+                      <div className="text-sm font-bold text-blue-600 mb-2">= $</div>
+                      <div
+                        className={`w-16 h-10 border-2 border-dashed rounded-lg bg-white mx-auto flex items-center justify-center text-sm font-bold transition-colors ${
+                          currentStep >= 1 ? 'border-blue-400 hover:border-blue-500' : 'border-gray-300'
+                        }`}
+                        onDragOver={currentStep >= 1 ? handleDragOver : undefined}
+                        onDrop={currentStep >= 1 ? (e) => handleDrop(e, 'step1') : undefined}
+                      >
+                        {droppedItems.find(item => item.zone === 'step1')?.item || '?'}
+                      </div>
+                    </div>
                   </div>
-                  
-                  <div className="flex items-center justify-center gap-2 flex-wrap text-xl font-bold">
-                    <span>(</span>
-                    
-                    {/* Difference drop zone */}
-                    <div
-                      className="w-16 h-12 border-2 border-dashed border-purple-300 rounded-lg bg-white flex items-center justify-center text-sm font-bold hover:border-purple-400 transition-colors"
-                      onDragOver={handleDragOver}
-                      onDrop={(e) => handleDrop(e, 'difference')}
-                    >
-                      {droppedItems.find(item => item.zone === 'difference')?.item || '?'}
+
+                  {/* Step 2 - Divide by Base Price */}
+                  <div className={`bg-purple-50 p-4 rounded-lg border-2 transition-colors ${
+                    currentStep >= 2 ? 'border-purple-500' : 'border-purple-200 opacity-60'
+                  }`}>
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-6 h-6 bg-purple-500 text-white rounded-full flex items-center justify-center text-sm font-bold">2</div>
+                      <h4 className="text-sm font-bold text-purple-800">Divide by base</h4>
                     </div>
-                    
-                    <span>÷</span>
-                    
-                    {/* Base price drop zone */}
-                    <div
-                      className="w-16 h-12 border-2 border-dashed border-purple-300 rounded-lg bg-white flex items-center justify-center text-sm font-bold hover:border-purple-400 transition-colors"
-                      onDragOver={handleDragOver}
-                      onDrop={(e) => handleDrop(e, 'oldPrice')}
-                    >
-                      {droppedItems.find(item => item.zone === 'oldPrice')?.item || '?'}
+                    <div className="bg-white p-3 rounded border border-purple-200 text-center">
+                      <div className="text-xs mb-2 text-purple-600">
+                        {stepCompleted[1] ? droppedItems.find(item => item.zone === 'step1')?.item || '$??' : '$??'} ÷ $
+                      </div>
+                      <div
+                        className={`w-16 h-10 border-2 border-dashed rounded-lg bg-white mx-auto mb-2 flex items-center justify-center text-sm font-bold transition-colors ${
+                          currentStep >= 2 ? 'border-purple-400 hover:border-purple-500' : 'border-gray-300'
+                        }`}
+                        onDragOver={currentStep >= 2 ? handleDragOver : undefined}
+                        onDrop={currentStep >= 2 ? (e) => handleDrop(e, 'step2') : undefined}
+                      >
+                        {droppedItems.find(item => item.zone === 'step2')?.item || '?'}
+                      </div>
+                      <div className="text-sm font-bold text-purple-600">= 
+                        {stepCompleted[2] ? (
+                          <span className="ml-1">
+                            {(parseInt(droppedItems.find(item => item.zone === 'step1')?.item?.replace('$', '') || '0') / 
+                              parseInt(droppedItems.find(item => item.zone === 'step2')?.item?.replace('$', '') || '1')).toFixed(2)}
+                          </span>
+                        ) : ' ??'}
+                      </div>
                     </div>
-                    
-                    <span>) × </span>
-                    
-                    {/* Hundred drop zone */}
-                    <div
-                      className="w-12 h-12 border-2 border-dashed border-purple-300 rounded-lg bg-white flex items-center justify-center text-sm font-bold hover:border-purple-400 transition-colors"
-                      onDragOver={handleDragOver}
-                      onDrop={(e) => handleDrop(e, 'hundred')}
-                    >
-                      {droppedItems.find(item => item.zone === 'hundred')?.item || '?'}
+                  </div>
+
+                  {/* Step 3 - Multiply by 100 */}
+                  <div className={`bg-pink-50 p-4 rounded-lg border-2 transition-colors ${
+                    currentStep >= 3 ? 'border-pink-500' : 'border-pink-200 opacity-60'
+                  }`}>
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-6 h-6 bg-pink-500 text-white rounded-full flex items-center justify-center text-sm font-bold">3</div>
+                      <h4 className="text-sm font-bold text-pink-800">× 100</h4>
                     </div>
-                    
-                    <span>= </span>
-                    
-                    {/* Result drop zone */}
-                    <div
-                      className="w-16 h-12 border-2 border-dashed border-purple-300 rounded-lg bg-white flex items-center justify-center text-sm font-bold hover:border-purple-400 transition-colors"
-                      onDragOver={handleDragOver}
-                      onDrop={(e) => handleDrop(e, 'newPrice')}
-                    >
-                      {droppedItems.find(item => item.zone === 'newPrice')?.item || '?'}
+                    <div className="bg-white p-3 rounded border border-pink-200 text-center">
+                      <div className="text-xs mb-2 text-pink-600">
+                        {stepCompleted[2] ? 
+                          `${(parseInt(droppedItems.find(item => item.zone === 'step1')?.item?.replace('$', '') || '0') / 
+                            parseInt(droppedItems.find(item => item.zone === 'step2')?.item?.replace('$', '') || '1')).toFixed(2)} × ` 
+                          : '?? × '
+                        }
+                      </div>
+                      <div
+                        className={`w-12 h-10 border-2 border-dashed rounded-lg bg-white mx-auto mb-2 flex items-center justify-center text-sm font-bold transition-colors ${
+                          currentStep >= 3 ? 'border-pink-400 hover:border-pink-500' : 'border-gray-300'
+                        }`}
+                        onDragOver={currentStep >= 3 ? handleDragOver : undefined}
+                        onDrop={currentStep >= 3 ? (e) => handleDrop(e, 'step3') : undefined}
+                      >
+                        {droppedItems.find(item => item.zone === 'step3')?.item || '?'}
+                      </div>
+                      <div className="text-sm font-bold">
+                        {stepCompleted[3] ? (
+                          <div className="bg-gradient-to-r from-pink-500 to-purple-500 text-white px-2 py-1 rounded">
+                            = {currentQuestion.correctAnswer}%
+                          </div>
+                        ) : (
+                          <span className="text-pink-600">= ??%</span>
+                        )}
+                      </div>
                     </div>
-                    
-                    <span>%</span>
                   </div>
                 </div>
 
@@ -822,14 +901,7 @@ const PercentageDifference = () => {
 
               {/* Action Buttons */}
               {!showQuestionResult && (
-                <div className="flex gap-3 flex-shrink-0">
-                  <Button 
-                    onClick={checkAnswer}
-                    disabled={droppedItems.length < 4}
-                    className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 h-12 text-lg rounded-2xl disabled:opacity-50 min-w-[150px]"
-                  >
-                    Check Answer
-                  </Button>
+                <div className="flex justify-center">
                   <Button 
                     onClick={resetQuestion}
                     variant="outline"
