@@ -65,13 +65,6 @@ const VisualizationSummary = () => {
           <h1 className="text-2xl md:text-3xl font-space-grotesk font-bold text-center lg:text-left">
             📊 Mission Summary
           </h1>
-          <Button 
-            onClick={() => navigate('/visualization/bar-chart', { state: { collected: collectedData } })} 
-            className="game-button"
-            size="sm"
-          >
-            Next: Bar Chart <BarChart3 className="h-4 w-4 ml-2" />
-          </Button>
         </div>
 
         {/* Summary */}
@@ -102,12 +95,7 @@ const VisualizationSummary = () => {
         {/* Navigation */}
         <div className="flex justify-center">
           <Button 
-            onClick={() => navigate('/learning', {
-              state: {
-                collected: collectedData,
-                totalCollected: totalAnimals
-              }
-            })} 
+            onClick={() => navigate('/visualization/bar-chart', { state: { collected: collectedData } })} 
             className="game-button" 
             size="lg"
           >
