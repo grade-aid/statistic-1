@@ -125,12 +125,12 @@ const Learning = () => {
   const [showPieChart, setShowPieChart] = useState(true);
   const [showEquation, setShowEquation] = useState(false);
   
-  // Drag-drop questions state
+  // Click-based questions state
   const [showDragDrop, setShowDragDrop] = useState(false);
   const [dragDropQuestions, setDragDropQuestions] = useState<any[]>([]);
   const [currentDragDropIndex, setCurrentDragDropIndex] = useState(0);
   const [droppedItems, setDroppedItems] = useState<any[]>([]);
-  const [draggedItem, setDraggedItem] = useState<string | null>(null);
+  const [activeField, setActiveField] = useState<string>('animal');
   
   // Get animal entries for the exercise
   const animalEntries = Object.entries(collectedData).filter(([, count]) => count > 0);
@@ -186,23 +186,18 @@ const Learning = () => {
     return questions.slice(0, 5); // Limit to 5 questions
   };
 
-  // Drag-drop handlers
-  const handleDragStart = (item: string) => {
-    setDraggedItem(item);
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-  };
-
-  const handleDrop = (e: React.DragEvent, zone: string) => {
-    e.preventDefault();
-    if (draggedItem) {
-      setDroppedItems(prev => [
-        ...prev.filter(item => item.zone !== zone),
-        { zone, item: draggedItem }
-      ]);
-      setDraggedItem(null);
+  // Click handlers for item selection
+  const handleItemClick = (item: string) => {
+    setDroppedItems(prev => [
+      ...prev.filter(item => item.zone !== activeField),
+      { zone: activeField, item }
+    ]);
+    
+    // Move to next field
+    const fields = ['animal', 'total', 'hundred'];
+    const currentIndex = fields.indexOf(activeField);
+    if (currentIndex < fields.length - 1) {
+      setActiveField(fields[currentIndex + 1]);
     }
   };
 
@@ -263,11 +258,12 @@ const Learning = () => {
         setCurrentCalculation(null);
         setCurrentTargetAnimal(null);
       } else {
-        // All animals completed - start drag-drop questions
+        // All questions completed - start click questions
         const questions = generateDragDropQuestions();
         setDragDropQuestions(questions);
         setCurrentDragDropIndex(0);
         setDroppedItems([]);
+        setActiveField('animal');
         setShowDragDrop(true);
         setShowEquation(false);
         setShowPieChart(false);
@@ -484,7 +480,7 @@ const Learning = () => {
 
 
 
-  // Drag-Drop Questions Component
+  // Click-based Questions Component
   const DragDropQuestions = () => {
     if (!dragDropQuestions.length) return null;
     
@@ -502,16 +498,16 @@ const Learning = () => {
               {animalConfig[animalType as keyof typeof animalConfig].emoji}
             </div>
             <h2 className="text-2xl font-bold text-gray-700 mb-2">
-              Drag the correct numbers into the equation
+              Click the correct numbers into the equation
             </h2>
             <div className="text-lg text-purple-600 font-semibold">
               (Part ÷ Total) × 100 = Percentage
             </div>
           </div>
 
-          {/* Draggable Items */}
+          {/* Clickable Items */}
           <div className="mb-8">
-            <h3 className="text-lg font-bold text-gray-700 mb-4">Drag these items:</h3>
+            <h3 className="text-lg font-bold text-gray-700 mb-4">Click these items:</h3>
             <div className="flex justify-center gap-4 flex-wrap">
               {[
                 { id: count.toString(), label: `${count} ${animalConfig[animalType as keyof typeof animalConfig].emoji}`, color: 'bg-purple-200 border-purple-400' },
@@ -520,9 +516,8 @@ const Learning = () => {
               ].map((item) => (
                 <div
                   key={item.id}
-                  draggable
-                  onDragStart={() => handleDragStart(item.id)}
-                  className={`${item.color} px-6 py-4 rounded-2xl border-2 text-2xl font-bold cursor-move hover:scale-105 transition-transform shadow-sm`}
+                  onClick={() => handleItemClick(item.id)}
+                  className={`${item.color} px-6 py-4 rounded-2xl border-2 text-2xl font-bold cursor-pointer hover:scale-105 transition-transform shadow-sm hover:shadow-md`}
                 >
                   {item.label}
                 </div>
@@ -530,23 +525,19 @@ const Learning = () => {
             </div>
           </div>
 
-
-
-          {/* Equation with Drop Zones */}
+          {/* Equation with Click Zones */}
           <div className="mb-6">
             <h3 className="text-lg font-bold text-gray-700 mb-4">Complete the equation:</h3>
             <div className="flex items-center justify-center gap-4 flex-wrap text-2xl font-bold">
-              {/* Drop Zone 1 */}
+              {/* Click Zone 1 */}
               <div
-                onDragOver={handleDragOver}
-                onDrop={(e) => handleDrop(e, 'animal')}
-                onClick={() => {
-                  setDroppedItems(prev => prev.filter(item => item.zone !== 'animal'));
-                }}
-                className={`w-20 h-16 border-4 border-dashed rounded-2xl flex items-center justify-center text-lg font-bold transition-all cursor-pointer ${
-                  droppedItems.find(item => item.zone === 'animal') 
-                    ? 'bg-purple-100 border-purple-400 text-purple-700 hover:bg-purple-200' 
-                    : 'border-gray-400 text-gray-400 hover:border-purple-400'
+                onClick={() => setActiveField('animal')}
+                className={`w-20 h-16 border-4 rounded-2xl flex items-center justify-center text-lg font-bold transition-all cursor-pointer ${
+                  activeField === 'animal'
+                    ? 'border-blue-500 bg-blue-100 animate-pulse'
+                    : droppedItems.find(item => item.zone === 'animal') 
+                      ? 'bg-purple-100 border-purple-400 text-purple-700 hover:bg-purple-200' 
+                      : 'border-gray-400 text-gray-400 hover:border-purple-400'
                 }`}
               >
                 {droppedItems.find(item => item.zone === 'animal')?.item || '?'}
@@ -554,17 +545,15 @@ const Learning = () => {
               
               <span className="text-gray-500">÷</span>
               
-              {/* Drop Zone 2 */}
+              {/* Click Zone 2 */}
               <div
-                onDragOver={handleDragOver}
-                onDrop={(e) => handleDrop(e, 'total')}
-                onClick={() => {
-                  setDroppedItems(prev => prev.filter(item => item.zone !== 'total'));
-                }}
-                className={`w-20 h-16 border-4 border-dashed rounded-2xl flex items-center justify-center text-lg font-bold transition-all cursor-pointer ${
-                  droppedItems.find(item => item.zone === 'total') 
-                    ? 'bg-pink-100 border-pink-400 text-pink-700 hover:bg-pink-200' 
-                    : 'border-gray-400 text-gray-400 hover:border-pink-400'
+                onClick={() => setActiveField('total')}
+                className={`w-20 h-16 border-4 rounded-2xl flex items-center justify-center text-lg font-bold transition-all cursor-pointer ${
+                  activeField === 'total'
+                    ? 'border-blue-500 bg-blue-100 animate-pulse'
+                    : droppedItems.find(item => item.zone === 'total') 
+                      ? 'bg-pink-100 border-pink-400 text-pink-700 hover:bg-pink-200' 
+                      : 'border-gray-400 text-gray-400 hover:border-pink-400'
                 }`}
               >
                 {droppedItems.find(item => item.zone === 'total')?.item || '?'}
@@ -572,17 +561,15 @@ const Learning = () => {
               
               <span className="text-gray-500">×</span>
               
-              {/* Drop Zone 3 */}
+              {/* Click Zone 3 */}
               <div
-                onDragOver={handleDragOver}
-                onDrop={(e) => handleDrop(e, 'hundred')}
-                onClick={() => {
-                  setDroppedItems(prev => prev.filter(item => item.zone !== 'hundred'));
-                }}
-                className={`w-20 h-16 border-4 border-dashed rounded-2xl flex items-center justify-center text-lg font-bold transition-all cursor-pointer ${
-                  droppedItems.find(item => item.zone === 'hundred') 
-                    ? 'bg-purple-100 border-purple-400 text-purple-700 hover:bg-purple-200' 
-                    : 'border-gray-400 text-gray-400 hover:border-purple-400'
+                onClick={() => setActiveField('hundred')}
+                className={`w-20 h-16 border-4 rounded-2xl flex items-center justify-center text-lg font-bold transition-all cursor-pointer ${
+                  activeField === 'hundred'
+                    ? 'border-blue-500 bg-blue-100 animate-pulse'
+                    : droppedItems.find(item => item.zone === 'hundred') 
+                      ? 'bg-purple-100 border-purple-400 text-purple-700 hover:bg-purple-200' 
+                      : 'border-gray-400 text-gray-400 hover:border-purple-400'
                 }`}
               >
                 {droppedItems.find(item => item.zone === 'hundred')?.item || '?'}
