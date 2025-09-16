@@ -509,14 +509,6 @@ const Learning = () => {
             </div>
           </div>
 
-          {/* Percentage Equivalency Display */}
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-2xl border-2 border-blue-200 mb-6">
-            <h3 className="text-lg font-bold text-blue-700 mb-2">💡 Remember:</h3>
-            <div className="text-xl font-semibold text-blue-600">
-              {percentage}% = {(percentage / 100).toFixed(2)}
-            </div>
-            <div className="text-sm text-blue-500 mt-1">Percentage as decimal</div>
-          </div>
 
           {/* Draggable Items */}
           <div className="mb-8">
