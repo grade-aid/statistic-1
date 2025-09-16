@@ -188,16 +188,15 @@ const Learning = () => {
 
   // Click handlers for item selection
   const handleItemClick = (item: string) => {
-    setDroppedItems(prev => [
-      ...prev.filter(item => item.zone !== activeField),
-      { zone: activeField, item }
-    ]);
-    
-    // Move to next field
-    const fields = ['animal', 'total', 'hundred'];
-    const currentIndex = fields.indexOf(activeField);
-    if (currentIndex < fields.length - 1) {
-      setActiveField(fields[currentIndex + 1]);
+    // Only place item if a field is selected
+    if (activeField) {
+      setDroppedItems(prev => [
+        ...prev.filter(item => item.zone !== activeField),
+        { zone: activeField, item }
+      ]);
+      
+      // Clear active field after placing item
+      setActiveField('');
     }
   };
 
