@@ -111,7 +111,7 @@ const VisualizationSummary = () => {
             className="game-button" 
             size="lg"
           >
-            Next
+            Next: Bar Chart
           </Button>
         </div>
       </div>
