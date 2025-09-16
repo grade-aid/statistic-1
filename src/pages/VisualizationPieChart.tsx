@@ -62,26 +62,20 @@ const VisualizationPieChart = () => {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="flex flex-col lg:flex-row items-center justify-between gap-4 mb-6">
-          <div className="flex items-center gap-4">
-            <Button 
-              onClick={() => navigate('/visualization/summary', { state: { collected: collectedData } })} 
-              variant="outline"
-              size="sm"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back
-            </Button>
-            <h1 className="text-2xl md:text-3xl font-space-grotesk font-bold">
-              📊 Pie Chart View
-            </h1>
-          </div>
+          <h1 className="text-2xl md:text-3xl font-space-grotesk font-bold text-center lg:text-left">
+            📊 Pie Chart View
+          </h1>
           <Button 
-            onClick={() => navigate('/visualization/bar-chart', { state: { collected: collectedData } })} 
-            variant="outline"
+            onClick={() => navigate('/learning', {
+              state: {
+                collected: collectedData,
+                totalCollected: totalAnimals
+              }
+            })} 
+            className="game-button"
             size="sm"
           >
-            <BarChart3 className="h-4 w-4 mr-2" />
-            Bar Chart
+            Continue to Learning 🧮
           </Button>
         </div>
 

@@ -65,24 +65,13 @@ const VisualizationSummary = () => {
           <h1 className="text-2xl md:text-3xl font-space-grotesk font-bold text-center lg:text-left">
             📊 Mission Summary
           </h1>
-          <div className="flex gap-2">
-            <Button 
-              onClick={() => navigate('/visualization/bar-chart', { state: { collected: collectedData } })} 
-              variant="outline"
-              size="sm"
-            >
-              <BarChart3 className="h-4 w-4 mr-2" />
-              Bar Chart
-            </Button>
-            <Button 
-              onClick={() => navigate('/visualization/pie-chart', { state: { collected: collectedData } })} 
-              variant="outline"
-              size="sm"
-            >
-              <PieChart className="h-4 w-4 mr-2" />
-              Pie Chart
-            </Button>
-          </div>
+          <Button 
+            onClick={() => navigate('/visualization/bar-chart', { state: { collected: collectedData } })} 
+            className="game-button"
+            size="sm"
+          >
+            Next: Bar Chart <BarChart3 className="h-4 w-4 ml-2" />
+          </Button>
         </div>
 
         {/* Summary */}
