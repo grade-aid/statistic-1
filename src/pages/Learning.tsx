@@ -159,6 +159,10 @@ const Learning = () => {
     setAnimatingNumbers(true);
     setShowConfetti(true);
     
+    // Initialize interactive state
+    setDroppedItems([]);
+    setActiveField('animal');
+    
     // Clear animation after delay
     setTimeout(() => {
       setAnimatingNumbers(false);
@@ -431,23 +435,82 @@ const Learning = () => {
                 </div>
               </div>
               
-              {/* Calculation */}
-              <div className="flex items-center justify-center gap-3 text-2xl flex-wrap">
-                <div className="bg-white px-4 py-3 rounded-lg border-2 border-blue-300 font-bold text-blue-700">
-                  {targetCount}
+              {/* Clickable Items */}
+              <div className="mb-6">
+                <h3 className="text-lg font-bold text-gray-700 mb-4">Click these items:</h3>
+                <div className="flex justify-center gap-4 flex-wrap">
+                  {[
+                    { id: targetCount.toString(), label: `${targetCount} ${targetConfig.emoji}`, color: 'bg-purple-200 border-purple-400' },
+                    { id: totalAnimals.toString(), label: `${totalAnimals}`, color: 'bg-pink-200 border-pink-400' },
+                    { id: '100', label: '100', color: 'bg-purple-200 border-purple-400' }
+                  ].map((item) => (
+                    <div
+                      key={item.id}
+                      onClick={() => handleItemClick(item.id)}
+                      className={`${item.color} px-6 py-4 rounded-2xl border-2 text-xl font-bold cursor-pointer hover:scale-105 transition-transform shadow-sm hover:shadow-md`}
+                    >
+                      {item.label}
+                    </div>
+                  ))}
                 </div>
-                <span className="font-bold text-blue-700">÷</span>
-                <div className="bg-white px-4 py-3 rounded-lg border-2 border-blue-300 font-bold text-blue-700">
-                  {totalAnimals}
+              </div>
+
+              {/* Interactive Equation */}
+              <div className="mb-6">
+                <h3 className="text-lg font-bold text-gray-700 mb-4">Complete the equation:</h3>
+                <div className="flex items-center justify-center gap-4 flex-wrap text-2xl font-bold">
+                  {/* Click Zone 1 */}
+                  <div
+                    onClick={() => setActiveField('animal')}
+                    className={`w-20 h-16 border-4 rounded-2xl flex items-center justify-center text-lg font-bold transition-all cursor-pointer ${
+                      activeField === 'animal'
+                        ? 'border-blue-500 bg-blue-100 animate-pulse'
+                        : droppedItems.find(item => item.zone === 'animal') 
+                          ? 'bg-purple-100 border-purple-400 text-purple-700 hover:bg-purple-200' 
+                          : 'border-gray-400 text-gray-400 hover:border-purple-400'
+                    }`}
+                  >
+                    {droppedItems.find(item => item.zone === 'animal')?.item || '?'}
+                  </div>
+                  
+                  <span className="text-gray-500">÷</span>
+                  
+                  {/* Click Zone 2 */}
+                  <div
+                    onClick={() => setActiveField('total')}
+                    className={`w-20 h-16 border-4 rounded-2xl flex items-center justify-center text-lg font-bold transition-all cursor-pointer ${
+                      activeField === 'total'
+                        ? 'border-blue-500 bg-blue-100 animate-pulse'
+                        : droppedItems.find(item => item.zone === 'total') 
+                          ? 'bg-pink-100 border-pink-400 text-pink-700 hover:bg-pink-200' 
+                          : 'border-gray-400 text-gray-400 hover:border-pink-400'
+                    }`}
+                  >
+                    {droppedItems.find(item => item.zone === 'total')?.item || '?'}
+                  </div>
+                  
+                  <span className="text-gray-500">×</span>
+                  
+                  {/* Click Zone 3 */}
+                  <div
+                    onClick={() => setActiveField('hundred')}
+                    className={`w-20 h-16 border-4 rounded-2xl flex items-center justify-center text-lg font-bold transition-all cursor-pointer ${
+                      activeField === 'hundred'
+                        ? 'border-blue-500 bg-blue-100 animate-pulse'
+                        : droppedItems.find(item => item.zone === 'hundred') 
+                          ? 'bg-purple-100 border-purple-400 text-purple-700 hover:bg-purple-200' 
+                          : 'border-gray-400 text-gray-400 hover:border-purple-400'
+                    }`}
+                  >
+                    {droppedItems.find(item => item.zone === 'hundred')?.item || '?'}
+                  </div>
+                  
+                  <span className="text-gray-500">=</span>
+                  
+                  <div className="bg-pink-100 px-4 py-3 rounded-2xl border-2 border-pink-300">
+                    {targetPercentage}% {targetConfig.emoji}
+                  </div>
                 </div>
-                <span className="font-bold text-blue-700">×</span>
-                <div className="bg-white px-4 py-3 rounded-lg border-2 border-blue-300 font-bold text-blue-700">
-                  100
-                </div>
-                <span className="font-bold text-blue-700">=</span>
-                <Badge className={`text-2xl px-4 py-3 bg-blue-600 text-white transition-all duration-500 ${animatingNumbers ? 'scale-110 animate-bounce' : ''}`}>
-                  {targetPercentage}%
-                </Badge>
               </div>
             </div>
           </div>
