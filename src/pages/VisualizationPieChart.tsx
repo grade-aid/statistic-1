@@ -66,7 +66,7 @@ const VisualizationPieChart = () => {
             📊 Pie Chart View
           </h1>
           <Button 
-            onClick={() => navigate('/learning', {
+            onClick={() => navigate('/whole-from-percentage', {
               state: {
                 collected: collectedData,
                 totalCollected: totalAnimals
@@ -75,7 +75,7 @@ const VisualizationPieChart = () => {
             className="game-button"
             size="sm"
           >
-            Continue to Learning 🧮
+            Next
           </Button>
         </div>
 
