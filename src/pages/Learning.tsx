@@ -285,8 +285,7 @@ const Learning = () => {
           {/* Instructions */}
           <div className="bg-white p-4 rounded-lg border-2 border-accent/30 mb-6">
             <div className="text-2xl mb-2">🎯</div>
-            <div className="text-xl font-bold mb-2">Interactive Percentage Learning</div>
-            <div className="text-sm text-muted-foreground">Click on any animal in the pie chart to see its percentage calculation</div>
+            <div className="text-lg font-bold mb-2">Click animals to see formulas</div>
           </div>
           
           {/* Pie Chart - All Animals */}
@@ -396,8 +395,8 @@ const Learning = () => {
                 {completedAnimals.length} / {animalEntries.length}
               </span>
             </div>
-            <div className="text-xs text-muted-foreground mt-2">
-              Click on each animal section to learn its percentage calculation
+            <div className="text-xs text-muted-foreground">
+              Click animals to learn formulas
             </div>
           </div>
         </div>
@@ -418,45 +417,42 @@ const Learning = () => {
         <div className="text-center space-y-6">
           
           {/* Animal Header */}
-          <div className="bg-white p-6 rounded-lg border-2 border-accent/30 mb-6">
-            <div className="text-6xl mb-3">{targetConfig.emoji}</div>
-            <div className="text-2xl font-bold mb-2">{targetConfig.name}</div>
-            <div className="text-lg text-muted-foreground mb-4">Let's calculate the percentage!</div>
-            <div className="text-sm bg-blue-50 p-3 rounded-lg border border-blue-200">
-              You have <span className="font-bold text-blue-700">{targetCount}</span> {targetConfig.name.toLowerCase()} out of <span className="font-bold text-blue-700">{totalAnimals}</span> total animals
-            </div>
+          <div className="bg-white p-4 rounded-lg border-2 border-accent/30 mb-6">
+            <div className="text-5xl mb-2">{targetConfig.emoji}</div>
+            <div className="text-xl font-bold">{targetConfig.name}</div>
           </div>
           
-          {/* Equation Display */}
-          <div className="bg-green-50 p-8 rounded-lg border-2 border-green-200">
-            <div className="text-center space-y-6">
-              <div className="text-xl font-bold text-green-700 mb-4">
-                🎉 Here's how we calculate it:
+          {/* Equation Formula */}
+          <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-lg border-2 border-blue-200">
+            <div className="text-center space-y-4">
+              <div className="text-lg font-bold text-blue-700 mb-3">
+                📐 Percentage Formula
               </div>
               
-              <div className="flex items-center justify-center gap-4 text-2xl flex-wrap">
-                <div className="flex items-center gap-2 bg-white px-6 py-4 rounded-lg border-2 border-green-300">
-                  <span className="text-3xl">{targetConfig.emoji}</span>
-                  <span className={`font-bold transition-all duration-500 ${animatingNumbers ? 'animate-pulse text-green-600' : 'text-green-700'}`}>
-                    {targetCount}
-                  </span>
+              {/* Main Formula */}
+              <div className="bg-white p-4 rounded-lg border border-blue-300 mb-4">
+                <div className="text-xl font-mono font-bold text-gray-800">
+                  Percentage = (Part ÷ Total) × 100
                 </div>
-                <span className="font-bold text-green-700">÷</span>
-                <div className="bg-white px-6 py-4 rounded-lg border-2 border-green-300 font-bold text-green-700">
+              </div>
+              
+              {/* Calculation */}
+              <div className="flex items-center justify-center gap-3 text-2xl flex-wrap">
+                <div className="bg-white px-4 py-3 rounded-lg border-2 border-blue-300 font-bold text-blue-700">
+                  {targetCount}
+                </div>
+                <span className="font-bold text-blue-700">÷</span>
+                <div className="bg-white px-4 py-3 rounded-lg border-2 border-blue-300 font-bold text-blue-700">
                   {totalAnimals}
                 </div>
-                <span className="font-bold text-green-700">×</span>
-                <div className="bg-white px-6 py-4 rounded-lg border-2 border-green-300 font-bold text-green-700">
+                <span className="font-bold text-blue-700">×</span>
+                <div className="bg-white px-4 py-3 rounded-lg border-2 border-blue-300 font-bold text-blue-700">
                   100
                 </div>
-                <span className="font-bold text-green-700">=</span>
-                <Badge className={`text-2xl px-6 py-4 bg-green-600 text-white transition-all duration-500 ${animatingNumbers ? 'scale-110 animate-bounce' : ''}`}>
+                <span className="font-bold text-blue-700">=</span>
+                <Badge className={`text-2xl px-4 py-3 bg-blue-600 text-white transition-all duration-500 ${animatingNumbers ? 'scale-110 animate-bounce' : ''}`}>
                   {targetPercentage}%
                 </Badge>
-              </div>
-              
-              <div className="text-lg text-green-600 bg-white p-4 rounded-lg border border-green-200">
-                <span className="font-bold">{targetConfig.name}</span> represents <span className="font-bold text-green-700 text-xl">{targetPercentage}%</span> of your total animals!
               </div>
             </div>
           </div>
