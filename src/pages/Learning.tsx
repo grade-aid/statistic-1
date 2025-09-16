@@ -516,8 +516,7 @@ const Learning = () => {
               {[
                 { id: count.toString(), label: `${count} ${animalConfig[animalType as keyof typeof animalConfig].emoji}`, color: 'bg-purple-200 border-purple-400' },
                 { id: totalAnimals.toString(), label: `${totalAnimals}`, color: 'bg-pink-200 border-pink-400' },
-                { id: '100', label: '100', color: 'bg-purple-200 border-purple-400' },
-                { id: percentage.toString(), label: `${percentage}%`, color: 'bg-green-200 border-green-400' }
+                { id: '100', label: '100', color: 'bg-purple-200 border-purple-400' }
               ].map((item) => (
                 <div
                   key={item.id}
