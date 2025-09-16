@@ -505,7 +505,7 @@ const Learning = () => {
               Drag the correct numbers into the equation
             </h2>
             <div className="text-lg text-purple-600 font-semibold">
-              Question {currentDragDropIndex + 1} of {dragDropQuestions.length}
+              Percentage = (Part ÷ Total) × 100
             </div>
           </div>
 
