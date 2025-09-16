@@ -111,7 +111,7 @@ const VisualizationSummary = () => {
             className="game-button" 
             size="lg"
           >
-            Continue to Learning 🧮
+            Next
           </Button>
         </div>
       </div>
