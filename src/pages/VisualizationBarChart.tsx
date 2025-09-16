@@ -66,13 +66,6 @@ const VisualizationBarChart = () => {
           <h1 className="text-2xl md:text-3xl font-space-grotesk font-bold text-center lg:text-left">
             📊 Bar Chart View
           </h1>
-          <Button 
-            onClick={() => navigate('/visualization/pie-chart', { state: { collected: collectedData } })} 
-            className="game-button"
-            size="sm"
-          >
-            Next: Pie Chart <PieChart className="h-4 w-4 ml-2" />
-          </Button>
         </div>
 
         {/* Bar Chart */}
@@ -119,6 +112,17 @@ const VisualizationBarChart = () => {
             </div>
           </div>
         </Card>
+
+        {/* Navigation */}
+        <div className="flex justify-center mt-6">
+          <Button 
+            onClick={() => navigate('/visualization/pie-chart', { state: { collected: collectedData } })} 
+            className="game-button" 
+            size="lg"
+          >
+            Next: Pie Chart
+          </Button>
+        </div>
       </div>
     </div>
   );
