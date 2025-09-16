@@ -510,27 +510,6 @@ const Learning = () => {
           </div>
 
 
-          {/* Draggable Items */}
-          <div className="mb-8">
-            <h3 className="text-lg font-bold text-gray-700 mb-4">Drag these items:</h3>
-            <div className="flex justify-center gap-4 flex-wrap">
-              {[
-                { id: count.toString(), label: `${count} ${animalConfig[animalType as keyof typeof animalConfig].emoji}`, color: 'bg-purple-200 border-purple-400' },
-                { id: totalAnimals.toString(), label: `${totalAnimals}`, color: 'bg-pink-200 border-pink-400' },
-                { id: '100', label: '100', color: 'bg-purple-200 border-purple-400' },
-                { id: percentage.toString(), label: `${percentage}%`, color: 'bg-green-200 border-green-400' }
-              ].map((item) => (
-                <div
-                  key={item.id}
-                  draggable
-                  onDragStart={() => handleDragStart(item.id)}
-                  className={`${item.color} px-6 py-4 rounded-2xl border-2 text-2xl font-bold cursor-move hover:scale-105 transition-transform shadow-sm`}
-                >
-                  {item.label}
-                </div>
-              ))}
-            </div>
-          </div>
 
           {/* Equation with Drop Zones */}
           <div className="mb-6">
