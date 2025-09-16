@@ -26,10 +26,10 @@ const VisualizationPieChart = () => {
   // Calculate total
   const totalAnimals = Object.values(collectedData).reduce((sum, count) => sum + count, 0);
 
-  // Animal configuration with colors and emojis
+  // Animal configuration with colors and emojis (matching game emojis)
   const animalConfig = {
     mammals: {
-      emoji: '🐺',
+      emoji: '🐘',
       color: '#8B5CF6',
       name: 'Mammals'
     },
@@ -44,12 +44,12 @@ const VisualizationPieChart = () => {
       name: 'Fish'
     },
     reptiles: {
-      emoji: '🦎',
+      emoji: '🐍',
       color: '#F59E0B',
       name: 'Reptiles'
     },
     insects: {
-      emoji: '🦋',
+      emoji: '🐛',
       color: '#EF4444',
       name: 'Insects'
     }
@@ -65,18 +65,6 @@ const VisualizationPieChart = () => {
           <h1 className="text-2xl md:text-3xl font-space-grotesk font-bold text-center lg:text-left">
             📊 Pie Chart View
           </h1>
-          <Button 
-            onClick={() => navigate('/whole-from-percentage', {
-              state: {
-                collected: collectedData,
-                totalCollected: totalAnimals
-              }
-            })} 
-            className="game-button"
-            size="sm"
-          >
-            Next
-          </Button>
         </div>
 
         {/* Pie Chart */}
@@ -194,7 +182,6 @@ const VisualizationPieChart = () => {
                         </div>
                         <div className="text-right">
                           <div className="font-dm-sans font-bold text-lg">{count}</div>
-                          <div className="font-dm-sans text-sm text-muted-foreground">{percentage}%</div>
                         </div>
                       </div>
                     );
@@ -209,6 +196,17 @@ const VisualizationPieChart = () => {
             </div>
           </div>
         </Card>
+
+        {/* Navigation */}
+        <div className="flex justify-center mt-6">
+          <Button 
+            onClick={() => navigate('/learning')} 
+            className="game-button" 
+            size="lg"
+          >
+            Next: Learning
+          </Button>
+        </div>
       </div>
     </div>
   );
