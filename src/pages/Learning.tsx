@@ -190,32 +190,45 @@ const Learning = () => {
     return questions.slice(0, 5); // Limit to 5 questions
   };
 
+  // Auto-highlight first empty field
+  const getFirstEmptyField = () => {
+    const fieldOrder = ['animal', 'total', 'hundred'];
+    for (const field of fieldOrder) {
+      const fieldHasItem = droppedItems.some(drop => drop.zone === field);
+      if (!fieldHasItem) {
+        return field;
+      }
+    }
+    return '';
+  };
+
   // Click handlers for item selection (only for drag-drop questions)
   const handleItemClick = (item: string) => {
     // Only work in drag-drop mode
     if (!showDragDrop) return;
     
-    // Only place item if a field is selected
-    if (activeField) {
+    // Auto-select first empty field if none selected
+    const targetField = activeField || getFirstEmptyField();
+    
+    if (targetField) {
       setDroppedItems(prev => [
-        ...prev.filter(item => item.zone !== activeField),
-        { zone: activeField, item }
+        ...prev.filter(item => item.zone !== targetField),
+        { zone: targetField, item }
       ]);
       
       // Auto-progress to next empty field
       const fieldOrder = ['animal', 'total', 'hundred'];
-      const currentIndex = fieldOrder.indexOf(activeField);
       const newDroppedItems = [
-        ...droppedItems.filter(item => item.zone !== activeField),
-        { zone: activeField, item }
+        ...droppedItems.filter(item => item.zone !== targetField),
+        { zone: targetField, item }
       ];
       
       // Find next empty field
       let nextField = '';
-      for (let i = currentIndex + 1; i < fieldOrder.length; i++) {
-        const fieldHasItem = newDroppedItems.some(drop => drop.zone === fieldOrder[i]);
+      for (const field of fieldOrder) {
+        const fieldHasItem = newDroppedItems.some(drop => drop.zone === field);
         if (!fieldHasItem) {
-          nextField = fieldOrder[i];
+          nextField = field;
           break;
         }
       }
@@ -249,6 +262,7 @@ const Learning = () => {
         if (currentDragDropIndex < dragDropQuestions.length - 1) {
           setCurrentDragDropIndex(prev => prev + 1);
           setDroppedItems([]);
+          setActiveField('animal'); // Auto-highlight first field for next question
           setShowConfetti(false);
         } else {
           // All questions completed, navigate to next page
@@ -286,7 +300,7 @@ const Learning = () => {
         setDragDropQuestions(questions);
         setCurrentDragDropIndex(0);
         setDroppedItems([]);
-        setActiveField('animal');
+        setActiveField('animal'); // Auto-highlight first field
         setShowDragDrop(true);
         setShowEquation(false);
         setShowPieChart(false);
@@ -581,15 +595,15 @@ const Learning = () => {
               {/* Click Zone 1 */}
               <div
                 onClick={() => setActiveField('animal')}
-                className={`w-20 h-16 border-4 rounded-2xl flex items-center justify-center text-xs font-bold transition-all cursor-pointer ${
-                  activeField === 'animal'
+                className={`w-20 h-16 border-4 rounded-2xl flex items-center justify-center text-lg font-bold transition-all cursor-pointer ${
+                  (activeField === 'animal' || (!activeField && getFirstEmptyField() === 'animal'))
                     ? 'border-blue-500 bg-blue-100 animate-pulse ring-4 ring-blue-200'
                     : droppedItems.find(item => item.zone === 'animal') 
-                      ? 'bg-purple-100 border-purple-400 text-purple-700 hover:bg-purple-200 text-lg' 
+                      ? 'bg-purple-100 border-purple-400 text-purple-700 hover:bg-purple-200' 
                       : 'border-gray-400 text-gray-400 hover:border-purple-400 hover:bg-purple-50'
                 }`}
               >
-                {droppedItems.find(item => item.zone === 'animal')?.item || (activeField === 'animal' ? 'Click number!' : 'Click me')}
+                {droppedItems.find(item => item.zone === 'animal')?.item || '?'}
               </div>
               
               <span className="text-gray-500">÷</span>
@@ -597,15 +611,15 @@ const Learning = () => {
               {/* Click Zone 2 */}
               <div
                 onClick={() => setActiveField('total')}
-                className={`w-20 h-16 border-4 rounded-2xl flex items-center justify-center text-xs font-bold transition-all cursor-pointer ${
-                  activeField === 'total'
+                className={`w-20 h-16 border-4 rounded-2xl flex items-center justify-center text-lg font-bold transition-all cursor-pointer ${
+                  (activeField === 'total' || (!activeField && getFirstEmptyField() === 'total'))
                     ? 'border-blue-500 bg-blue-100 animate-pulse ring-4 ring-blue-200'
                     : droppedItems.find(item => item.zone === 'total') 
-                      ? 'bg-pink-100 border-pink-400 text-pink-700 hover:bg-pink-200 text-lg' 
+                      ? 'bg-pink-100 border-pink-400 text-pink-700 hover:bg-pink-200' 
                       : 'border-gray-400 text-gray-400 hover:border-pink-400 hover:bg-pink-50'
                 }`}
               >
-                {droppedItems.find(item => item.zone === 'total')?.item || (activeField === 'total' ? 'Click number!' : 'Click me')}
+                {droppedItems.find(item => item.zone === 'total')?.item || '?'}
               </div>
               
               <span className="text-gray-500">×</span>
@@ -613,15 +627,15 @@ const Learning = () => {
               {/* Click Zone 3 */}
               <div
                 onClick={() => setActiveField('hundred')}
-                className={`w-20 h-16 border-4 rounded-2xl flex items-center justify-center text-xs font-bold transition-all cursor-pointer ${
-                  activeField === 'hundred'
+                className={`w-20 h-16 border-4 rounded-2xl flex items-center justify-center text-lg font-bold transition-all cursor-pointer ${
+                  (activeField === 'hundred' || (!activeField && getFirstEmptyField() === 'hundred'))
                     ? 'border-blue-500 bg-blue-100 animate-pulse ring-4 ring-blue-200'
                     : droppedItems.find(item => item.zone === 'hundred') 
-                      ? 'bg-purple-100 border-purple-400 text-purple-700 hover:bg-purple-200 text-lg' 
+                      ? 'bg-purple-100 border-purple-400 text-purple-700 hover:bg-purple-200' 
                       : 'border-gray-400 text-gray-400 hover:border-purple-400 hover:bg-purple-50'
                 }`}
               >
-                {droppedItems.find(item => item.zone === 'hundred')?.item || (activeField === 'hundred' ? 'Click number!' : 'Click me')}
+                {droppedItems.find(item => item.zone === 'hundred')?.item || '?'}
               </div>
               
               <span className="text-gray-500">=</span>
