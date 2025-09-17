@@ -507,9 +507,15 @@ const Learning = () => {
                   
                   <span className="text-gray-500">=</span>
                   
-                  <div className="bg-pink-100 px-4 py-3 rounded-2xl border-2 border-pink-300">
-                    {targetPercentage}% {targetConfig.emoji}
-                  </div>
+                  {droppedItems.length === 3 ? (
+                    <div className="bg-pink-100 px-4 py-3 rounded-2xl border-2 border-pink-300">
+                      {targetPercentage}% {targetConfig.emoji}
+                    </div>
+                  ) : (
+                    <div className="w-20 h-16 border-4 border-dashed border-gray-300 rounded-2xl flex items-center justify-center text-gray-400">
+                      ?
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -639,9 +645,15 @@ const Learning = () => {
               
               <span className="text-gray-500">=</span>
               
-              <div className="bg-pink-100 px-4 py-3 rounded-2xl border-2 border-pink-300">
-                {percentage}% {animalConfig[animalType as keyof typeof animalConfig].emoji}
-              </div>
+              {droppedItems.length === 3 ? (
+                <div className="bg-pink-100 px-4 py-3 rounded-2xl border-2 border-pink-300">
+                  {percentage}% {animalConfig[animalType as keyof typeof animalConfig].emoji}
+                </div>
+              ) : (
+                <div className="w-20 h-16 border-4 border-dashed border-gray-300 rounded-2xl flex items-center justify-center text-gray-400">
+                  ?
+                </div>
+              )}
             </div>
           </div>
 
