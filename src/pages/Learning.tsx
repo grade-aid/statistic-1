@@ -471,16 +471,16 @@ const Learning = () => {
               
               {/* Explanation */}
               <div className="mb-6">
-                <h3 className="text-lg font-bold text-gray-700 mb-4">Step by step:</h3>
+                <h3 className="text-lg font-bold text-gray-700 mb-4">How we calculate it:</h3>
                 <div className="space-y-3 text-left max-w-md mx-auto">
                   <div className="bg-white p-3 rounded-lg border border-gray-200">
-                    <strong>Step 1:</strong> Count {targetConfig.name.toLowerCase()}: <strong>{targetCount} {targetConfig.emoji}</strong>
+                    Count {targetConfig.name.toLowerCase()}: <strong>{targetCount} {targetConfig.emoji}</strong>
                   </div>
                   <div className="bg-white p-3 rounded-lg border border-gray-200">
-                    <strong>Step 2:</strong> Count total animals: <strong>{totalAnimals}</strong>
+                    Count total animals: <strong>{totalAnimals}</strong>
                   </div>
                   <div className="bg-white p-3 rounded-lg border border-gray-200">
-                    <strong>Step 3:</strong> Divide and multiply by 100: <strong>{targetCount} ÷ {totalAnimals} × 100 = {targetPercentage}%</strong>
+                    Divide and multiply by 100: <strong>{targetCount} ÷ {totalAnimals} × 100 = {targetPercentage}%</strong>
                   </div>
                 </div>
               </div>
