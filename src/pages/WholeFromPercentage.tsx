@@ -828,7 +828,7 @@ const WholeFromPercentage = () => {
                         style={{ aspectRatio: '1' }}
                       >
                         {isPlayer && <span className="text-sm drop-shadow-sm">🧑</span>}
-                        {animal && <span className="text-sm drop-shadow-sm animate-bounce">{animal.emoji}</span>}
+                        {animal && <span className="text-sm drop-shadow-sm">{animal.emoji}</span>}
                         {hunter && (
                           <div className="w-full h-full bg-red-500 rounded-full flex items-center justify-center shadow-lg border-2 border-red-600">
                             <span className="text-xs drop-shadow-sm">{hunter.emoji}</span>
