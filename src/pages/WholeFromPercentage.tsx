@@ -911,7 +911,8 @@ const WholeFromPercentage = () => {
                     <div className="text-4xl text-gray-500 font-bold">×</div>
                     <div className="bg-purple-100 px-4 py-4 rounded-2xl border-2 border-purple-300 text-center min-w-[100px] shadow-sm">
                       <div className="text-sm font-bold text-purple-600 mb-1">Decimal</div>
-                      <div className="text-3xl font-bold text-purple-800">{(currentExercise.percentage / 100).toFixed(2)}</div>
+                      <div className="text-2xl font-bold text-purple-800">{(currentExercise.percentage / 100).toFixed(2)}</div>
+                      <div className="text-lg font-bold text-purple-700">({currentExercise.percentage}%)</div>
                     </div>
                     <div className="text-4xl text-gray-500 font-bold">=</div>
                     <div className={`px-4 py-4 rounded-2xl border-2 text-center min-w-[100px] shadow-sm transition-all duration-500 ${
