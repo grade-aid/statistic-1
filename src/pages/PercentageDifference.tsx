@@ -766,19 +766,19 @@ const PercentageDifference = () => {
                 </div>
 
                 {showCalculation && (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
                     {/* Step 1 - Find Difference */}
                     {showStep1 && (
-                      <div className="bg-blue-50 p-3 rounded-lg border-2 border-blue-200 animate-fade-in">
-                        <div className="flex items-center gap-2 mb-2">
-                          <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold">1</div>
-                          <h4 className="text-sm font-bold text-blue-800">Find difference</h4>
+                      <div className="bg-blue-50 p-6 rounded-xl border-3 border-blue-300 animate-fade-in shadow-lg">
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center text-lg font-bold shadow-md">1</div>
+                          <h4 className="text-lg font-bold text-blue-800">Find difference</h4>
                         </div>
-                        <div className="bg-white p-2 rounded border border-blue-200 text-center">
-                          <div className="text-xs mb-1 text-blue-600">
+                        <div className="bg-white p-4 rounded-lg border-2 border-blue-200 text-center shadow-sm">
+                          <div className="text-base mb-2 text-blue-600 font-semibold">
                             ${currentExample.newPrice} - ${currentExample.oldPrice}
                           </div>
-                          <div className="text-sm font-bold text-blue-600">
+                          <div className="text-xl font-bold text-blue-600">
                             = ${Math.abs(currentExample.newPrice - currentExample.oldPrice)}
                           </div>
                         </div>
@@ -787,16 +787,16 @@ const PercentageDifference = () => {
 
                     {/* Step 2 - Divide by Base Price */}
                     {showStep2 && (
-                      <div className="bg-purple-50 p-3 rounded-lg border-2 border-purple-200 animate-fade-in">
-                        <div className="flex items-center gap-2 mb-2">
-                          <div className="w-6 h-6 bg-purple-500 text-white rounded-full flex items-center justify-center text-sm font-bold">2</div>
-                          <h4 className="text-sm font-bold text-purple-800">Divide by {currentExample.isIncrease ? 'original' : 'final'}</h4>
+                      <div className="bg-purple-50 p-6 rounded-xl border-3 border-purple-300 animate-fade-in shadow-lg">
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="w-10 h-10 bg-purple-500 text-white rounded-full flex items-center justify-center text-lg font-bold shadow-md">2</div>
+                          <h4 className="text-lg font-bold text-purple-800">Divide by {currentExample.isIncrease ? 'original' : 'final'}</h4>
                         </div>
-                        <div className="bg-white p-2 rounded border border-purple-200 text-center">
-                          <div className="text-xs mb-1 text-purple-600">
+                        <div className="bg-white p-4 rounded-lg border-2 border-purple-200 text-center shadow-sm">
+                          <div className="text-base mb-2 text-purple-600 font-semibold">
                             ${Math.abs(currentExample.newPrice - currentExample.oldPrice)} ÷ ${currentExample.isIncrease ? currentExample.oldPrice : currentExample.newPrice}
                           </div>
-                          <div className="text-sm font-bold text-purple-600">
+                          <div className="text-xl font-bold text-purple-600">
                             = {(Math.abs(currentExample.newPrice - currentExample.oldPrice) / (currentExample.isIncrease ? currentExample.oldPrice : currentExample.newPrice)).toFixed(2)}
                           </div>
                         </div>
@@ -805,17 +805,17 @@ const PercentageDifference = () => {
 
                     {/* Step 3 - Multiply by 100 */}
                     {showStep3 && (
-                      <div className="bg-pink-50 p-3 rounded-lg border-2 border-pink-200 animate-fade-in">
-                        <div className="flex items-center gap-2 mb-2">
-                          <div className="w-6 h-6 bg-pink-500 text-white rounded-full flex items-center justify-center text-sm font-bold">3</div>
-                          <h4 className="text-sm font-bold text-pink-800">× 100</h4>
+                      <div className="bg-pink-50 p-6 rounded-xl border-3 border-pink-300 animate-fade-in shadow-lg">
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="w-10 h-10 bg-pink-500 text-white rounded-full flex items-center justify-center text-lg font-bold shadow-md">3</div>
+                          <h4 className="text-lg font-bold text-pink-800">× 100</h4>
                         </div>
-                        <div className="bg-white p-2 rounded border border-pink-200 text-center">
-                          <div className="text-xs mb-1 text-pink-600">
+                        <div className="bg-white p-4 rounded-lg border-2 border-pink-200 text-center shadow-sm">
+                          <div className="text-base mb-2 text-pink-600 font-semibold">
                             {(Math.abs(currentExample.newPrice - currentExample.oldPrice) / (currentExample.isIncrease ? currentExample.oldPrice : currentExample.newPrice)).toFixed(2)} × 100
                           </div>
-                          <div className="bg-gradient-to-r from-pink-500 to-purple-500 text-white px-2 py-1 rounded text-sm">
-                            <span className="font-bold">= {currentExample.percentageChange}%</span>
+                          <div className="bg-gradient-to-r from-pink-500 to-purple-500 text-white px-4 py-2 rounded-lg text-xl font-bold shadow-md">
+                            = {currentExample.percentageChange}%
                           </div>
                         </div>
                       </div>
@@ -824,11 +824,11 @@ const PercentageDifference = () => {
                 )}
 
                 {showResult && (
-                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-lg border-2 border-green-200 animate-scale-in text-center">
-                    <div className="text-2xl mb-1">
+                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-xl border-3 border-green-300 animate-scale-in text-center shadow-lg mt-6">
+                    <div className="text-4xl mb-3">
                       {currentExample.isIncrease ? '📈' : '📉'}
                     </div>
-                    <div className="text-lg font-bold text-green-700">
+                    <div className="text-2xl font-bold text-green-700">
                       {currentExample.percentageChange}% {currentExample.isIncrease ? 'Increase' : 'Decrease'}
                     </div>
                   </div>
@@ -836,21 +836,32 @@ const PercentageDifference = () => {
               </div>
 
               {/* Action Buttons */}
-              <div className="mt-4 flex gap-3 flex-shrink-0">
+              <div className="mt-6 flex gap-3 flex-shrink-0">
                 {!showCalculation ? (
                   <Button 
                     onClick={handleShowCalculation}
-                    className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 h-12 text-lg rounded-2xl min-w-[150px]"
+                    className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 h-14 text-xl rounded-2xl min-w-[150px] shadow-lg"
                   >
                     Show Calculation
                   </Button>
                 ) : (
                   <Button 
                     onClick={handleNextExample}
-                    className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 h-12 text-lg rounded-2xl min-w-[150px]"
+                    disabled={!showResult}
+                    className={`flex-1 h-14 text-xl rounded-2xl min-w-[150px] shadow-lg transition-all ${
+                      showResult 
+                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600' 
+                        : 'bg-gray-300 cursor-not-allowed opacity-50'
+                    }`}
                   >
-                    {currentExampleIndex < examples.length - 1 ? 'Next Example' : 'Start Practice'} 
-                    <ArrowRight className="w-4 h-4 ml-2" />
+                    {showResult ? (
+                      <>
+                        {currentExampleIndex < examples.length - 1 ? 'Next Example' : 'Start Practice'} 
+                        <ArrowRight className="w-5 h-5 ml-2" />
+                      </>
+                    ) : (
+                      <span className="animate-pulse">View all steps first...</span>
+                    )}
                   </Button>
                 )}
               </div>
