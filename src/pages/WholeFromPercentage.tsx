@@ -1028,7 +1028,7 @@ const WholeFromPercentage = () => {
                         const currentAnimal = dragDropQuestions[currentDragDropIndex].animalType;
                         return [
                           { id: totalCollected.toString(), label: `${totalCollected}`, color: 'bg-purple-200 border-purple-400 hover:bg-purple-300' },
-                          { id: `${percentageValue}%`, label: `${percentageValue}% ${animalConfig[currentAnimal].emoji}`, color: 'bg-pink-200 border-pink-400 hover:bg-pink-300' }
+                          { id: `${percentageValue}%`, label: `${(percentageValue / 100).toFixed(2)} (${percentageValue}%) ${animalConfig[currentAnimal].emoji}`, color: 'bg-pink-200 border-pink-400 hover:bg-pink-300' }
                         ];
                       })().map((item) => (
                         <div
