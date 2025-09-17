@@ -190,8 +190,11 @@ const Learning = () => {
     return questions.slice(0, 5); // Limit to 5 questions
   };
 
-  // Click handlers for item selection
+  // Click handlers for item selection (only for drag-drop questions)
   const handleItemClick = (item: string) => {
+    // Only work in drag-drop mode
+    if (!showDragDrop) return;
+    
     // Only place item if a field is selected
     if (activeField) {
       setDroppedItems(prev => [
@@ -199,8 +202,25 @@ const Learning = () => {
         { zone: activeField, item }
       ]);
       
-      // Clear active field after placing item
-      setActiveField('');
+      // Auto-progress to next empty field
+      const fieldOrder = ['animal', 'total', 'hundred'];
+      const currentIndex = fieldOrder.indexOf(activeField);
+      const newDroppedItems = [
+        ...droppedItems.filter(item => item.zone !== activeField),
+        { zone: activeField, item }
+      ];
+      
+      // Find next empty field
+      let nextField = '';
+      for (let i = currentIndex + 1; i < fieldOrder.length; i++) {
+        const fieldHasItem = newDroppedItems.some(drop => drop.zone === fieldOrder[i]);
+        if (!fieldHasItem) {
+          nextField = fieldOrder[i];
+          break;
+        }
+      }
+      
+      setActiveField(nextField);
     }
   };
 
@@ -435,87 +455,48 @@ const Learning = () => {
                 </div>
               </div>
               
-              {/* Clickable Items */}
+              {/* Explanation */}
               <div className="mb-6">
-                <h3 className="text-lg font-bold text-gray-700 mb-4">Click these items:</h3>
-                <div className="flex justify-center gap-4 flex-wrap">
-                  {[
-                    { id: targetCount.toString(), label: `${targetCount} ${targetConfig.emoji}`, color: 'bg-purple-200 border-purple-400' },
-                    { id: totalAnimals.toString(), label: `${totalAnimals}`, color: 'bg-pink-200 border-pink-400' },
-                    { id: '100', label: '100', color: 'bg-purple-200 border-purple-400' }
-                  ].map((item) => (
-                    <div
-                      key={item.id}
-                      onClick={() => handleItemClick(item.id)}
-                      className={`${item.color} px-6 py-4 rounded-2xl border-2 text-xl font-bold cursor-pointer hover:scale-105 transition-transform shadow-sm hover:shadow-md`}
-                    >
-                      {item.label}
-                    </div>
-                  ))}
+                <h3 className="text-lg font-bold text-gray-700 mb-4">Step by step:</h3>
+                <div className="space-y-3 text-left max-w-md mx-auto">
+                  <div className="bg-white p-3 rounded-lg border border-gray-200">
+                    <strong>Step 1:</strong> Count {targetConfig.name.toLowerCase()}: <strong>{targetCount} {targetConfig.emoji}</strong>
+                  </div>
+                  <div className="bg-white p-3 rounded-lg border border-gray-200">
+                    <strong>Step 2:</strong> Count total animals: <strong>{totalAnimals}</strong>
+                  </div>
+                  <div className="bg-white p-3 rounded-lg border border-gray-200">
+                    <strong>Step 3:</strong> Divide and multiply by 100: <strong>{targetCount} ÷ {totalAnimals} × 100 = {targetPercentage}%</strong>
+                  </div>
                 </div>
               </div>
 
-              {/* Interactive Equation */}
+              {/* Pre-filled Equation */}
               <div className="mb-6">
-                <h3 className="text-lg font-bold text-gray-700 mb-4">Complete the equation:</h3>
+                <h3 className="text-lg font-bold text-gray-700 mb-4">Here's how we calculate it:</h3>
                 <div className="flex items-center justify-center gap-4 flex-wrap text-2xl font-bold">
-                  {/* Click Zone 1 */}
-                  <div
-                    onClick={() => setActiveField('animal')}
-                    className={`w-20 h-16 border-4 rounded-2xl flex items-center justify-center text-lg font-bold transition-all cursor-pointer ${
-                      activeField === 'animal'
-                        ? 'border-blue-500 bg-blue-100 animate-pulse'
-                        : droppedItems.find(item => item.zone === 'animal') 
-                          ? 'bg-purple-100 border-purple-400 text-purple-700 hover:bg-purple-200' 
-                          : 'border-gray-400 text-gray-400 hover:border-purple-400'
-                    }`}
-                  >
-                    {droppedItems.find(item => item.zone === 'animal')?.item || '?'}
+                  {/* Pre-filled values */}
+                  <div className="bg-purple-100 px-4 py-3 rounded-2xl border-2 border-purple-300">
+                    {targetCount}
                   </div>
                   
                   <span className="text-gray-500">÷</span>
                   
-                  {/* Click Zone 2 */}
-                  <div
-                    onClick={() => setActiveField('total')}
-                    className={`w-20 h-16 border-4 rounded-2xl flex items-center justify-center text-lg font-bold transition-all cursor-pointer ${
-                      activeField === 'total'
-                        ? 'border-blue-500 bg-blue-100 animate-pulse'
-                        : droppedItems.find(item => item.zone === 'total') 
-                          ? 'bg-pink-100 border-pink-400 text-pink-700 hover:bg-pink-200' 
-                          : 'border-gray-400 text-gray-400 hover:border-pink-400'
-                    }`}
-                  >
-                    {droppedItems.find(item => item.zone === 'total')?.item || '?'}
+                  <div className="bg-pink-100 px-4 py-3 rounded-2xl border-2 border-pink-300">
+                    {totalAnimals}
                   </div>
                   
                   <span className="text-gray-500">×</span>
                   
-                  {/* Click Zone 3 */}
-                  <div
-                    onClick={() => setActiveField('hundred')}
-                    className={`w-20 h-16 border-4 rounded-2xl flex items-center justify-center text-lg font-bold transition-all cursor-pointer ${
-                      activeField === 'hundred'
-                        ? 'border-blue-500 bg-blue-100 animate-pulse'
-                        : droppedItems.find(item => item.zone === 'hundred') 
-                          ? 'bg-purple-100 border-purple-400 text-purple-700 hover:bg-purple-200' 
-                          : 'border-gray-400 text-gray-400 hover:border-purple-400'
-                    }`}
-                  >
-                    {droppedItems.find(item => item.zone === 'hundred')?.item || '?'}
+                  <div className="bg-purple-100 px-4 py-3 rounded-2xl border-2 border-purple-300">
+                    100
                   </div>
                   
                   <span className="text-gray-500">=</span>
                   
-                  {droppedItems.length === 3 ? (
-                    <div className="bg-pink-100 px-4 py-3 rounded-2xl border-2 border-pink-300">
-                      {targetPercentage}% {targetConfig.emoji}
-                    </div>
-                  ) : (
-                    <div className="w-20 h-16 border-4 border-dashed border-gray-300 rounded-2xl flex items-center justify-center text-gray-400">
-                      ?
-                    </div>
-                  )}
+                  <div className="bg-green-100 px-4 py-3 rounded-2xl border-2 border-green-300">
+                    {targetPercentage}% {targetConfig.emoji}
+                  </div>
                 </div>
               </div>
             </div>
@@ -595,20 +576,20 @@ const Learning = () => {
 
           {/* Equation with Click Zones */}
           <div className="mb-6">
-            <h3 className="text-lg font-bold text-gray-700 mb-4">Complete the equation:</h3>
+            <h3 className="text-lg font-bold text-gray-700 mb-4">Complete the equation by clicking fields first, then numbers:</h3>
             <div className="flex items-center justify-center gap-4 flex-wrap text-2xl font-bold">
               {/* Click Zone 1 */}
               <div
                 onClick={() => setActiveField('animal')}
-                className={`w-20 h-16 border-4 rounded-2xl flex items-center justify-center text-lg font-bold transition-all cursor-pointer ${
+                className={`w-20 h-16 border-4 rounded-2xl flex items-center justify-center text-xs font-bold transition-all cursor-pointer ${
                   activeField === 'animal'
-                    ? 'border-blue-500 bg-blue-100 animate-pulse'
+                    ? 'border-blue-500 bg-blue-100 animate-pulse ring-4 ring-blue-200'
                     : droppedItems.find(item => item.zone === 'animal') 
-                      ? 'bg-purple-100 border-purple-400 text-purple-700 hover:bg-purple-200' 
-                      : 'border-gray-400 text-gray-400 hover:border-purple-400'
+                      ? 'bg-purple-100 border-purple-400 text-purple-700 hover:bg-purple-200 text-lg' 
+                      : 'border-gray-400 text-gray-400 hover:border-purple-400 hover:bg-purple-50'
                 }`}
               >
-                {droppedItems.find(item => item.zone === 'animal')?.item || '?'}
+                {droppedItems.find(item => item.zone === 'animal')?.item || (activeField === 'animal' ? 'Click number!' : 'Click me')}
               </div>
               
               <span className="text-gray-500">÷</span>
@@ -616,15 +597,15 @@ const Learning = () => {
               {/* Click Zone 2 */}
               <div
                 onClick={() => setActiveField('total')}
-                className={`w-20 h-16 border-4 rounded-2xl flex items-center justify-center text-lg font-bold transition-all cursor-pointer ${
+                className={`w-20 h-16 border-4 rounded-2xl flex items-center justify-center text-xs font-bold transition-all cursor-pointer ${
                   activeField === 'total'
-                    ? 'border-blue-500 bg-blue-100 animate-pulse'
+                    ? 'border-blue-500 bg-blue-100 animate-pulse ring-4 ring-blue-200'
                     : droppedItems.find(item => item.zone === 'total') 
-                      ? 'bg-pink-100 border-pink-400 text-pink-700 hover:bg-pink-200' 
-                      : 'border-gray-400 text-gray-400 hover:border-pink-400'
+                      ? 'bg-pink-100 border-pink-400 text-pink-700 hover:bg-pink-200 text-lg' 
+                      : 'border-gray-400 text-gray-400 hover:border-pink-400 hover:bg-pink-50'
                 }`}
               >
-                {droppedItems.find(item => item.zone === 'total')?.item || '?'}
+                {droppedItems.find(item => item.zone === 'total')?.item || (activeField === 'total' ? 'Click number!' : 'Click me')}
               </div>
               
               <span className="text-gray-500">×</span>
@@ -632,21 +613,21 @@ const Learning = () => {
               {/* Click Zone 3 */}
               <div
                 onClick={() => setActiveField('hundred')}
-                className={`w-20 h-16 border-4 rounded-2xl flex items-center justify-center text-lg font-bold transition-all cursor-pointer ${
+                className={`w-20 h-16 border-4 rounded-2xl flex items-center justify-center text-xs font-bold transition-all cursor-pointer ${
                   activeField === 'hundred'
-                    ? 'border-blue-500 bg-blue-100 animate-pulse'
+                    ? 'border-blue-500 bg-blue-100 animate-pulse ring-4 ring-blue-200'
                     : droppedItems.find(item => item.zone === 'hundred') 
-                      ? 'bg-purple-100 border-purple-400 text-purple-700 hover:bg-purple-200' 
-                      : 'border-gray-400 text-gray-400 hover:border-purple-400'
+                      ? 'bg-purple-100 border-purple-400 text-purple-700 hover:bg-purple-200 text-lg' 
+                      : 'border-gray-400 text-gray-400 hover:border-purple-400 hover:bg-purple-50'
                 }`}
               >
-                {droppedItems.find(item => item.zone === 'hundred')?.item || '?'}
+                {droppedItems.find(item => item.zone === 'hundred')?.item || (activeField === 'hundred' ? 'Click number!' : 'Click me')}
               </div>
               
               <span className="text-gray-500">=</span>
               
               {droppedItems.length === 3 ? (
-                <div className="bg-pink-100 px-4 py-3 rounded-2xl border-2 border-pink-300">
+                <div className="bg-green-100 px-4 py-3 rounded-2xl border-2 border-green-300">
                   {percentage}% {animalConfig[animalType as keyof typeof animalConfig].emoji}
                 </div>
               ) : (
