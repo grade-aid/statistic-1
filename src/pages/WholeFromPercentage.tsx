@@ -84,12 +84,12 @@ const WholeFromPercentage = () => {
   const [showConfetti, setShowConfetti] = useState(false);
   const [showAnswer, setShowAnswer] = useState(false);
 
-  // Drag-drop questions state
+  // Click-to-place questions state
   const [showDragDrop, setShowDragDrop] = useState(false);
   const [dragDropQuestions, setDragDropQuestions] = useState<DragDropQuestion[]>([]);
   const [currentDragDropIndex, setCurrentDragDropIndex] = useState(0);
   const [droppedItems, setDroppedItems] = useState<DroppedItem[]>([]);
-  const [draggedItem, setDraggedItem] = useState<string | null>(null);
+  const [activeField, setActiveField] = useState<string>('total');
   const [completedDragDropQuestions, setCompletedDragDropQuestions] = useState<string[]>([]);
 
   // Intro animation states (always declared)
@@ -284,23 +284,45 @@ const WholeFromPercentage = () => {
     return questions;
   }, [collected]);
 
-  const handleDragStart = (item: string) => {
-    setDraggedItem(item);
+  // Auto-highlight first empty field
+  const getFirstEmptyField = () => {
+    const fieldOrder = ['total', 'percentage'];
+    for (const field of fieldOrder) {
+      const fieldHasItem = droppedItems.some(drop => drop.zone === field);
+      if (!fieldHasItem) {
+        return field;
+      }
+    }
+    return '';
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-  };
-
-  const handleDrop = (e: React.DragEvent, zone: string) => {
-    e.preventDefault();
-    if (draggedItem) {
+  // Click handlers for item selection
+  const handleItemClick = (item: string) => {
+    // Auto-select first empty field if none selected
+    const targetField = activeField || getFirstEmptyField();
+    
+    if (targetField) {
       const updatedDroppedItems = [
-        ...droppedItems.filter(item => item.zone !== zone),
-        { zone, item: draggedItem }
+        ...droppedItems.filter(item => item.zone !== targetField),
+        { zone: targetField, item }
       ];
       setDroppedItems(updatedDroppedItems);
-      setDraggedItem(null);
+      
+      // Auto-progress to next empty field
+      const fieldOrder = ['total', 'percentage'];
+      const newDroppedItems = updatedDroppedItems;
+      
+      // Find next empty field
+      let nextField = '';
+      for (const field of fieldOrder) {
+        const fieldHasItem = newDroppedItems.some(drop => drop.zone === field);
+        if (!fieldHasItem) {
+          nextField = field;
+          break;
+        }
+      }
+      
+      setActiveField(nextField);
 
       // Auto-check answer when both total and percentage zones are filled
       if (updatedDroppedItems.length === 2) {
@@ -312,15 +334,6 @@ const WholeFromPercentage = () => {
           const percentageDrop = updatedDroppedItems.find(item => item.zone === 'percentage');
 
           const percentageValue = Math.round((collected[currentQuestion.animalType] / totalCollected) * 100);
-
-          console.log('Validation check:', {
-            totalDropped: totalDrop?.item,
-            totalExpected: totalCollected.toString(),
-            percentageDropped: percentageDrop?.item, 
-            percentageExpected: `${percentageValue}% ${animalConfig[currentQuestion.animalType].emoji}`,
-            totalMatch: totalDrop?.item === totalCollected.toString(),
-            percentageMatch: percentageDrop?.item === `${percentageValue}% ${animalConfig[currentQuestion.animalType].emoji}`
-          });
 
           const isCorrect = totalDrop?.item === totalCollected.toString() &&
                  percentageDrop?.item === `${percentageValue}% ${animalConfig[currentQuestion.animalType].emoji}`;
@@ -338,6 +351,7 @@ const WholeFromPercentage = () => {
               if (currentDragDropIndex < dragDropQuestions.length - 1) {
                 setCurrentDragDropIndex(prev => prev + 1);
                 setDroppedItems([]);
+                setActiveField('total'); // Reset to first field for next question
                 setShowConfetti(false);
               } else {
                 // All questions completed, move to next phase
@@ -961,11 +975,12 @@ const WholeFromPercentage = () => {
                           if (nextExercise) {
                             setCurrentExercise(nextExercise);
                           } else {
-            // Start drag-drop questions
+            // Start click-to-place questions
             const dragDropQs = generateDragDropQuestions();
             setDragDropQuestions(dragDropQs);
             setCurrentDragDropIndex(0);
             setDroppedItems([]);
+            setActiveField('total'); // Auto-highlight first field
             setCompletedDragDropQuestions([]);
             setShowDragDrop(true);
                           }
@@ -993,7 +1008,7 @@ const WholeFromPercentage = () => {
                     {animalConfig[dragDropQuestions[currentDragDropIndex].animalType].emoji}
                   </div>
                   <h2 className="text-2xl font-bold text-gray-700 mb-2">
-                    Drag the correct numbers into the equation
+                    Click the correct numbers into the equation
                   </h2>
                   <div className="text-lg text-purple-600 font-semibold">
                     Question {currentDragDropIndex + 1} of {dragDropQuestions.length}
@@ -1003,23 +1018,22 @@ const WholeFromPercentage = () => {
                 {/* Drag-Drop Interface */}
                 <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-2xl mb-6 flex-1 flex flex-col justify-center border-2 border-purple-200">
                   
-                  {/* Draggable Items */}
+                  {/* Clickable Items */}
                   <div className="mb-8">
-                    <h3 className="text-lg font-bold text-gray-700 mb-4">Drag these items:</h3>
+                    <h3 className="text-lg font-bold text-gray-700 mb-4">Click these items:</h3>
                     <div className="flex justify-center gap-4 flex-wrap">
                       {(() => {
                         const percentageValue = Math.round((collected[dragDropQuestions[currentDragDropIndex].animalType] / totalCollected) * 100);
                         const currentAnimal = dragDropQuestions[currentDragDropIndex].animalType;
                         return [
-                          { id: totalCollected.toString(), label: `${totalCollected}`, color: 'bg-purple-200 border-purple-400' },
-                          { id: `${percentageValue}%`, label: `${percentageValue}% ${animalConfig[currentAnimal].emoji}`, color: 'bg-pink-200 border-pink-400' }
+                          { id: totalCollected.toString(), label: `${totalCollected}`, color: 'bg-purple-200 border-purple-400 hover:bg-purple-300' },
+                          { id: `${percentageValue}%`, label: `${percentageValue}% ${animalConfig[currentAnimal].emoji}`, color: 'bg-pink-200 border-pink-400 hover:bg-pink-300' }
                         ];
                       })().map((item) => (
                         <div
                           key={item.id}
-                          draggable
-                          onDragStart={() => handleDragStart(item.label)}
-                          className={`${item.color} px-6 py-4 rounded-2xl border-2 text-2xl font-bold cursor-move hover:scale-105 transition-transform shadow-sm`}
+                          onClick={() => handleItemClick(item.label)}
+                          className={`${item.color} px-6 py-4 rounded-2xl border-2 text-2xl font-bold cursor-pointer hover:scale-105 transition-all shadow-sm`}
                         >
                           {item.label}
                         </div>
@@ -1027,17 +1041,18 @@ const WholeFromPercentage = () => {
                     </div>
                   </div>
 
-                  {/* Equation with Drop Zones */}
+                  {/* Equation with Click Zones */}
                   <div className="mb-6">
                     <h3 className="text-lg font-bold text-gray-700 mb-4">Complete the equation:</h3>
                     <div className="flex items-center justify-center gap-4 flex-wrap text-2xl font-bold">
-                      {/* Total Drop Zone */}
+                      {/* Total Click Zone */}
                       <div
-                        onDragOver={handleDragOver}
-                        onDrop={(e) => handleDrop(e, 'total')}
-                        className={`w-20 h-16 border-4 border-dashed rounded-2xl flex items-center justify-center text-lg font-bold transition-all ${
+                        onClick={() => setActiveField('total')}
+                        className={`w-20 h-16 border-4 border-dashed rounded-2xl flex items-center justify-center text-lg font-bold transition-all cursor-pointer ${
                           droppedItems.find(item => item.zone === 'total') 
                             ? 'bg-purple-100 border-purple-400 text-purple-700' 
+                            : activeField === 'total'
+                            ? 'border-blue-400 ring-4 ring-blue-200 text-blue-600 animate-pulse'
                             : 'border-gray-400 text-gray-400 hover:border-purple-400'
                         }`}
                       >
@@ -1046,13 +1061,14 @@ const WholeFromPercentage = () => {
                       
                       <span className="text-gray-500">×</span>
                       
-                      {/* Percentage Drop Zone */}
+                      {/* Percentage Click Zone */}
                       <div
-                        onDragOver={handleDragOver}
-                        onDrop={(e) => handleDrop(e, 'percentage')}
-                        className={`w-24 h-16 border-4 border-dashed rounded-2xl flex items-center justify-center text-lg font-bold transition-all ${
+                        onClick={() => setActiveField('percentage')}
+                        className={`w-24 h-16 border-4 border-dashed rounded-2xl flex items-center justify-center text-lg font-bold transition-all cursor-pointer ${
                           droppedItems.find(item => item.zone === 'percentage') 
                             ? 'bg-pink-100 border-pink-400 text-pink-700' 
+                            : activeField === 'percentage'
+                            ? 'border-blue-400 ring-4 ring-blue-200 text-blue-600 animate-pulse'
                             : 'border-gray-400 text-gray-400 hover:border-pink-400'
                         }`}
                       >
@@ -1061,7 +1077,7 @@ const WholeFromPercentage = () => {
                       
                       <span className="text-gray-500">=</span>
                       
-                      {/* Result Drop Zone */}
+                      {/* Result Display */}
                       <div className="bg-green-100 px-4 py-3 rounded-2xl border-2 border-green-300 text-center min-w-[120px]">
                         <div className="text-sm font-semibold text-green-600 mb-1">Result</div>
                         <div className="text-3xl font-bold text-green-800">
@@ -1092,7 +1108,7 @@ const WholeFromPercentage = () => {
                 ) : droppedItems.length < 2 ? (
                   <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-2xl border-2 border-blue-200">
                     <div className="text-lg font-semibold text-blue-700">
-                      Drop both items to see the result!
+                      Click both items to see the result!
                     </div>
                     <div className="text-sm text-blue-600 mt-1">
                       {2 - droppedItems.length} more item{2 - droppedItems.length !== 1 ? 's' : ''} needed
